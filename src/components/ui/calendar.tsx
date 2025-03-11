@@ -1,9 +1,9 @@
-import * as React from "react"
-import { ChevronLeft, ChevronRight } from "lucide-react"
-import { DayPicker } from "react-day-picker"
+import * as React from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { DayPicker } from "react-day-picker";
 
-import { cn } from "@/lib/utils"
-import { buttonVariants } from "@/components/ui/button"
+import { cn } from "@/lib/utils";
+import { buttonVariants } from "@/components/ui/button";
 
 function Calendar({
   className,
@@ -58,16 +58,20 @@ function Calendar({
         ...classNames,
       }}
       components={{
-        IconLeft: ({ className, ...props }) => (
-          <ChevronLeft className={cn("size-4", className)} {...props} />
+        PreviousMonthButton: ({ ...props }) => (
+          <button {...props}>
+            <ChevronLeft className="size-4" />
+          </button>
         ),
-        IconRight: ({ className, ...props }) => (
-          <ChevronRight className={cn("size-4", className)} {...props} />
+        NextMonthButton: ({ ...props }) => (
+          <button {...props}>
+            <ChevronRight className="size-4" />
+          </button>
         ),
       }}
       {...props}
     />
-  )
+  );
 }
 
-export { Calendar }
+export { Calendar };
