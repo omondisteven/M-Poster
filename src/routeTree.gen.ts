@@ -12,18 +12,12 @@
 
 import { Route as rootRoute } from './routes/__root'
 import { Route as IndexImport } from './routes/index'
-import { Route as LayoutLayoutImport } from './routes/_layout/_layout'
 
 // Create/Update Routes
 
 const IndexRoute = IndexImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRoute,
-} as any)
-
-const LayoutLayoutRoute = LayoutLayoutImport.update({
-  id: '/_layout/_layout',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -38,13 +32,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexImport
       parentRoute: typeof rootRoute
     }
-    '/_layout/_layout': {
-      id: '/_layout/_layout'
-      path: ''
-      fullPath: ''
-      preLoaderRoute: typeof LayoutLayoutImport
-      parentRoute: typeof rootRoute
-    }
   }
 }
 
@@ -52,37 +39,32 @@ declare module '@tanstack/react-router' {
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '': typeof LayoutLayoutRoute
 }
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '': typeof LayoutLayoutRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
-  '/_layout/_layout': typeof LayoutLayoutRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | ''
+  fullPaths: '/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | ''
-  id: '__root__' | '/' | '/_layout/_layout'
+  to: '/'
+  id: '__root__' | '/'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  LayoutLayoutRoute: typeof LayoutLayoutRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  LayoutLayoutRoute: LayoutLayoutRoute,
 }
 
 export const routeTree = rootRoute
@@ -95,15 +77,11 @@ export const routeTree = rootRoute
     "__root__": {
       "filePath": "__root.tsx",
       "children": [
-        "/",
-        "/_layout/_layout"
+        "/"
       ]
     },
     "/": {
       "filePath": "index.tsx"
-    },
-    "/_layout/_layout": {
-      "filePath": "_layout/_layout.tsx"
     }
   }
 }
