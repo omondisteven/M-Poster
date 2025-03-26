@@ -295,7 +295,7 @@ function Home() {
         // Font sizes
         const titleFontSize = Math.round(Math.min(width, originalPosterHeight) * 0.1);
         const labelFontSize = Math.round(Math.min(width, originalPosterHeight) * 0.06);
-        const valueFontSize = Math.round(Math.min(width, originalPosterHeight) * 0.15);
+        const valueFontSize = Math.round(Math.min(width, originalPosterHeight) * 0.2);
         const nameFontSize = Math.round(Math.min(width, originalPosterHeight) * 0.1);
 
         // Draw Title text
