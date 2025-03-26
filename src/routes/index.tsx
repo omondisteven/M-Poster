@@ -874,29 +874,30 @@ function Home() {
             ref={posterRef}
             className="grid bg-white w-full rounded-lg shadow-lg overflow-hidden border-8 border-gray-800"
             style={{
-              gridTemplateRows: showName && title === "Send Money" ? "1fr 1fr 1fr" : "1fr 1fr",
+              gridTemplateRows: showName && title === "Send Money" ? "1fr 1fr 1fr" : "1fr 2fr", // Changed second section to 2fr
               aspectRatio: `${selectedTemplate.size.width} / ${selectedTemplate.size.height}`,
               maxHeight: "400px",
             }}
           >
-            {/* Title Section - Tightened */}
+            {/* Title Section */}
             <div 
               className="flex items-center justify-center" 
               style={{ 
                 backgroundColor: selectedColor,
-                minHeight: "50px",
+                minHeight: "60px", // Slightly increased for better balance
                 padding: "0.5rem 0"
               }}
             >
               <h2 className="text-2xl sm:text-3xl font-bold text-white text-center px-2">{title.toUpperCase()}</h2>
             </div>
 
-            {/* Details Section - Compact layout */}
+            {/* Details Section - Adjusted for better content distribution */}
             <div
-              className="bg-white flex flex-col justify-start"
+              className="bg-white flex flex-col justify-center" // Changed to justify-center
               style={{
                 borderTop: "8px solid #1a2335",
                 borderBottom: showName && title === "Send Money" ? "8px solid #1a2335" : "none",
+                padding: "0.5rem 0" // Added padding
               }}
             >
               {title === "Send Money" && (
@@ -906,23 +907,23 @@ function Home() {
               )}
 
               {title === "Pay Bill" && (
-                <div className="w-full">
+                <div className="w-full h-full flex flex-col justify-evenly"> {/* Added flex layout */}
                   {/* Business Number */}
-                  <div>
-                    <div className="text-lg font-bold text-white bg-gray-800 w-full py-1 px-0 text-center">
+                  <div className="mb-2"> {/* Reduced margin */}
+                    <div className="text-lg font-bold text-white bg-gray-800 w-full py-2 px-0 text-center">
                       Business Number
                     </div>
-                    <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-center py-1">
+                    <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-center py-2">
                       {businessNumber || "12345"}
                     </div>
                   </div>
                   
                   {/* Account Number */}
-                  <div>
-                    <div className="text-lg font-bold text-white bg-gray-800 w-full py-1 px-0 text-center">
+                  <div className="mt-2"> {/* Reduced margin */}
+                    <div className="text-lg font-bold text-white bg-gray-800 w-full py-2 px-0 text-center">
                       Account Number
                     </div>
-                    <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-center py-1">
+                    <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-center py-2">
                       {accountNumber || "67890"}
                     </div>
                   </div>
@@ -930,34 +931,34 @@ function Home() {
               )}
 
               {title === "Buy Goods" && (
-                <div className="w-full">
-                  <div className="text-lg font-bold text-white bg-gray-800 w-full py-1 px-0 text-center">
+                <div className="w-full h-full flex flex-col justify-center">
+                  <div className="text-lg font-bold text-white bg-gray-800 w-full py-2 px-0 text-center">
                     Till Number
                   </div>
-                  <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-center py-1">
+                  <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-center py-2">
                     {tillNumber || "54321"}
                   </div>
                 </div>
               )}
 
               {title === "Withdraw Money" && (
-                <div className="w-full">
+                <div className="w-full h-full flex flex-col justify-evenly">
                   {/* Agent Number */}
-                  <div>
-                    <div className="text-lg font-bold text-white bg-gray-800 w-full py-1 px-0 text-center">
+                  <div className="mb-2">
+                    <div className="text-lg font-bold text-white bg-gray-800 w-full py-2 px-0 text-center">
                       Agent Number
                     </div>
-                    <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-center py-1">
+                    <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-center py-2">
                       {agentNumber || "98765"}
                     </div>
                   </div>
                   
                   {/* Store Number */}
-                  <div>
-                    <div className="text-lg font-bold text-white bg-gray-800 w-full py-1 px-0 text-center">
+                  <div className="mt-2">
+                    <div className="text-lg font-bold text-white bg-gray-800 w-full py-2 px-0 text-center">
                       Store Number
                     </div>
-                    <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-center py-1">
+                    <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-center py-2">
                       {storeNumber || "24680"}
                     </div>
                   </div>
@@ -969,7 +970,7 @@ function Home() {
             {showName && title === "Send Money" && (
               <div className="flex items-center justify-center" style={{ 
                 backgroundColor: selectedColor,
-                minHeight: "50px",
+                minHeight: "60px",
                 padding: "0.5rem 0"
               }}>
                 <div className="text-2xl sm:text-3xl font-bold text-white text-center px-2">{name || "JOHN DOE"}</div>
@@ -977,7 +978,7 @@ function Home() {
             )}
           </div>
 
-          {/* QR Code Component */}
+          {/* QR Code Component (unchanged) */}
           <div className="w-full mt-3 flex justify-center">
             <div 
               className="bg-white p-3 rounded-lg border-8 border-gray-800" 
@@ -1002,7 +1003,7 @@ function Home() {
             </div>
           </div>
 
-          {/* Preview text */}
+          {/* Preview text (unchanged) */}
           <div className="flex flex-col items-center justify-center text-center mt-3">
             <p className="font-handwriting text-xl text-gray-600">
               Preview of your poster
