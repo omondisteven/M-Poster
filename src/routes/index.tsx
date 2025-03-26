@@ -866,18 +866,19 @@ function Home() {
         </div>
 
         <div className="w-full md:w-1/2 flex flex-col items-center justify-center md:py-12">
+          {/* Poster Container */}
           <div className="w-full max-w-lg">
             {/* Poster Preview */}
             <div
               id="poster"
               ref={posterRef}
-              className="grid bg-white w-full shadow-lg overflow-hidden border-8 border-gray-800"
+              className="grid bg-white w-full rounded-lg shadow-lg overflow-hidden border-8 border-gray-800 mb-4" // Added mb-4 for spacing
               style={{
                 gridTemplateRows: showName && title === "Send Money" ? "1fr 1fr 1fr" : "1fr 1fr",
                 aspectRatio: `${selectedTemplate.size.width} / ${selectedTemplate.size.height}`,
                 maxHeight: "400px",
               }}
-             >
+            >
               {/* Title Section */}
               <div className="flex items-center justify-center px-4 sm:px-6" style={{ backgroundColor: selectedColor }}>
                 <h2 className="text-2xl sm:text-3xl font-bold text-white text-center">{title.toUpperCase()}</h2>
@@ -954,29 +955,38 @@ function Home() {
               )}
             </div>
 
-            {/* QR Code Component */}
-            <div className="grid bg-white w-full shadow-lg overflow-hidden border-8 border-gray-800">
-              <div className="bg-white p-4 rounded-lg border border-gray-300 w-full" style={{ maxWidth: `${selectedTemplate.size.width}px` }}>
-                <div className="w-full" style={{ aspectRatio: "1/1" }}>
-                  <QRCodeSVG
-                    value={generateQRCodeData()}
-                    width="100%"
-                    height="100%"
-                    level="H"
-                    fgColor={selectedColor}
-                    style={{ display: 'block', width: '100%', height: 'auto' }}
-                  />
+            {/* QR Code Component - Updated with responsive margin */}
+              <div className="w-full mt-4 md:mt-6 px-4"> {/* Added responsive padding/margin */}
+                <div 
+                  className="bg-white p-4 rounded-lg border-8 border-gray-800 mx-auto" 
+                  style={{ 
+                    maxWidth: `${Math.min(selectedTemplate.size.width, 300)}px`,
+                    width: "100%"
+                  }}
+                >
+                  <div className="w-full" style={{ aspectRatio: "1/1" }}>
+                    <QRCodeSVG
+                      value={generateQRCodeData()}
+                      width="100%"
+                      height="100%"
+                      level="H"
+                      fgColor={selectedColor}
+                      style={{ display: 'block', width: '100%', height: 'auto' }}
+                    />
+                  </div>
+                  <p className="text-center text-sm md:text-base text-gray-600 mt-2">
+                    Scan to get payment details
+                  </p>
                 </div>
-                <p className="text-center text-sm text-gray-600 mt-2">Scan to get payment details</p>
               </div>
             </div>
-          </div>
-          
-          <div className="flex flex-col items-start justify-center text-center mt-2">
-            <p className="font-handwriting text-2xl text-gray-600 z-10">
-              Preview of your poster
-            </p>
-          </div>
+
+            {/* Preview text */}
+            <div className="flex flex-col items-center justify-center text-center mt-4 md:mt-6">
+              <p className="font-handwriting text-2xl text-gray-600">
+                Preview of your poster
+              </p>
+            </div>
 
           {/* Template Selector */}
           <div className="w-full max-w-lg mt-8">
