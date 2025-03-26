@@ -493,10 +493,10 @@ function Home() {
           {/* Header for medium screens and up - now in left column */}
           <div className="hidden md:block mb-8">
             <h1 className="text-4xl font-display font-bold text-green-600">
-              send.ke
+              M-poster
             </h1>
             <h3 className="text-lg font-display text-gray-800 mt-2 max-w-md">
-              Your Phone Number 🤝 Payment Poster
+              Your M-Pesa 🤝 Payment Poster
             </h3>
           </div>
 
@@ -513,7 +513,7 @@ function Home() {
             <div className="bg-white rounded-lg shadow-sm px-3 py-2 flex items-center border border-purple-100 hover:border-purple-400 cursor-pointer">
               <GithubIcon className="w-5 h-5 text-purple-600 mr-1" />
               <a
-                href="https://github.com/DavidAmunga/sendke"
+                href="https://github.com/omondisteven/M-Poster"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-sm text-gray-700 hover:text-gray-900"
@@ -1062,26 +1062,8 @@ function Home() {
               <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
               <path d="M4 4l11.733 16h4.267l-11.733 -16z"></path>
               <path d="M4 20l6.768 -6.768m2.46 -2.46l6.772 -6.772"></path>
-            </svg>
-            <span className="font-medium text-gray-700">
-              Have a business that needs a template?
-            </span>
-          </div>
-          <a
-            href="https://x.com/davidamunga_"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium rounded-md transition-colors"
-          >
-            <svg
-              className="w-4 h-4 mr-2"
-              fill="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path>
-            </svg>
-            Tweet @davidamunga_ to suggest new templates
-          </a>
+            </svg>            
+          </div>          
         </div>
       </div>
     </div>

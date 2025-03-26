@@ -1,14 +1,14 @@
-# send.ke
+# m-poster
 
 <p align="center">
-  <img src="public/ogimage.jpg" alt="send.ke banner" width="600">
+  <img src="public/ogimage.jpg" alt="m-poster banner" width="600">
 </p>
 
 ## Make Mobile Payment Posters in Seconds, pay using Qr code included
 
 **M-Poster** is an offline-capable web tool that lets you create beautiful payment posters for all M-Pesa transactions. The posters come with a Qr Code that a user can simply scan, enter the amount and make payents using the M-Pesa App. Perfect for businesses, street vendors, freelancers, and anyone who needs to receive mobile payments.
 
-## 🔗 [Visit send.ke](https://send.ke)
+## 🔗 [Visit m-poster](https://m-poster-lovat.vercel.app/)
 
 ## ✨ Features
 
@@ -52,7 +52,7 @@ Perfect for places where mobile money is popular but QR codes are not widely use
 
 ```bash
 # Clone the repository
-git clone https://github.com/DavidAmunga/sendke.git
+git clone https://github.com/omondisteven/M-Poster.git
 cd sendke
 
 # Install dependencies
@@ -76,7 +76,7 @@ yarn build
 
 ## 🌍 Contributing New Business Templates
 
-We welcome contributions of new business templates for different types of small businesses in Kenya and beyond! Help make send.ke more useful for everyone.
+We welcome contributions of new business templates for different types of small businesses in Kenya and beyond! Help make m-poster more useful for everyone.
 
 ### How to Add a New Template
 
@@ -99,7 +99,7 @@ We welcome contributions of new business templates for different types of small 
 
 4. Submit a pull request with your changes
 5. In your PR description, include:
-   - Why this business type would benefit from send.ke
+   - Why this business type would benefit from m-poster
    - Any specific sizing considerations for this business
 
 We especially welcome templates for small, one-person businesses in the informal sector!
