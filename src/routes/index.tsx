@@ -550,335 +550,311 @@ function Home() {
             </CardTitle>
 
             <CardContent>
-              <form onSubmit={onSubmit} className="space-y-4">
-                <div>
-                  <label
-                    htmlFor="title"
-                    className="block text-sm font-medium text-gray-700 mb-1"
-                  >
-                    Transaction Type
-                  </label>
-                  <Controller
-                    name="title"
-                    control={control}
-                    render={({ field }) => (
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <SelectTrigger className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold">
-                          <SelectValue placeholder="Select transaction type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Send Money">Send Money</SelectItem>
-                          <SelectItem value="Pay Bill">Pay Bill</SelectItem>
-                          <SelectItem value="Buy Goods">Buy Goods</SelectItem>
-                          <SelectItem value="Withdraw Money">Withdraw Money</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    )}
-                  />
-                  {errors.title && (
-                    <p className="mt-1 text-sm text-red-500">
-                      {errors.title.message}
-                    </p>
-                  )}
-                </div>
+  <form onSubmit={onSubmit} className="space-y-4">
+    {/* Transaction Type Selector (unchanged) */}
+    <div>
+      <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
+        Transaction Type
+      </label>
+      <Controller
+        name="title"
+        control={control}
+        render={({ field }) => (
+          <Select onValueChange={field.onChange} value={field.value}>
+            <SelectTrigger className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold">
+              <SelectValue placeholder="Select transaction type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Send Money">Send Money</SelectItem>
+              <SelectItem value="Pay Bill">Pay Bill</SelectItem>
+              <SelectItem value="Buy Goods">Buy Goods</SelectItem>
+              <SelectItem value="Withdraw Money">Withdraw Money</SelectItem>
+            </SelectContent>
+          </Select>
+        )}
+      />
+      {errors.title && (
+        <p className="mt-1 text-sm text-red-500">{errors.title.message}</p>
+      )}
+    </div>
 
-                {title === "Send Money" && (
-                  <>
-                    <div>
-                      <label
-                        htmlFor="phone"
-                        className="block text-sm font-medium text-gray-700 mb-1"
-                      >
-                        Phone Number
-                      </label>
-                      <Controller
-                        name="phoneNumber"
-                        control={control}
-                        render={({ field }) => (
-                          <Input
-                            id="phone"
-                            type="text"
-                            value={field.value}
-                            onChange={(e) => {
-                              const value = e.target.value.replace(/\D/g, "");
-                              if (value.length <= 10) {
-                                field.onChange(formatPhoneNumber(value));
-                              }
-                            }}
-                            className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold"
-                            placeholder="0722 256 123"
-                          />
-                        )}
-                      />
-                      {errors.phoneNumber && (
-                        <p className="mt-1 text-sm text-red-500">
-                          {errors.phoneNumber.message}
-                        </p>
-                      )}
-                    </div>
+    {title === "Send Money" && (
+      <>
+        <div>
+          <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
+            Phone Number
+          </label>
+          <Controller
+            name="phoneNumber"
+            control={control}
+            render={({ field }) => (
+              <Input
+                id="phone"
+                type="text"
+                value={field.value}
+                onChange={(e) => {
+                  const value = e.target.value.replace(/\D/g, "");
+                  if (value.length <= 10) {
+                    field.onChange(formatPhoneNumber(value));
+                  }
+                }}
+                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold"
+                placeholder="0722 256 123"
+              />
+            )}
+          />
+          {errors.phoneNumber && (
+            <p className="mt-1 text-sm text-red-500">{errors.phoneNumber.message}</p>
+          )}
+        </div>
 
-                    <div className="flex items-center space-x-2 mb-2">
-                      <Controller
-                        name="showName"
-                        control={control}
-                        render={({ field }) => (
-                          <Checkbox
-                            id="showName"
-                            checked={field.value}
-                            onCheckedChange={(checked: boolean) => {
-                              field.onChange(checked);
-                            }}
-                          />
-                        )}
-                      />
-                      <label
-                        htmlFor="showName"
-                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                      >
-                        Show Name Field
-                      </label>
-                    </div>
+        {/* Show Name Checkbox and Name Input (unchanged) */}
+        <div className="flex items-center space-x-2 mb-2">
+          <Controller
+            name="showName"
+            control={control}
+            render={({ field }) => (
+              <Checkbox
+                id="showName"
+                checked={field.value}
+                onCheckedChange={(checked: boolean) => {
+                  field.onChange(checked);
+                }}
+              />
+            )}
+          />
+          <label
+            htmlFor="showName"
+            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+          >
+            Show Name Field
+          </label>
+        </div>
 
-                    {showName && (
-                      <div>
-                        <label
-                          htmlFor="name"
-                          className="block text-sm font-medium text-gray-700 mb-1"
-                        >
-                          Your Name
-                        </label>
-                        <Controller
-                          name="name"
-                          control={control}
-                          render={({ field }) => (
-                            <Input
-                              id="name"
-                              type="text"
-                              value={field.value}
-                              onChange={(e) => {
-                                field.onChange(e.target.value.toUpperCase());
-                              }}
-                              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold"
-                              placeholder="NELSON ANANGWEE"
-                            />
-                          )}
-                        />
-                        {errors.name && (
-                          <p className="mt-1 text-sm text-red-500">
-                            {errors.name.message}
-                          </p>
-                        )}
-                      </div>
-                    )}
-                  </>
-                )}
-
-                {title === "Pay Bill" && (
-                  <>
-                    <div>
-                      <label
-                        htmlFor="businessNumber"
-                        className="block text-sm font-medium text-gray-700 mb-1"
-                      >
-                        Business Number
-                      </label>
-                      <Controller
-                        name="businessNumber"
-                        control={control}
-                        render={({ field }) => (
-                          <Input
-                            id="businessNumber"
-                            type="text"
-                            value={field.value}
-                            onChange={field.onChange}
-                            className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold"
-                            placeholder="12345"
-                          />
-                        )}
-                      />
-                      {errors.businessNumber && (
-                        <p className="mt-1 text-sm text-red-500">
-                          {errors.businessNumber.message}
-                        </p>
-                      )}
-                    </div>
-                    <div>
-                      <label
-                        htmlFor="accountNumber"
-                        className="block text-sm font-medium text-gray-700 mb-1"
-                      >
-                        Account Number
-                      </label>
-                      <Controller
-                        name="accountNumber"
-                        control={control}
-                        render={({ field }) => (
-                          <Input
-                            id="accountNumber"
-                            type="text"
-                            value={field.value}
-                            onChange={field.onChange}
-                            className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold"
-                            placeholder="12345"
-                          />
-                        )}
-                      />
-                      {errors.accountNumber && (
-                        <p className="mt-1 text-sm text-red-500">
-                          {errors.accountNumber.message}
-                        </p>
-                      )}
-                    </div>
-                  </>
-                )}
-
-                {title === "Buy Goods" && (
-                  <div>
-                    <label
-                      htmlFor="tillNumber"
-                      className="block text-sm font-medium text-gray-700 mb-1"
-                    >
-                      Till Number
-                    </label>
-                    <Controller
-                      name="tillNumber"
-                      control={control}
-                      render={({ field }) => (
-                        <Input
-                          id="tillNumber"
-                          type="text"
-                          value={field.value}
-                          onChange={field.onChange}
-                          className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold"
-                          placeholder="12345"
-                        />
-                      )}
-                    />
-                    {errors.tillNumber && (
-                      <p className="mt-1 text-sm text-red-500">
-                        {errors.tillNumber.message}
-                      </p>
-                    )}
-                  </div>
-                )}
-
-                {title === "Withdraw Money" && (
-                  <>
-                    <div>
-                      <label
-                        htmlFor="agentNumber"
-                        className="block text-sm font-medium text-gray-700 mb-1"
-                      >
-                        Agent Number
-                      </label>
-                      <Controller
-                        name="agentNumber"
-                        control={control}
-                        render={({ field }) => (
-                          <Input
-                            id="agentNumber"
-                            type="text"
-                            value={field.value}
-                            onChange={field.onChange}
-                            className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold"
-                            placeholder="12345"
-                          />
-                        )}
-                      />
-                      {errors.agentNumber && (
-                        <p className="mt-1 text-sm text-red-500">
-                          {errors.agentNumber.message}
-                        </p>
-                      )}
-                    </div>
-                    <div>
-                      <label
-                        htmlFor="storeNumber"
-                        className="block text-sm font-medium text-gray-700 mb-1"
-                      >
-                        Store Number
-                      </label>
-                      <Controller
-                        name="storeNumber"
-                        control={control}
-                        render={({ field }) => (
-                          <Input
-                            id="storeNumber"
-                            type="text"
-                            value={field.value}
-                            onChange={field.onChange}
-                            className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold"
-                            placeholder="12345"
-                          />
-                        )}
-                      />
-                      {errors.storeNumber && (
-                        <p className="mt-1 text-sm text-red-500">
-                          {errors.storeNumber.message}
-                        </p>
-                      )}
-                    </div>
-                  </>
-                )}
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-3">
-                    Poster Color
-                  </label>
-                  <div className="flex items-center space-x-4">
-                    {colorOptions.map((color) => (
-                      <button
-                        key={color.value}
-                        type="button"
-                        className={`size-8 rounded-full border-2 flex items-center justify-center ${
-                          selectedColor === color.value
-                            ? "border-gray-800"
-                            : "border-transparent"
-                        } ${color.class}`}
-                        onClick={() => setValue("selectedColor", color.value)}
-                        aria-label={`Select ${color.name} color`}
-                      >
-                        {selectedColor === color.value && (
-                          <CheckIcon className="h-5 w-5 text-white" />
-                        )}
-                      </button>
-                    ))}
-                    <div className="flex items-center">
-                      <Controller
-                        name="selectedColor"
-                        control={control}
-                        render={({ field }) => (
-                          <ColorPicker
-                            value={field.value}
-                            onChange={(value) => field.onChange(value)}
-                            className="size-8 rounded-full"
-                          />
-                        )}
-                      />
-                      <span className="ml-2 text-xs text-gray-500">Custom</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Download Button */}
-                <motion.div
-                  whileHover={{
-                    scale: 1.05,
-                    transition: {
-                      duration: 0.2,
-                    },
+        {showName && (
+          <div>
+            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+              Your Name
+            </label>
+            <Controller
+              name="name"
+              control={control}
+              render={({ field }) => (
+                <Input
+                  id="name"
+                  type="text"
+                  value={field.value}
+                  onChange={(e) => {
+                    field.onChange(e.target.value.toUpperCase());
                   }}
-                >
-                  <Button
-                    type="submit"
-                    // disabled={!isValid}
-                    className="w-full bg-gray-800 text-white text-xl font-bold py-8 rounded-lg shadow-lg hover:bg-gray-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    DOWNLOAD
-                  </Button>
-                </motion.div>
-              </form>
-            </CardContent>
+                  className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold"
+                  placeholder="NELSON ANANGWE"
+                />
+              )}
+            />
+            {errors.name && (
+              <p className="mt-1 text-sm text-red-500">{errors.name.message}</p>
+            )}
+          </div>
+        )}
+      </>
+    )}
+
+    {title === "Pay Bill" && (
+      <>
+        <div>
+          <label htmlFor="businessNumber" className="block text-sm font-medium text-gray-700 mb-1">
+            Business Number
+          </label>
+          <Controller
+            name="businessNumber"
+            control={control}
+            render={({ field }) => (
+              <Input
+                id="businessNumber"
+                type="text"
+                value={field.value}
+                onChange={(e) => {
+                  const value = e.target.value.replace(/\D/g, "");
+                  field.onChange(value);
+                }}
+                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold"
+                placeholder="12345"
+              />
+            )}
+          />
+          {errors.businessNumber && (
+            <p className="mt-1 text-sm text-red-500">{errors.businessNumber.message}</p>
+          )}
+        </div>
+        <div>
+          <label htmlFor="accountNumber" className="block text-sm font-medium text-gray-700 mb-1">
+            Account Number
+          </label>
+          <Controller
+            name="accountNumber"
+            control={control}
+            render={({ field }) => (
+              <Input
+                id="accountNumber"
+                type="text"
+                value={field.value}
+                onChange={(e) => {
+                  const value = e.target.value.replace(/\D/g, "");
+                  field.onChange(value);
+                }}
+                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold"
+                placeholder="12345"
+              />
+            )}
+          />
+          {errors.accountNumber && (
+            <p className="mt-1 text-sm text-red-500">{errors.accountNumber.message}</p>
+          )}
+        </div>
+      </>
+    )}
+
+    {title === "Buy Goods" && (
+      <div>
+        <label htmlFor="tillNumber" className="block text-sm font-medium text-gray-700 mb-1">
+          Till Number
+        </label>
+        <Controller
+          name="tillNumber"
+          control={control}
+          render={({ field }) => (
+            <Input
+              id="tillNumber"
+              type="text"
+              value={field.value}
+              onChange={(e) => {
+                const value = e.target.value.replace(/\D/g, "");
+                field.onChange(value);
+              }}
+              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold"
+              placeholder="12345"
+            />
+          )}
+        />
+        {errors.tillNumber && (
+          <p className="mt-1 text-sm text-red-500">{errors.tillNumber.message}</p>
+        )}
+      </div>
+    )}
+
+    {title === "Withdraw Money" && (
+      <>
+        <div>
+          <label htmlFor="agentNumber" className="block text-sm font-medium text-gray-700 mb-1">
+            Agent Number
+          </label>
+          <Controller
+            name="agentNumber"
+            control={control}
+            render={({ field }) => (
+              <Input
+                id="agentNumber"
+                type="text"
+                value={field.value}
+                onChange={(e) => {
+                  const value = e.target.value.replace(/\D/g, "");
+                  field.onChange(value);
+                }}
+                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold"
+                placeholder="12345"
+              />
+            )}
+          />
+          {errors.agentNumber && (
+            <p className="mt-1 text-sm text-red-500">{errors.agentNumber.message}</p>
+          )}
+        </div>
+        <div>
+          <label htmlFor="storeNumber" className="block text-sm font-medium text-gray-700 mb-1">
+            Store Number
+          </label>
+          <Controller
+            name="storeNumber"
+            control={control}
+            render={({ field }) => (
+              <Input
+                id="storeNumber"
+                type="text"
+                value={field.value}
+                onChange={(e) => {
+                  const value = e.target.value.replace(/\D/g, "");
+                  field.onChange(value);
+                }}
+                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold"
+                placeholder="12345"
+              />
+            )}
+          />
+          {errors.storeNumber && (
+            <p className="mt-1 text-sm text-red-500">{errors.storeNumber.message}</p>
+          )}
+        </div>
+      </>
+    )}
+
+    {/* Color Picker and Download Button (unchanged) */}
+    <div>
+      <label className="block text-sm font-medium text-gray-700 mb-3">
+        Poster Color
+      </label>
+      <div className="flex items-center space-x-4">
+        {colorOptions.map((color) => (
+          <button
+            key={color.value}
+            type="button"
+            className={`size-8 rounded-full border-2 flex items-center justify-center ${
+              selectedColor === color.value
+                ? "border-gray-800"
+                : "border-transparent"
+            } ${color.class}`}
+            onClick={() => setValue("selectedColor", color.value)}
+            aria-label={`Select ${color.name} color`}
+          >
+            {selectedColor === color.value && (
+              <CheckIcon className="h-5 w-5 text-white" />
+            )}
+          </button>
+        ))}
+        <div className="flex items-center">
+          <Controller
+            name="selectedColor"
+            control={control}
+            render={({ field }) => (
+              <ColorPicker
+                value={field.value}
+                onChange={(value) => field.onChange(value)}
+                className="size-8 rounded-full"
+              />
+            )}
+          />
+          <span className="ml-2 text-xs text-gray-500">Custom</span>
+        </div>
+      </div>
+    </div>
+
+    <motion.div
+      whileHover={{
+        scale: 1.05,
+        transition: {
+          duration: 0.2,
+        },
+      }}
+    >
+      <Button
+        type="submit"
+        className="w-full bg-gray-800 text-white text-xl font-bold py-8 rounded-lg shadow-lg hover:bg-gray-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        DOWNLOAD
+      </Button>
+    </motion.div>
+  </form>
+</CardContent>
           </Card>
 
           <div className="text-center text-gray-500 mt-2 text-sm">
