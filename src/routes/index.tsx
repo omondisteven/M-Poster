@@ -590,7 +590,7 @@ function Home() {
                         render={({ field }) => (
                           <Input
                             id="phone"
-                            type="tel"
+                            type="text"
                             inputMode="numeric"
                             pattern="[0-9]*"
                             value={field.value}
