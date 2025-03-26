@@ -220,9 +220,9 @@ function Home() {
         const scanTextFontSize = Math.round(qrCodeWidth * 0.06);
         const textPadding = 10;
         const scanTextSectionHeight = scanTextFontSize + textPadding * 2;
-        const qrSectionHeight = qrCodeWidth + scanTextSectionHeight + 20; // Added margin
-        const borderSize = 8;
-        const totalHeight = posterHeight + qrSectionHeight + borderSize; // Added borderSize for bottom border
+        const qrSectionHeight = qrCodeWidth + scanTextSectionHeight + 20;
+        const borderSize = 8; // Define border size
+        const totalHeight = posterHeight + qrSectionHeight + borderSize;
         
         canvas.width = width;
         canvas.height = totalHeight;
@@ -268,14 +268,14 @@ function Home() {
             borderSize,
             borderSize,
             width - 2 * borderSize,
-            sectionHeight - borderSize
+            sectionHeight - 2 * borderSize // Adjusted height
         );
 
         // Draw middle section (white with details)
         ctx.fillStyle = whiteColor;
         ctx.fillRect(
             borderSize,
-            sectionHeight + borderSize, // This creates the border between title and middle
+            sectionHeight + borderSize,
             width - 2 * borderSize,
             sectionHeight - 2 * borderSize
         );
@@ -285,7 +285,7 @@ function Home() {
             ctx.fillStyle = mainColor;
             ctx.fillRect(
                 borderSize,
-                2 * sectionHeight + borderSize, // This creates the border between middle and bottom
+                2 * sectionHeight + borderSize,
                 width - 2 * borderSize,
                 sectionHeight - 2 * borderSize
             );
@@ -317,7 +317,7 @@ function Home() {
                     (showName ? originalPosterHeight / 2 : sectionHeight + (originalPosterHeight - sectionHeight) / 2) + valueTopPadding
                 );
                 break;
-                
+            
             case "Pay Bill":
                 ctx.fillStyle = whiteColor;
                 ctx.fillRect(
@@ -349,7 +349,7 @@ function Home() {
                 ctx.font = `bold ${valueFontSize}px Inter, sans-serif`;
                 ctx.fillText(accountNumber || "12345", width / 2, 2 * sectionHeight + sectionHeight * 0.35 + valueTopPadding + valueBottomPadding);
                 break;
-                
+            
             case "Buy Goods":
                 ctx.fillStyle = labelBgColor;
                 ctx.fillRect(
@@ -366,7 +366,7 @@ function Home() {
                 ctx.font = `bold ${valueFontSize}px Inter, sans-serif`;
                 ctx.fillText(tillNumber || "12345", width / 2, sectionHeight + sectionHeight * 0.35 + valueTopPadding + valueBottomPadding);
                 break;
-                
+            
             case "Withdraw Money":
                 ctx.fillStyle = whiteColor;
                 ctx.fillRect(
