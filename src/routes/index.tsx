@@ -309,7 +309,7 @@ function Home() {
                 ctx.fillStyle = textColor;
                 ctx.font = `bold ${valueFontSize}px Inter, sans-serif`;
                 ctx.fillText(
-                    phoneNumber || "0712 345 678",
+                    phoneNumber || " 0722 225 123",
                     width / 2,
                     (showName ? originalPosterHeight / 2 : sectionHeight + (originalPosterHeight - sectionHeight) / 2) + valueTopPadding
                 );
@@ -411,7 +411,7 @@ function Home() {
         if (showName && title === "Send Money") {
             ctx.fillStyle = whiteColor;
             ctx.font = `bold ${nameFontSize}px Inter, sans-serif`;
-            ctx.fillText(name?.toUpperCase() || "JOHN DOE", width / 2, originalPosterHeight - sectionHeight / 2);
+            ctx.fillText(name?.toUpperCase() || "NELSON ANANGWE", width / 2, originalPosterHeight - sectionHeight / 2);
         }
 
         // QR Code Section
@@ -473,7 +473,7 @@ function Home() {
   const generateQRCodeData = () => {
     switch (title) {
       case "Send Money":
-        return `Send Money to ${phoneNumber || "0712 345 678"}`;
+        return `Send Money to ${phoneNumber || " 0722 225 123"}`;
       case "Pay Bill":
         return `Pay Bill\nBusiness: ${businessNumber || "12345"}\nAccount: ${accountNumber || "12345"}`;
       case "Buy Goods":
@@ -585,7 +585,7 @@ function Home() {
                               }
                             }}
                             className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold"
-                            placeholder="0712 345 678"
+                            placeholder=" 0722 225 123"
                           />
                         )}
                       />
@@ -638,7 +638,7 @@ function Home() {
                                 field.onChange(e.target.value.toUpperCase());
                               }}
                               className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold"
-                              placeholder="JOHN DOE"
+                              placeholder="NELSON ANANGWEE"
                             />
                           )}
                         />
@@ -879,7 +879,7 @@ function Home() {
                   : "auto auto",      // Changed from fr to auto
                 aspectRatio: `${selectedTemplate.size.width} / ${selectedTemplate.size.height}`,
                 maxHeight: "400px",
-                height: "400px"       // Added fixed height
+                height: "300px"       // Added fixed height
               }}
             >
               {/* Title Section */}
@@ -900,13 +900,13 @@ function Home() {
                 style={{
                   borderTop: "8px solid #1a2335",
                   borderBottom: showName && title === "Send Money" ? "8px solid #1a2335" : "none",
-                  minHeight: "120px",
+                  minHeight: "80px",
                   height: "100%"
                 }}
               >
                 {title === "Send Money" && (
                   <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-center py-2">
-                    {phoneNumber || "0712 345 678"}
+                    {phoneNumber || " 0722 225 123"}
                   </div>
                 )}
 
@@ -952,7 +952,7 @@ function Home() {
                     backgroundColor: title === "Send Money" ? selectedColor : "#ffffff",
                     padding: "0.5rem 0",
                     borderTop: title !== "Send Money" ? "8px solid #1a2335" : "none",
-                    minHeight: "120px",
+                    minHeight: "80px",
                     height: "100%"
                   }}
                 >

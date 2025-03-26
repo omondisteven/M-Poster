@@ -1,6 +1,6 @@
 {
-  "name": "send.ke",
-  "short_name": "send.ke",
+  "name": "M-Poster",
+  "short_name": "M-Poster",
   "description": "Make a Beautiful Payment Poster for your Phone Number",
   "start_url": "/",
   "display": "standalone",
