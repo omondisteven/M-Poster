@@ -912,7 +912,7 @@ function Home() {
 
                 {title === "Pay Bill" && (
                   <div className="w-full h-full flex flex-col justify-center">
-                    <div className="text-lg font-bold text-white bg-gray-500 w-full py-1 px-0 text-center">
+                    <div className="text-lg font-bold w-full py-1 px-0 text-center">
                       Business Number
                     </div>
                     <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-center py-1">
@@ -923,7 +923,7 @@ function Home() {
 
                 {title === "Buy Goods" && (
                   <div className="w-full h-full flex flex-col justify-center">
-                    <div className="text-lg font-bold text-white bg-gray-500 w-full py-1 px-0 text-center">
+                    <div className="text-lg font-bold w-full py-1 px-0 text-center">
                       Till Number
                     </div>
                     <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-center py-1">
@@ -934,7 +934,7 @@ function Home() {
 
                 {title === "Withdraw Money" && (
                   <div className="w-full h-full flex flex-col justify-center">
-                    <div className="text-lg font-bold text-white bg-gray-500 w-full py-1 px-0 text-center">
+                    <div className="text-lg font-bold w-full py-1 px-0 text-center">
                       Agent Number
                     </div>
                     <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-center py-1">
@@ -964,7 +964,7 @@ function Home() {
 
                   {title === "Pay Bill" && (
                     <div className="h-full flex flex-col justify-center">
-                      <div className="text-lg font-bold text-white bg-gray-500 w-full py-2 px-0 text-center">
+                      <div className="text-lg font-bold w-full py-2 px-0 text-center">
                         Account Number
                       </div>
                       <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-center py-2">
@@ -975,7 +975,7 @@ function Home() {
 
                   {title === "Withdraw Money" && (
                     <div className="h-full flex flex-col justify-center">
-                      <div className="text-lg font-bold text-white bg-gray-500 w-full py-2 px-0 text-center">
+                      <div className="text-lg font-bold w-full py-2 px-0 text-center">
                         Store Number
                       </div>
                       <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-center py-2">
