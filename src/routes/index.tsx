@@ -592,7 +592,7 @@ function Home() {
                             id="phone"
                             type="text"
                             inputMode="numeric"
-                            pattern="[0-9]*"
+                            pattern="[0-9 && ( )]"
                             value={field.value}
                             onChange={(e) => {
                               const value = e.target.value.replace(/\D/g, "");
