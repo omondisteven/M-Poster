@@ -4,9 +4,9 @@
   <img src="public/ogimage.jpg" alt="send.ke banner" width="600">
 </p>
 
-## Make Mobile Payment Posters in Seconds
+## Make Mobile Payment Posters in Seconds, pay using Qr code included
 
-**send.ke** is a free, offline-capable web tool that lets you create beautiful payment posters with your phone number and name. Perfect for businesses, street vendors, freelancers, and anyone who needs to receive mobile payments.
+**M-Poster** is an offline-capable web tool that lets you create beautiful payment posters for all M-Pesa transactions. The posters come with a Qr Code that a user can simply scan, enter the amount and make payents using the M-Pesa App. Perfect for businesses, street vendors, freelancers, and anyone who needs to receive mobile payments.
 
 ## 🔗 [Visit send.ke](https://send.ke)
 
@@ -21,17 +21,18 @@
 
 ## 📱 What is a Payment Poster?
 
-A payment poster is a simple, effective way to display your mobile money details. Instead of complicated QR codes, customers just:
+A payment poster is a simple, effective way to display your mobile money details, it comes with a Qr Code that a user can simply scan using the M-Pesa App to expedite the payment process. Instead of complicated M-Pesa payment process, customers just:
 
-1. See your phone number
-2. Send money directly to it
-3. That's it!
+1. See your payment details (Pybill, Till Number, etc)
+2. Scan Qr code attached and initiate payment or..
+3. Send money directly to it
+4. That's it!
 
 Perfect for places where mobile money is popular but QR codes are not widely used.
 
 ## 🚀 How to Use
 
-1. Enter your phone number
+1. Enter your Payment details (Paybill, Till Number etc)
 2. Enter your name
 3. Click "GET YOUR MONEY POSTER"
 4. Share the downloaded image:
@@ -115,16 +116,11 @@ We especially welcome templates for small, one-person businesses in the informal
 
 This project is open source and available under the [MIT License](LICENSE).
 
-## 🤝 Contributing
-
-Contributions, issues, and feature requests are welcome! Feel free to check the [issues page](https://github.com/DavidAmunga/sendke/issues).
-
 ## 👨‍💻 Author
 
-**David Amunga**
+**Steve Omondi**
 
-- Website: [davidamunga.com](https://davidamunga.com)
-- GitHub: [@DavidAmunga](https://github.com/DavidAmunga)
+- GitHub: [@Omondisteven](https://github.com/Omondisteven)
 
 ---
 

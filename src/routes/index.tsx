@@ -18,33 +18,111 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import templates from "@/data/templates.json";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { QRCodeSVG } from 'qrcode.react';
+import QRCode from 'qrcode';
 
 // Define zod schema for validation
 const formSchema = z
   .object({
-    phoneNumber: z.string().min(10, "Phone number must be at least 10 digits"),
+    phoneNumber: z.string().min(10, "Phone number must be at least 10 digits").optional(),
     name: z.string().optional(),
     selectedColor: z.string(),
     showName: z.boolean(),
     title: z.string().min(1, "Title cannot be empty"),
+    businessNumber: z.string().optional(),
+    businessNumberLabel: z.string().optional(),
+    accountNumber: z.string().optional(),
+    accountNumberLabel: z.string().optional(),
+    tillNumber: z.string().optional(),
+    tillNumberLabel: z.string().optional(),
+    agentNumber: z.string().optional(),
+    agentNumberLabel: z.string().optional(),
+    storeNumber: z.string().optional(),
+    storeNumberLabel: z.string().optional(),
   })
-  .refine(
-    (data) => {
-      // If showName is true, name must not be empty
-      if (data.showName) {
-        return data.name && data.name.trim().length > 0;
-      }
-      return true;
-    },
-    {
-      message: "Name is required when 'Show Name' is enabled",
-      path: ["name"],
+  .superRefine((data, ctx) => {
+    // Name is only required when showName is true AND title is Send Money
+    if (data.showName && data.title === "Send Money" && !data.name?.trim()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Name is required when 'Show Name' is enabled for Send Money",
+        path: ["name"],
+      });
     }
-  );
+
+    // Validate based on transaction type
+    switch (data.title) {
+      case "Send Money":
+        if (!data.phoneNumber?.trim() || data.phoneNumber.trim().length < 10) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Phone number is required for Send Money",
+            path: ["phoneNumber"],
+          });
+        }
+        break;
+      
+      case "Pay Bill":
+        if (!data.businessNumber?.trim()) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Business number is required for Pay Bill",
+            path: ["businessNumber"],
+          });
+        }
+        if (!data.accountNumber?.trim()) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Account number is required for Pay Bill",
+            path: ["accountNumber"],
+          });
+        }
+        break;
+      
+      case "Buy Goods":
+        if (!data.tillNumber?.trim()) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Till number is required for Buy Goods",
+            path: ["tillNumber"],
+          });
+        }
+        break;
+      
+      case "Withdraw Money":
+        if (!data.agentNumber?.trim()) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Agent number is required for Withdraw Money",
+            path: ["agentNumber"],
+          });
+        }
+        if (!data.storeNumber?.trim()) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Store number is required for Withdraw Money",
+            path: ["storeNumber"],
+          });
+        }
+        break;
+    }
+  });
 
 // Define form type
 interface FormValues {
-  phoneNumber: string;
+  phoneNumber?: string;
+  phoneNumberLabel?: string;
+  businessNumber?: string;
+  businessNumberLabel?: string;
+  accountNumber?: string;
+  accountNumberLabel?: string;
+  tillNumber?: string;
+  tillNumberLabel?: string;
+  agentNumber?: string;
+  agentNumberLabel?: string;
+  storeNumber?: string;
+  storeNumberLabel?: string;
   name?: string;
   selectedColor: string;
   showName: boolean;
@@ -69,10 +147,21 @@ function Home() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       phoneNumber: "",
+      phoneNumberLabel: "Phone Number",
+      businessNumber: "",
+      businessNumberLabel: "Business Number",
+      accountNumber: "",
+      accountNumberLabel: "Account Number",
+      tillNumber: "",
+      tillNumberLabel: "Till Number",
+      agentNumber: "",
+      agentNumberLabel: "Agent Number",
+      storeNumber: "",
+      storeNumberLabel: "Store Number",
       name: "",
       selectedColor: "#16a34a",
       showName: true,
-      title: "SEND MONEY",
+      title: "Send Money",
     },
     mode: "onChange",
   });
@@ -82,6 +171,16 @@ function Home() {
   const selectedColor = watch("selectedColor");
   const showName = watch("showName");
   const title = watch("title");
+  const businessNumber = watch("businessNumber");
+  const accountNumber = watch("accountNumber");
+  const tillNumber = watch("tillNumber");
+  const agentNumber = watch("agentNumber");
+  const storeNumber = watch("storeNumber");
+  const businessNumberLabel = watch("businessNumberLabel");
+  const accountNumberLabel = watch("accountNumberLabel");
+  const tillNumberLabel = watch("tillNumberLabel");
+  const agentNumberLabel = watch("agentNumberLabel");
+  const storeNumberLabel = watch("storeNumberLabel");
 
   const colorOptions = [
     { name: "Green", value: "#16a34a", class: "bg-green-600" },
@@ -107,110 +206,282 @@ function Home() {
     if (!posterRef.current) return;
 
     try {
-      // Ensure Inter font is loaded before drawing
-      await document.fonts.load("bold 120px Inter");
+        await document.fonts.load("bold 120px Inter");
 
-      // Create canvas with dimensions from selected template
-      const canvas = document.createElement("canvas");
-      const width = selectedTemplate.size.width;
-      const height = selectedTemplate.size.height;
-      canvas.width = width;
-      canvas.height = height;
+        const canvas = document.createElement("canvas");
+        const width = selectedTemplate.size.width;
+        
+        // Calculate dynamic height based on content
+        const posterHeight = selectedTemplate.size.height;
+        const qrCodePadding = 20;
+        const qrCodeWidth = width - (qrCodePadding * 2);
+        
+        // Calculate total height:
+        const qrSectionHeight = qrCodeWidth + 100;
+        const totalHeight = posterHeight + 40 + qrSectionHeight;
+        
+        canvas.width = width;
+        canvas.height = totalHeight;
 
-      const ctx = canvas.getContext("2d");
-      if (!ctx) {
-        console.error("Unable to get canvas context");
-        return;
-      }
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
+            console.error("Unable to get canvas context");
+            return;
+        }
 
-      // Colors
-      const mainColor = selectedColor;
-      const borderColor = "#1a2335";
-      const whiteColor = "#ffffff";
+        // Colors
+        const mainColor = selectedColor;
+        const borderColor = "#1a2335";
+        const whiteColor = "#ffffff";
+        const textColor = "#000000";
+        const labelBgColor = "#1a2335";
+        const borderSize = 8;
 
-      const borderSize = 8;
+        // Adjust heights based on content
+        const originalPosterHeight = posterHeight;
+        let sectionCount = 2; // Default to 2 sections
+        
+        // Determine section count based on content
+        if (showName && title === "Send Money") {
+            sectionCount = 3;
+        } else if (title === "Withdraw Money" || title === "Pay Bill") {
+            sectionCount = 3; // For transaction types with multiple fields
+        }
+        
+        const sectionHeight = originalPosterHeight / sectionCount;
 
-      // Adjust heights based on whether name is shown
-      const sectionCount = showName ? 3 : 2;
-      const sectionHeight = height / sectionCount;
+        // Padding values
+        const valueTopPadding = Math.round(sectionHeight * 0.1);
+        const valueBottomPadding = Math.round(sectionHeight * 0.125);
+        const labelHeight = Math.round(Math.min(width, originalPosterHeight) * 0.06) * 1.5;
 
-      // Draw outer border
-      ctx.fillStyle = borderColor;
-      ctx.fillRect(0, 0, width, height);
+        // Draw outer border for the main poster
+        ctx.fillStyle = borderColor;
+        ctx.fillRect(0, 0, width, originalPosterHeight);
 
-      // Draw top section (colored with header)
-      ctx.fillStyle = mainColor;
-      ctx.fillRect(
-        borderSize,
-        borderSize,
-        width - 2 * borderSize,
-        sectionHeight - borderSize
-      );
-
-      // Draw middle section (white with phone number)
-      ctx.fillStyle = whiteColor;
-      ctx.fillRect(
-        borderSize,
-        sectionHeight + borderSize,
-        width - 2 * borderSize,
-        showName
-          ? sectionHeight - 2 * borderSize
-          : height - sectionHeight - 2 * borderSize
-      );
-
-      // Draw bottom section (colored with name) only if name is shown
-      if (showName) {
+        // Draw top section (colored with header)
         ctx.fillStyle = mainColor;
         ctx.fillRect(
-          borderSize,
-          2 * sectionHeight + borderSize,
-          width - 2 * borderSize,
-          sectionHeight - 2 * borderSize
+            borderSize,
+            borderSize,
+            width - 2 * borderSize,
+            sectionHeight - borderSize
         );
-      }
 
-      // Set text properties
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-
-      // Adjust font sizes based on template dimensions
-      const titleFontSize = Math.round(Math.min(width, height) * 0.1);
-      const phoneFontSize = Math.round(Math.min(width, height) * 0.11);
-      const nameFontSize = Math.round(Math.min(width, height) * 0.1);
-
-      // Draw Title text with Inter font
-      ctx.fillStyle = whiteColor;
-      ctx.font = `bold ${titleFontSize}px Inter, sans-serif`;
-      ctx.fillText(title.toUpperCase(), width / 2, sectionHeight / 2);
-
-      // Draw phone number with Inter font
-      ctx.fillStyle = "#000000";
-      ctx.font = `bold ${phoneFontSize}px Inter, sans-serif`;
-      ctx.fillText(
-        phoneNumber,
-        width / 2,
-        showName ? height / 2 : sectionHeight + (height - sectionHeight) / 2
-      );
-
-      // Draw name with Inter font (only if name is shown)
-      if (showName) {
+        // Draw middle section (white with details)
         ctx.fillStyle = whiteColor;
-        ctx.font = `bold ${nameFontSize}px Inter, sans-serif`;
-        ctx.fillText(name??"", width / 2, height - sectionHeight / 2);
-      }
+        ctx.fillRect(
+            borderSize,
+            sectionHeight + borderSize,
+            width - 2 * borderSize,
+            sectionHeight - 2 * borderSize
+        );
 
-      // Generate download link
-      const dataUrl = canvas.toDataURL("image/png", 1.0);
-      const link = document.createElement("a");
-      link.download = `send-ke-${phoneNumber.replace(/\s/g, "")}-${
-        selectedTemplate.slug
-      }.png`;
-      link.href = dataUrl;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+        // Draw third section if needed (for name or additional fields)
+        if (sectionCount === 3) {
+            ctx.fillStyle = title === "Send Money" ? mainColor : whiteColor;
+            ctx.fillRect(
+                borderSize,
+                2 * sectionHeight + borderSize,
+                width - 2 * borderSize,
+                sectionHeight - 2 * borderSize
+            );
+        }
+
+        // Set text properties
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+
+        // Font sizes
+        const titleFontSize = Math.round(Math.min(width, originalPosterHeight) * 0.1);
+        const labelFontSize = Math.round(Math.min(width, originalPosterHeight) * 0.06);
+        const valueFontSize = Math.round(Math.min(width, originalPosterHeight) * 0.15);
+        const nameFontSize = Math.round(Math.min(width, originalPosterHeight) * 0.1);
+
+        // Draw Title text
+        ctx.fillStyle = whiteColor;
+        ctx.font = `bold ${titleFontSize}px Inter, sans-serif`;
+        ctx.fillText(title.toUpperCase(), width / 2, sectionHeight / 2);
+
+        // Draw content based on transaction type
+        switch (title) {
+            case "Send Money":
+                ctx.fillStyle = textColor;
+                ctx.font = `bold ${valueFontSize}px Inter, sans-serif`;
+                ctx.fillText(
+                    phoneNumber || "0712 345 678",
+                    width / 2,
+                    (showName ? originalPosterHeight / 2 : sectionHeight + (originalPosterHeight - sectionHeight) / 2) + valueTopPadding
+                );
+                break;
+                
+            case "Pay Bill":
+                // Business Number Label (top section)
+                ctx.fillStyle = labelBgColor;
+                ctx.fillRect(
+                    borderSize,
+                    sectionHeight + sectionHeight * 0.15 - labelHeight/2,
+                    width - 2 * borderSize,
+                    labelHeight
+                );
+                ctx.fillStyle = whiteColor;
+                ctx.font = `bold ${labelFontSize}px Inter, sans-serif`;
+                ctx.fillText(businessNumberLabel || "BUSINESS NUMBER", width / 2, sectionHeight + sectionHeight * 0.15);
+                
+                // Business Number Value
+                ctx.fillStyle = textColor;
+                ctx.font = `bold ${valueFontSize}px Inter, sans-serif`;
+                ctx.fillText(businessNumber || "12345", width / 2, sectionHeight + sectionHeight * 0.35 + valueTopPadding + valueBottomPadding);
+                
+                // Account Number Label (middle section)
+                ctx.fillStyle = labelBgColor;
+                ctx.fillRect(
+                    borderSize,
+                    2 * sectionHeight + sectionHeight * 0.15 - labelHeight/2,
+                    width - 2 * borderSize,
+                    labelHeight
+                );
+                ctx.fillStyle = whiteColor;
+                ctx.font = `bold ${labelFontSize}px Inter, sans-serif`;
+                ctx.fillText(accountNumberLabel || "ACCOUNT NUMBER", width / 2, 2 * sectionHeight + sectionHeight * 0.15);
+                
+                // Account Number Value
+                ctx.fillStyle = textColor;
+                ctx.font = `bold ${valueFontSize}px Inter, sans-serif`;
+                ctx.fillText(accountNumber || "12345", width / 2, 2 * sectionHeight + sectionHeight * 0.35 + valueTopPadding + valueBottomPadding);
+                break;
+                
+            case "Buy Goods":
+                // Till Number Label (top section)
+                ctx.fillStyle = labelBgColor;
+                ctx.fillRect(
+                    borderSize,
+                    sectionHeight + sectionHeight * 0.15 - labelHeight/2,
+                    width - 2 * borderSize,
+                    labelHeight
+                );
+                ctx.fillStyle = whiteColor;
+                ctx.font = `bold ${labelFontSize}px Inter, sans-serif`;
+                ctx.fillText(tillNumberLabel || "TILL NUMBER", width / 2, sectionHeight + sectionHeight * 0.15);
+                
+                // Till Number Value
+                ctx.fillStyle = textColor;
+                ctx.font = `bold ${valueFontSize}px Inter, sans-serif`;
+                ctx.fillText(tillNumber || "12345", width / 2, sectionHeight + sectionHeight * 0.35 + valueTopPadding + valueBottomPadding);
+                break;
+                
+            case "Withdraw Money":
+                // Agent Number Label (top section)
+                ctx.fillStyle = labelBgColor;
+                ctx.fillRect(
+                    borderSize,
+                    sectionHeight + sectionHeight * 0.15 - labelHeight/2,
+                    width - 2 * borderSize,
+                    labelHeight
+                );
+                ctx.fillStyle = whiteColor;
+                ctx.font = `bold ${labelFontSize}px Inter, sans-serif`;
+                ctx.fillText(agentNumberLabel || "AGENT NUMBER", width / 2, sectionHeight + sectionHeight * 0.15);
+                
+                // Agent Number Value
+                ctx.fillStyle = textColor;
+                ctx.font = `bold ${valueFontSize}px Inter, sans-serif`;
+                ctx.fillText(agentNumber || "12345", width / 2, sectionHeight + sectionHeight * 0.35 + valueTopPadding + valueBottomPadding);
+                
+                // Store Number Label (middle section)
+                ctx.fillStyle = labelBgColor;
+                ctx.fillRect(
+                    borderSize,
+                    2 * sectionHeight + sectionHeight * 0.15 - labelHeight/2,
+                    width - 2 * borderSize,
+                    labelHeight
+                );
+                ctx.fillStyle = whiteColor;
+                ctx.font = `bold ${labelFontSize}px Inter, sans-serif`;
+                ctx.fillText(storeNumberLabel || "STORE NUMBER", width / 2, 2 * sectionHeight + sectionHeight * 0.15);
+                
+                // Store Number Value
+                ctx.fillStyle = textColor;
+                ctx.font = `bold ${valueFontSize}px Inter, sans-serif`;
+                ctx.fillText(storeNumber || "12345", width / 2, 2 * sectionHeight + sectionHeight * 0.35 + valueTopPadding + valueBottomPadding);
+                break;
+        }
+
+        // Draw name (only for Send Money when showName is true)
+        if (showName && title === "Send Money") {
+            ctx.fillStyle = whiteColor;
+            ctx.font = `bold ${nameFontSize}px Inter, sans-serif`;
+            ctx.fillText(name?.toUpperCase() || "JOHN DOE", width / 2, originalPosterHeight - sectionHeight / 2);
+        }
+
+        // QR Code Section
+        const qrSectionY = originalPosterHeight + 40;
+
+        // Draw outer border for QR code section
+        ctx.fillStyle = borderColor;
+        ctx.fillRect(0, qrSectionY, width, qrSectionHeight);
+
+        // Draw white background for QR code section
+        ctx.fillStyle = whiteColor;
+        ctx.fillRect(
+            borderSize,
+            qrSectionY + borderSize,
+            width - 2 * borderSize,
+            qrSectionHeight - 2 * borderSize
+        );
+
+        // Position QR code within the bordered section
+        const qrCodeY = qrSectionY + borderSize + 20;
+
+        // Generate QR code
+        const qrCodeDataURL = await QRCode.toDataURL(generateQRCodeData(), {
+            width: qrCodeWidth,
+            margin: 0,
+            color: {
+                dark: selectedColor,
+                light: whiteColor,
+            },
+            errorCorrectionLevel: 'H'
+        });
+
+        const qrCodeImg = new Image();
+        qrCodeImg.src = qrCodeDataURL;
+        await new Promise((resolve) => {
+            qrCodeImg.onload = resolve;
+        });
+        ctx.drawImage(qrCodeImg, qrCodePadding, qrCodeY, qrCodeWidth, qrCodeWidth);
+    
+        // Add text inside the QR code bordered section
+        ctx.fillStyle = textColor;
+        ctx.font = ` ${Math.round(qrCodeWidth * 0.05)}px Inter, sans-serif`;
+        ctx.fillText("Scan to get payment details", width / 2, qrCodeY + qrCodeWidth + 30);
+
+        // Generate download link
+        const dataUrl = canvas.toDataURL("image/png", 1.0);
+        const link = document.createElement("a");
+        link.download = `send-ke-${title.toLowerCase().replace(/\s/g, "-")}.png`;
+        link.href = dataUrl;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     } catch (error) {
-      console.error("Error generating image:", error);
+        console.error("Error generating image:", error);
+    }
+};
+  
+  // Generate QR code data based on the current form values
+  const generateQRCodeData = () => {
+    switch (title) {
+      case "Send Money":
+        return `Send Money to ${phoneNumber || "0712 345 678"}`;
+      case "Pay Bill":
+        return `Pay Bill\nBusiness: ${businessNumber || "12345"}\nAccount: ${accountNumber || "12345"}`;
+      case "Buy Goods":
+        return `Buy Goods\nTill: ${tillNumber || "12345"}`;
+      case "Withdraw Money":
+        return `Withdraw Money\nAgent: ${agentNumber || "12345"}\nStore: ${storeNumber || "12345"}`;
+      default:
+        return "Payment Information";
     }
   };
 
@@ -264,20 +535,23 @@ function Home() {
                     htmlFor="title"
                     className="block text-sm font-medium text-gray-700 mb-1"
                   >
-                    Title Text
+                    Transaction Type
                   </label>
                   <Controller
                     name="title"
                     control={control}
                     render={({ field }) => (
-                      <Input
-                        id="title"
-                        type="text"
-                        value={field.value}
-                        onChange={field.onChange}
-                        className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold"
-                        placeholder="SEND MONEY"
-                      />
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <SelectTrigger className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold">
+                          <SelectValue placeholder="Select transaction type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Send Money">Send Money</SelectItem>
+                          <SelectItem value="Pay Bill">Pay Bill</SelectItem>
+                          <SelectItem value="Buy Goods">Buy Goods</SelectItem>
+                          <SelectItem value="Withdraw Money">Withdraw Money</SelectItem>
+                        </SelectContent>
+                      </Select>
                     )}
                   />
                   {errors.title && (
@@ -287,91 +561,243 @@ function Home() {
                   )}
                 </div>
 
-                <div>
-                  <label
-                    htmlFor="phone"
-                    className="block text-sm font-medium text-gray-700 mb-1"
-                  >
-                    Phone Number
-                  </label>
-                  <Controller
-                    name="phoneNumber"
-                    control={control}
-                    render={({ field }) => (
-                      <Input
-                        id="phone"
-                        type="text"
-                        value={field.value}
-                        onChange={(e) => {
-                          const value = e.target.value.replace(/\D/g, "");
-                          if (value.length <= 10) {
-                            field.onChange(formatPhoneNumber(value));
-                          }
-                        }}
-                        className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold"
-                        placeholder="0712 345 678"
+                {title === "Send Money" && (
+                  <>
+                    <div>
+                      <label
+                        htmlFor="phone"
+                        className="block text-sm font-medium text-gray-700 mb-1"
+                      >
+                        Phone Number
+                      </label>
+                      <Controller
+                        name="phoneNumber"
+                        control={control}
+                        render={({ field }) => (
+                          <Input
+                            id="phone"
+                            type="text"
+                            value={field.value}
+                            onChange={(e) => {
+                              const value = e.target.value.replace(/\D/g, "");
+                              if (value.length <= 10) {
+                                field.onChange(formatPhoneNumber(value));
+                              }
+                            }}
+                            className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold"
+                            placeholder="0712 345 678"
+                          />
+                        )}
                       />
-                    )}
-                  />
-                  {errors.phoneNumber && (
-                    <p className="mt-1 text-sm text-red-500">
-                      {errors.phoneNumber.message}
-                    </p>
-                  )}
-                </div>
+                      {errors.phoneNumber && (
+                        <p className="mt-1 text-sm text-red-500">
+                          {errors.phoneNumber.message}
+                        </p>
+                      )}
+                    </div>
 
-                <div className="flex items-center space-x-2 mb-2">
-                  <Controller
-                    name="showName"
-                    control={control}
-                    render={({ field }) => (
-                      <Checkbox
-                        id="showName"
-                        checked={field.value}
-                        onCheckedChange={(checked: boolean) => {
-                          field.onChange(checked);
-                        }}
+                    <div className="flex items-center space-x-2 mb-2">
+                      <Controller
+                        name="showName"
+                        control={control}
+                        render={({ field }) => (
+                          <Checkbox
+                            id="showName"
+                            checked={field.value}
+                            onCheckedChange={(checked: boolean) => {
+                              field.onChange(checked);
+                            }}
+                          />
+                        )}
                       />
-                    )}
-                  />
-                  <label
-                    htmlFor="showName"
-                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                  >
-                    Show Name Field
-                  </label>
-                </div>
+                      <label
+                        htmlFor="showName"
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                      >
+                        Show Name Field
+                      </label>
+                    </div>
 
-                {showName && (
+                    {showName && (
+                      <div>
+                        <label
+                          htmlFor="name"
+                          className="block text-sm font-medium text-gray-700 mb-1"
+                        >
+                          Your Name
+                        </label>
+                        <Controller
+                          name="name"
+                          control={control}
+                          render={({ field }) => (
+                            <Input
+                              id="name"
+                              type="text"
+                              value={field.value}
+                              onChange={(e) => {
+                                field.onChange(e.target.value.toUpperCase());
+                              }}
+                              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold"
+                              placeholder="JOHN DOE"
+                            />
+                          )}
+                        />
+                        {errors.name && (
+                          <p className="mt-1 text-sm text-red-500">
+                            {errors.name.message}
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  </>
+                )}
+
+                {title === "Pay Bill" && (
+                  <>
+                    <div>
+                      <label
+                        htmlFor="businessNumber"
+                        className="block text-sm font-medium text-gray-700 mb-1"
+                      >
+                        Business Number
+                      </label>
+                      <Controller
+                        name="businessNumber"
+                        control={control}
+                        render={({ field }) => (
+                          <Input
+                            id="businessNumber"
+                            type="text"
+                            value={field.value}
+                            onChange={field.onChange}
+                            className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold"
+                            placeholder="12345"
+                          />
+                        )}
+                      />
+                      {errors.businessNumber && (
+                        <p className="mt-1 text-sm text-red-500">
+                          {errors.businessNumber.message}
+                        </p>
+                      )}
+                    </div>
+                    <div>
+                      <label
+                        htmlFor="accountNumber"
+                        className="block text-sm font-medium text-gray-700 mb-1"
+                      >
+                        Account Number
+                      </label>
+                      <Controller
+                        name="accountNumber"
+                        control={control}
+                        render={({ field }) => (
+                          <Input
+                            id="accountNumber"
+                            type="text"
+                            value={field.value}
+                            onChange={field.onChange}
+                            className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold"
+                            placeholder="12345"
+                          />
+                        )}
+                      />
+                      {errors.accountNumber && (
+                        <p className="mt-1 text-sm text-red-500">
+                          {errors.accountNumber.message}
+                        </p>
+                      )}
+                    </div>
+                  </>
+                )}
+
+                {title === "Buy Goods" && (
                   <div>
                     <label
-                      htmlFor="name"
+                      htmlFor="tillNumber"
                       className="block text-sm font-medium text-gray-700 mb-1"
                     >
-                      Your Name
+                      Till Number
                     </label>
                     <Controller
-                      name="name"
+                      name="tillNumber"
                       control={control}
                       render={({ field }) => (
                         <Input
-                          id="name"
+                          id="tillNumber"
                           type="text"
                           value={field.value}
-                          onChange={(e) => {
-                            field.onChange(e.target.value.toUpperCase());
-                          }}
+                          onChange={field.onChange}
                           className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold"
-                          placeholder="JOHN DOE"
+                          placeholder="12345"
                         />
                       )}
                     />
-                    {errors.name && (
+                    {errors.tillNumber && (
                       <p className="mt-1 text-sm text-red-500">
-                        {errors.name.message}
+                        {errors.tillNumber.message}
                       </p>
                     )}
                   </div>
+                )}
+
+                {title === "Withdraw Money" && (
+                  <>
+                    <div>
+                      <label
+                        htmlFor="agentNumber"
+                        className="block text-sm font-medium text-gray-700 mb-1"
+                      >
+                        Agent Number
+                      </label>
+                      <Controller
+                        name="agentNumber"
+                        control={control}
+                        render={({ field }) => (
+                          <Input
+                            id="agentNumber"
+                            type="text"
+                            value={field.value}
+                            onChange={field.onChange}
+                            className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold"
+                            placeholder="12345"
+                          />
+                        )}
+                      />
+                      {errors.agentNumber && (
+                        <p className="mt-1 text-sm text-red-500">
+                          {errors.agentNumber.message}
+                        </p>
+                      )}
+                    </div>
+                    <div>
+                      <label
+                        htmlFor="storeNumber"
+                        className="block text-sm font-medium text-gray-700 mb-1"
+                      >
+                        Store Number
+                      </label>
+                      <Controller
+                        name="storeNumber"
+                        control={control}
+                        render={({ field }) => (
+                          <Input
+                            id="storeNumber"
+                            type="text"
+                            value={field.value}
+                            onChange={field.onChange}
+                            className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold"
+                            placeholder="12345"
+                          />
+                        )}
+                      />
+                      {errors.storeNumber && (
+                        <p className="mt-1 text-sm text-red-500">
+                          {errors.storeNumber.message}
+                        </p>
+                      )}
+                    </div>
+                  </>
                 )}
 
                 <div>
@@ -424,7 +850,7 @@ function Home() {
                 >
                   <Button
                     type="submit"
-                    disabled={!isValid}
+                    // disabled={!isValid}
                     className="w-full bg-gray-800 text-white text-xl font-bold py-8 rounded-lg shadow-lg hover:bg-gray-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     DOWNLOAD
@@ -439,55 +865,113 @@ function Home() {
           </div>
         </div>
 
-        {/* Right Column - Poster Preview */}
         <div className="w-full md:w-1/2 flex flex-col items-center justify-center md:py-12">
           <div className="w-full max-w-lg">
+            {/* Poster Preview */}
             <div
               id="poster"
               ref={posterRef}
-              className="grid bg-white w-full rounded-lg shadow-lg overflow-hidden border-8 border-gray-800"
+              className="grid bg-white w-full shadow-lg overflow-hidden border-8 border-gray-800"
               style={{
-                gridTemplateRows: showName ? "1fr 1fr 1fr" : "1fr 1fr",
+                gridTemplateRows: showName && title === "Send Money" ? "1fr 1fr 1fr" : "1fr 1fr",
                 aspectRatio: `${selectedTemplate.size.width} / ${selectedTemplate.size.height}`,
                 maxHeight: "400px",
               }}
-            >
-              {/* Title */}
-              <div
-                className="flex items-center justify-center px-4 sm:px-6"
-                style={{ backgroundColor: selectedColor }}
-              >
-                <h2 className="text-2xl sm:text-2xl md:text-2xl lg:text-4xl leading-tight select-none font-bold text-white text-center">
-                  {title}
-                </h2>
+             >
+              {/* Title Section */}
+              <div className="flex items-center justify-center px-4 sm:px-6" style={{ backgroundColor: selectedColor }}>
+                <h2 className="text-2xl sm:text-3xl font-bold text-white text-center">{title.toUpperCase()}</h2>
               </div>
 
-              {/* Phone Number Display */}
+              {/* Details Section */}
               <div
-                className="bg-white flex items-center justify-center px-4 sm:px-6"
+                className="bg-white flex flex-col items-center justify-center px-4 sm:px-6"
                 style={{
                   borderTop: "8px solid #1a2335",
-                  borderBottom: showName ? "8px solid #1a2335" : "none",
+                  borderBottom: showName && title === "Send Money" ? "8px solid #1a2335" : "none",
                 }}
               >
-                <div className="w-full text-2xl sm:text-2xl md:text-2xl lg:text-4xl leading-tight font-bold text-center">
-                  {phoneNumber || "0712 345 678"}
-                </div>
+                {/* Display Content Based on Transaction Type */}
+                {title === "Send Money" && (
+                  <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-center">
+                    {phoneNumber || "0712 345 678"}
+                  </div>
+                )}
+
+                {title === "Pay Bill" && (
+                  <div className="w-full space-y-2">
+                    {/* Business Number */}
+                    <div className="space-y-1">
+                      <div className="text-lg font-bold text-white bg-gray-800 w-full px-4 py-2 text-center">Business Number</div>
+                      <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-center pb-2 border-b-2 border-gray-300">
+                        {businessNumber || "12345"}
+                      </div>
+                    </div>
+                    {/* Account Number */}
+                    <div className="space-y-1 pt-2">
+                      <div className="text-lg font-bold text-white bg-gray-800 w-full px-4 py-2 text-center">Account Number</div>
+                      <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-center pb-2 border-b-2 border-gray-300">
+                        {accountNumber || "67890"}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {title === "Buy Goods" && (
+                  <div className="w-full space-y-1">
+                    <div className="text-lg font-bold text-white bg-gray-800 w-full px-4 py-2 text-center">Till Number</div>
+                    <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-center pb-2 border-b-2 border-gray-300">
+                      {tillNumber || "54321"}
+                    </div>
+                  </div>
+                )}
+
+                {title === "Withdraw Money" && (
+                  <div className="w-full space-y-2">
+                    {/* Agent Number */}
+                    <div className="space-y-1">
+                      <div className="text-lg font-bold text-white bg-gray-800 w-full px-4 py-2 text-center">Agent Number</div>
+                      <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-center pb-2 border-b-2 border-gray-300">
+                        {agentNumber || "98765"}
+                      </div>
+                    </div>
+                    {/* Store Number */}
+                    <div className="space-y-1 pt-2">
+                      <div className="text-lg font-bold text-white bg-gray-800 w-full px-4 py-2 text-center">Store Number</div>
+                      <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-center pb-2 border-b-2 border-gray-300">
+                        {storeNumber || "24680"}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
-              {/* Name Display - conditional rendering */}
-              {showName && (
-                <div
-                  className="flex items-center justify-center px-4 sm:px-6"
-                  style={{ backgroundColor: selectedColor }}
-                >
-                  <div className="w-full text-2xl sm:text-2xl md:text-2xl lg:text-4xl leading-tight font-bold text-white text-center">
-                    {name || "JOHN DOE"}
-                  </div>
+              {/* Name Section */}
+              {showName && title === "Send Money" && (
+                <div className="flex items-center justify-center px-4 sm:px-6" style={{ backgroundColor: selectedColor }}>
+                  <div className="text-2xl sm:text-3xl font-bold text-white text-center">{name || "JOHN DOE"}</div>
                 </div>
               )}
             </div>
+
+            {/* QR Code Component */}
+            <div className="grid bg-white w-full shadow-lg overflow-hidden border-8 border-gray-800">
+              <div className="bg-white p-4 rounded-lg border border-gray-300 w-full" style={{ maxWidth: `${selectedTemplate.size.width}px` }}>
+                <div className="w-full" style={{ aspectRatio: "1/1" }}>
+                  <QRCodeSVG
+                    value={generateQRCodeData()}
+                    width="100%"
+                    height="100%"
+                    level="H"
+                    fgColor={selectedColor}
+                    style={{ display: 'block', width: '100%', height: 'auto' }}
+                  />
+                </div>
+                <p className="text-center text-sm text-gray-600 mt-2">Scan to get payment details</p>
+              </div>
+            </div>
           </div>
+          
           <div className="flex flex-col items-start justify-center text-center mt-2">
             <p className="font-handwriting text-2xl text-gray-600 z-10">
               Preview of your poster
