@@ -6,12 +6,12 @@ const Footer = () => {
         <p className="text-sm text-gray-600">
           Made with ❤️ by{" "}
           <a
-            href="https://davidamunga.com"
+            href="https://bltasolutions.co.ke"
             target="_blank"
             rel="noopener noreferrer"
             className="text-blue-600 hover:text-blue-800 font-medium"
           >
-            David Amunga
+            Steve Omondi
           </a>
         </p>
       </div>
