@@ -275,7 +275,7 @@ function Home() {
         ctx.fillStyle = whiteColor;
         ctx.fillRect(
             borderSize,
-            sectionHeight + borderSize,
+            sectionHeight + borderSize, // This creates the border between title and middle
             width - 2 * borderSize,
             sectionHeight - 2 * borderSize
         );
@@ -285,7 +285,7 @@ function Home() {
             ctx.fillStyle = mainColor;
             ctx.fillRect(
                 borderSize,
-                2 * sectionHeight + borderSize,
+                2 * sectionHeight + borderSize, // This creates the border between middle and bottom
                 width - 2 * borderSize,
                 sectionHeight - 2 * borderSize
             );
