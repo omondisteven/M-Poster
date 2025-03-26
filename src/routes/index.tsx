@@ -867,199 +867,213 @@ function Home() {
 
         <div className="w-full md:w-1/2 flex flex-col items-center justify-center md:py-12">
           {/* Poster Container */}
-      <div className="w-full max-w-lg">
-        {/* Poster Preview */}
-        <div
-          id="poster"
-          ref={posterRef}
-          className="grid bg-white w-full rounded-lg shadow-lg overflow-hidden border-8 border-gray-800"
-          style={{
-            gridTemplateRows: showName && title === "Send Money" ? "1fr 1fr 1fr" : "1fr 1fr",
-            aspectRatio: `${selectedTemplate.size.width} / ${selectedTemplate.size.height}`,
-            maxHeight: "400px",
-          }}
-        >
-          {/* Title Section - Reduced height */}
-          <div 
-            className="flex items-center justify-center px-4 sm:px-6" 
-            style={{ 
-              backgroundColor: selectedColor,
-              minHeight: "60px" // Reduced from auto
-            }}
-          >
-            <h2 className="text-2xl sm:text-3xl font-bold text-white text-center">{title.toUpperCase()}</h2>
-          </div>
-
-          {/* Details Section - Adjusted spacing */}
+        <div className="w-full max-w-lg">
+          {/* Poster Preview */}
           <div
-            className="bg-white flex flex-col items-center justify-start px-4 sm:px-6 py-2" // Added py-2
+            id="poster"
+            ref={posterRef}
+            className="grid bg-white w-full rounded-lg shadow-lg overflow-hidden border-8 border-gray-800"
             style={{
-              borderTop: "8px solid #1a2335",
-              borderBottom: showName && title === "Send Money" ? "8px solid #1a2335" : "none",
+              gridTemplateRows: showName && title === "Send Money" ? "1fr 1fr 1fr" : "1fr 1fr",
+              aspectRatio: `${selectedTemplate.size.width} / ${selectedTemplate.size.height}`,
+              maxHeight: "400px",
             }}
           >
-            {title === "Pay Bill" && (
-              <div className="w-full space-y-1"> {/* Reduced space-y from 2 to 1 */}
-                {/* Business Number */}
-                <div className="space-y-1">
-                  <div className="text-lg font-bold text-white bg-gray-800 w-full px-4 py-2 text-center">
-                    Business Number
-                  </div>
-                  <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-center">
-                    {businessNumber || "12345"}
-                  </div>
+            {/* Title Section - Tightened */}
+            <div 
+              className="flex items-center justify-center" 
+              style={{ 
+                backgroundColor: selectedColor,
+                minHeight: "50px",
+                padding: "0.5rem 0"
+              }}
+            >
+              <h2 className="text-2xl sm:text-3xl font-bold text-white text-center px-2">{title.toUpperCase()}</h2>
+            </div>
+
+            {/* Details Section - Compact layout */}
+            <div
+              className="bg-white flex flex-col justify-start"
+              style={{
+                borderTop: "8px solid #1a2335",
+                borderBottom: showName && title === "Send Money" ? "8px solid #1a2335" : "none",
+              }}
+            >
+              {title === "Send Money" && (
+                <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-center py-2">
+                  {phoneNumber || "0712 345 678"}
                 </div>
-                
-                {/* Account Number - Removed pt-2 and border */}
-                <div className="space-y-1 mt-4"> {/* Added mt-4 instead of pt-2 */}
-                  <div className="text-lg font-bold text-white bg-gray-800 w-full px-4 py-2 text-center">
-                    Account Number
-                  </div>
-                  <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-center">
-                    {accountNumber || "67890"}
-                  </div>
-                </div>
-              </div>
-            )}
-                {title === "Buy Goods" && (
-                  <div className="w-full space-y-1">
-                    <div className="text-lg font-bold text-white bg-gray-800 w-full px-4 py-2 text-center">Till Number</div>
-                    <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-center pb-2 border-b-2 border-gray-300">
-                      {tillNumber || "54321"}
+              )}
+
+              {title === "Pay Bill" && (
+                <div className="w-full">
+                  {/* Business Number */}
+                  <div>
+                    <div className="text-lg font-bold text-white bg-gray-800 w-full py-1 px-0 text-center">
+                      Business Number
+                    </div>
+                    <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-center py-1">
+                      {businessNumber || "12345"}
                     </div>
                   </div>
-                )}
+                  
+                  {/* Account Number */}
+                  <div>
+                    <div className="text-lg font-bold text-white bg-gray-800 w-full py-1 px-0 text-center">
+                      Account Number
+                    </div>
+                    <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-center py-1">
+                      {accountNumber || "67890"}
+                    </div>
+                  </div>
+                </div>
+              )}
 
-                  {title === "Withdraw Money" && (
-                        <div className="w-full space-y-1">
-                          {/* Agent Number */}
-                          <div className="space-y-1">
-                            <div className="text-lg font-bold text-white bg-gray-800 w-full px-4 py-2 text-center">
-                              Agent Number
-                            </div>
-                            <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-center">
-                              {agentNumber || "98765"}
-                            </div>
-                          </div>
-                          
-                          {/* Store Number - Removed pt-2 and border */}
-                          <div className="space-y-1 mt-4">
-                            <div className="text-lg font-bold text-white bg-gray-800 w-full px-4 py-2 text-center">
-                              Store Number
-                            </div>
-                            <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-center">
-                              {storeNumber || "24680"}
-                            </div>
-                          </div>
-                        </div>
-                      )}
-              </div>
+              {title === "Buy Goods" && (
+                <div className="w-full">
+                  <div className="text-lg font-bold text-white bg-gray-800 w-full py-1 px-0 text-center">
+                    Till Number
+                  </div>
+                  <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-center py-1">
+                    {tillNumber || "54321"}
+                  </div>
+                </div>
+              )}
 
-              {/* Name Section */}
-              {showName && title === "Send Money" && (
-                <div className="flex items-center justify-center px-4 sm:px-6" style={{ backgroundColor: selectedColor }}>
-                  <div className="text-2xl sm:text-3xl font-bold text-white text-center">{name || "JOHN DOE"}</div>
+              {title === "Withdraw Money" && (
+                <div className="w-full">
+                  {/* Agent Number */}
+                  <div>
+                    <div className="text-lg font-bold text-white bg-gray-800 w-full py-1 px-0 text-center">
+                      Agent Number
+                    </div>
+                    <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-center py-1">
+                      {agentNumber || "98765"}
+                    </div>
+                  </div>
+                  
+                  {/* Store Number */}
+                  <div>
+                    <div className="text-lg font-bold text-white bg-gray-800 w-full py-1 px-0 text-center">
+                      Store Number
+                    </div>
+                    <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-center py-1">
+                      {storeNumber || "24680"}
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
 
-            {/* QR Code Component - Restored original width */}
-            <div className="w-full mt-4 flex justify-center">
-              <div 
-                className="bg-white p-4 rounded-lg border-8 border-gray-800" 
-                style={{ 
-                  width: "100%",
-                  maxWidth: `${selectedTemplate.size.width}px`
-                }}
-              >
-                <div className="w-full" style={{ aspectRatio: "1/1" }}>
-                  <QRCodeSVG
-                    value={generateQRCodeData()}
-                    width="100%"
-                    height="100%"
-                    level="H"
-                    fgColor={selectedColor}
-                    style={{ display: 'block', width: '100%', height: 'auto' }}
-                  />
-                </div>
-                <p className="text-center text-sm text-gray-600 mt-2">
-                  Scan to get payment details
-                </p>
+            {/* Name Section */}
+            {showName && title === "Send Money" && (
+              <div className="flex items-center justify-center" style={{ 
+                backgroundColor: selectedColor,
+                minHeight: "50px",
+                padding: "0.5rem 0"
+              }}>
+                <div className="text-2xl sm:text-3xl font-bold text-white text-center px-2">{name || "JOHN DOE"}</div>
               </div>
-              </div>
-            </div>
+            )}
+          </div>
 
-            {/* Preview text */}
-            <div className="flex flex-col items-center justify-center text-center mt-4 md:mt-6">
-              <p className="font-handwriting text-2xl text-gray-600">
-                Preview of your poster
+          {/* QR Code Component */}
+          <div className="w-full mt-3 flex justify-center">
+            <div 
+              className="bg-white p-3 rounded-lg border-8 border-gray-800" 
+              style={{ 
+                width: "100%",
+                maxWidth: `${selectedTemplate.size.width}px`
+              }}
+            >
+              <div className="w-full" style={{ aspectRatio: "1/1" }}>
+                <QRCodeSVG
+                  value={generateQRCodeData()}
+                  width="100%"
+                  height="100%"
+                  level="H"
+                  fgColor={selectedColor}
+                  style={{ display: 'block', width: '100%', height: 'auto' }}
+                />
+              </div>
+              <p className="text-center text-sm text-gray-600 mt-1">
+                Scan to get payment details
               </p>
             </div>
+          </div>
 
-          {/* Template Selector */}
-          <div className="w-full max-w-lg mt-8">
-            <h3 className="text-lg font-bold text-gray-800 mb-3 flex items-center">
-              Select Template Size
-              <span className="ml-2 text-xs text-gray-500 italic">
-                (scroll horizontally to see more)
-              </span>
-            </h3>
-            <div className="relative w-full rounded-xl overflow-hidden">
-              {/* Left scroll indicator */}
-              <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-gray-100 to-transparent z-10 pointer-events-none flex items-center justify-start pl-1">
-                <ChevronLeftIcon className="h-6 w-6 text-gray-500 animate-pulse" />
-              </div>
+          {/* Preview text */}
+          <div className="flex flex-col items-center justify-center text-center mt-3">
+            <p className="font-handwriting text-xl text-gray-600">
+              Preview of your poster
+            </p>
+          </div>
+          </div>
 
-              {/* Right scroll indicator */}
-              <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-gray-100 to-transparent z-10 pointer-events-none flex items-center justify-end pr-1">
-                <ChevronRightIcon className="h-6 w-6 text-gray-500 animate-pulse" />
-              </div>
-
-              <ScrollArea className="w-full h-[170px] rounded-lg">
-                <div className="flex space-x-4 px-8 py-1 min-w-max">
-                  {templates.map((template) => (
-                    <div
-                      key={template.slug}
-                      onClick={() => setSelectedTemplate(template)}
-                      className={`p-3 rounded-lg cursor-pointer transition-all w-[160px] h-[150px] flex flex-col ${
-                        selectedTemplate.slug === template.slug
-                          ? "bg-gray-800 text-white ring-2 ring-green-500"
-                          : "bg-white hover:bg-gray-100 border border-gray-200"
-                      }`}
-                    >
-                      <div className="font-medium truncate">
-                        {template.name}
-                      </div>
-                      <div className="text-xs mt-1 line-clamp-2 flex-grow">
-                        {template.description}
-                      </div>
-                      <div
-                        className={`text-xs mt-1 font-semibold ${
-                          selectedTemplate.slug === template.slug
-                            ? "text-green-300"
-                            : "text-green-600"
-                        }`}
-                      >
-                        {template.size.label}
-                      </div>
-                      <div
-                        className={`text-xs mt-1 ${
-                          selectedTemplate.slug === template.slug
-                            ? "text-gray-300"
-                            : "text-gray-500"
-                        }`}
-                      >
-                        {template.size.width}×{template.size.height}px
-                      </div>
-                    </div>
-                  ))}
+            {/* Template Selector */}
+            <div className="w-full max-w-lg mt-8">
+              <h3 className="text-lg font-bold text-gray-800 mb-3 flex items-center">
+                Select Template Size
+                <span className="ml-2 text-xs text-gray-500 italic">
+                  (scroll horizontally to see more)
+                </span>
+              </h3>
+              <div className="relative w-full rounded-xl overflow-hidden">
+                {/* Left scroll indicator */}
+                <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-gray-100 to-transparent z-10 pointer-events-none flex items-center justify-start pl-1">
+                  <ChevronLeftIcon className="h-6 w-6 text-gray-500 animate-pulse" />
                 </div>
-                <ScrollBar orientation="horizontal" />
-              </ScrollArea>
+
+                {/* Right scroll indicator */}
+                <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-gray-100 to-transparent z-10 pointer-events-none flex items-center justify-end pr-1">
+                  <ChevronRightIcon className="h-6 w-6 text-gray-500 animate-pulse" />
+                </div>
+
+                <ScrollArea className="w-full h-[170px] rounded-lg">
+                  <div className="flex space-x-4 px-8 py-1 min-w-max">
+                    {templates.map((template) => (
+                      <div
+                        key={template.slug}
+                        onClick={() => setSelectedTemplate(template)}
+                        className={`p-3 rounded-lg cursor-pointer transition-all w-[160px] h-[150px] flex flex-col ${
+                          selectedTemplate.slug === template.slug
+                            ? "bg-gray-800 text-white ring-2 ring-green-500"
+                            : "bg-white hover:bg-gray-100 border border-gray-200"
+                        }`}
+                      >
+                        <div className="font-medium truncate">
+                          {template.name}
+                        </div>
+                        <div className="text-xs mt-1 line-clamp-2 flex-grow">
+                          {template.description}
+                        </div>
+                        <div
+                          className={`text-xs mt-1 font-semibold ${
+                            selectedTemplate.slug === template.slug
+                              ? "text-green-300"
+                              : "text-green-600"
+                          }`}
+                        >
+                          {template.size.label}
+                        </div>
+                        <div
+                          className={`text-xs mt-1 ${
+                            selectedTemplate.slug === template.slug
+                              ? "text-gray-300"
+                              : "text-gray-500"
+                          }`}
+                        >
+                          {template.size.width}×{template.size.height}px
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <ScrollBar orientation="horizontal" />
+                </ScrollArea>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
       {/* Twitter CTA for Template Contributions */}
       <div className="w-full py-4 bg-blue-50 border-t border-blue-100 relative z-10">
