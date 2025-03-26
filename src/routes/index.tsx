@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   CheckIcon,
@@ -42,7 +42,7 @@ const formSchema = z
     storeNumberLabel: z.string().optional(),
   })
   .superRefine((data, ctx) => {
-    // Name is only required when showName is true AND title is Send Money
+    // Only enforce name validation when both showName is true AND title is Send Money
     if (data.showName && data.title === "Send Money" && !data.name?.trim()) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
@@ -50,7 +50,7 @@ const formSchema = z
         path: ["name"],
       });
     }
-
+  
     // Validate based on transaction type
     switch (data.title) {
       case "Send Money":
@@ -142,12 +142,16 @@ function Home() {
     handleSubmit,
     watch,
     setValue,
-    formState: { errors},  //isValid---to be restored inside the object
+    formState: { errors, isValid },
+    trigger,
   } = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       phoneNumber: "",
-      phoneNumberLabel: "Phone Number",
+      name: "",
+      selectedColor: "#16a34a",
+      showName: true,
+      title: "Send Money",
       businessNumber: "",
       businessNumberLabel: "Business Number",
       accountNumber: "",
@@ -157,15 +161,12 @@ function Home() {
       agentNumber: "",
       agentNumberLabel: "Agent Number",
       storeNumber: "",
-      storeNumberLabel: "Store Number",
-      name: "",
-      selectedColor: "#16a34a",
-      showName: true,
-      title: "Send Money",
+      storeNumberLabel: "Store Number"
     },
     mode: "onChange",
+    shouldUnregister: true, // Add this line
   });
-
+  
   const phoneNumber = watch("phoneNumber");
   const name = watch("name");
   const selectedColor = watch("selectedColor");
@@ -181,6 +182,16 @@ function Home() {
   const tillNumberLabel = watch("tillNumberLabel");
   const agentNumberLabel = watch("agentNumberLabel");
   const storeNumberLabel = watch("storeNumberLabel");
+
+  // Add this effect to trigger validation when title changes
+  useEffect(() => {
+    // Reset showName to false when switching to non-Send Money transaction types
+    if (title !== "Send Money" && showName) {
+      setValue("showName", false);
+    }
+    trigger(); // Trigger validation after any title change
+  }, [title, trigger, showName, setValue]);
+
 
   const colorOptions = [
     { name: "Green", value: "#16a34a", class: "bg-green-600" },
@@ -351,14 +362,14 @@ function Home() {
                 break;
             
             case "Buy Goods":
-                ctx.fillStyle = labelBgColor;
+                ctx.fillStyle = whiteColor;
                 ctx.fillRect(
                     borderSize,
                     sectionHeight + sectionHeight * 0.15 - labelHeight/2,
                     width - 2 * borderSize,
                     labelHeight
                 );
-                ctx.fillStyle = whiteColor;
+                ctx.fillStyle = textColor;
                 ctx.font = `bold ${labelFontSize}px Inter, sans-serif`;
                 ctx.fillText(tillNumberLabel || "TILL NUMBER", width / 2, sectionHeight + sectionHeight * 0.15);
                 
@@ -556,7 +567,29 @@ function Home() {
                     name="title"
                     control={control}
                     render={({ field }) => (
-                      <Select onValueChange={field.onChange} value={field.value}>
+                      <Select 
+                        onValueChange={(value) => {
+                          field.onChange(value);
+                          // Reset relevant fields when transaction type changes
+                          if (value !== "Send Money") {
+                            setValue("phoneNumber", "");
+                            setValue("name", "");
+                          }
+                          if (value !== "Pay Bill") {
+                            setValue("businessNumber", "");
+                            setValue("accountNumber", "");
+                          }
+                          if (value !== "Buy Goods") {
+                            setValue("tillNumber", "");
+                          }
+                          if (value !== "Withdraw Money") {
+                            setValue("agentNumber", "");
+                            setValue("storeNumber", "");
+                          }
+                          trigger();
+                        }}
+                        value={field.value}
+                      >
                         <SelectTrigger className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold">
                           <SelectValue placeholder="Select transaction type" />
                         </SelectTrigger>
@@ -855,6 +888,7 @@ function Home() {
                   <Button
                     type="submit"
                     className="w-full bg-gray-800 text-white text-xl font-bold py-8 rounded-lg shadow-lg hover:bg-gray-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={!isValid} // Add this prop
                   >
                     DOWNLOAD
                   </Button>
