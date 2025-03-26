@@ -142,7 +142,7 @@ function Home() {
     handleSubmit,
     watch,
     setValue,
-    formState: { errors, isValid },
+    formState: { errors},  //isValid---to be restored inside the object
   } = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
