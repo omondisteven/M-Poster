@@ -362,14 +362,14 @@ function Home() {
                 break;
             
             case "Buy Goods":
-                ctx.fillStyle = whiteColor;
+                ctx.fillStyle = labelBgColor;
                 ctx.fillRect(
                     borderSize,
                     sectionHeight + sectionHeight * 0.15 - labelHeight/2,
                     width - 2 * borderSize,
                     labelHeight
                 );
-                ctx.fillStyle = textColor;
+                ctx.fillStyle = whiteColor;
                 ctx.font = `bold ${labelFontSize}px Inter, sans-serif`;
                 ctx.fillText(tillNumberLabel || "TILL NUMBER", width / 2, sectionHeight + sectionHeight * 0.15);
                 
@@ -574,17 +574,21 @@ function Home() {
                           if (value !== "Send Money") {
                             setValue("phoneNumber", "");
                             setValue("name", "");
+                            setValue ("showName", true)
                           }
                           if (value !== "Pay Bill") {
                             setValue("businessNumber", "");
                             setValue("accountNumber", "");
+                            setValue ("showName", false)
                           }
                           if (value !== "Buy Goods") {
                             setValue("tillNumber", "");
+                            setValue ("showName", false)
                           }
                           if (value !== "Withdraw Money") {
                             setValue("agentNumber", "");
                             setValue("storeNumber", "");
+                            setValue ("showName", false)
                           }
                           trigger();
                         }}
