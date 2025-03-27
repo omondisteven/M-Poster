@@ -40,6 +40,7 @@ const formSchema = z
     agentNumberLabel: z.string().optional(),
     storeNumber: z.string().optional().or(z.literal('')),
     storeNumberLabel: z.string().optional(),
+    amount: z.string().optional().or(z.literal('')),
   })
   .superRefine((data, ctx) => {
     // Name is only required when showName is true
@@ -126,6 +127,7 @@ interface FormValues {
   agentNumberLabel?: string | undefined;
   storeNumber?: string | undefined;
   storeNumberLabel?: string | undefined;
+  amount?: string | undefined;
 }
 
 export const Route = createFileRoute("/")({
@@ -259,7 +261,6 @@ const handleDownload = async () => {
         const borderColor = "#1a2335";
         const whiteColor = "#ffffff";
         const textColor = "#000000";
-        const labelBgColor = "#1a2335";
 
         // Draw outer border for the entire canvas
         ctx.fillStyle = borderColor;
@@ -514,17 +515,20 @@ const handleDownload = async () => {
         console.error("Error generating image:", error);
     }
   };
-  // Generate QR code data based on the current form values
+  // Replace the existing generateQRCodeData function wwith this M-Pesa specific version
   const generateQRCodeData = () => {
+    const amount = watch("amount");
+    const amountSuffix = amount ? `|${amount}` : '';
+    
     switch (title) {
       case "Send Money":
-        return `Send Money to ${phoneNumber || "0722 256 123"}`;
+        return `SM|${phoneNumber?.replace(/\s/g, "") || "254712345678"}${amountSuffix}`;
       case "Pay Bill":
-        return `Pay Bill\nBusiness: ${businessNumber || "12345"}\nAccount: ${accountNumber || "12345"}`;
+        return `PB|${businessNumber || "12345"}|${accountNumber || "12345"}${amountSuffix}`;
       case "Buy Goods":
-        return `Buy Goods\nTill: ${tillNumber || "12345"}`;
+        return `BG|${tillNumber || "12345"}${amountSuffix}`;
       case "Withdraw Money":
-        return `Withdraw Money\nAgent: ${agentNumber || "12345"}\nStore: ${storeNumber || "12345"}`;
+        return `WA|${agentNumber || "12345"}|${storeNumber || "12345"}${amountSuffix}`;
       default:
         return "Payment Information";
     }
@@ -778,6 +782,7 @@ function renderMiddleSections(title: string, _color: string, showName: boolean) 
                 </div>
 
                 {title === "Send Money" && (
+                  <>
                   <div>
                     <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
                       Phone Number
@@ -807,6 +812,31 @@ function renderMiddleSections(title: string, _color: string, showName: boolean) 
                       <p className="mt-1 text-sm text-red-500">{errors.phoneNumber.message}</p>
                     )}
                   </div>
+                  <div>
+                    <label htmlFor="amount" className="block text-sm font-medium text-gray-700 mb-1">
+                      Amount (optional)
+                    </label>
+                    <Controller
+                      name="amount"
+                      control={control}
+                      render={({ field }) => (
+                        <Input
+                          id="amount"
+                          type="text"
+                          inputMode="numeric"
+                          pattern="[0-9]*"
+                          value={field.value}
+                          onChange={(e) => {
+                            const value = e.target.value.replace(/\D/g, "");
+                            field.onChange(value);
+                          }}
+                          className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold"
+                          placeholder="1000"
+                        />
+                      )}
+                    />
+                  </div>
+                  </>
                 )}
 
                 {title === "Pay Bill" && (
@@ -862,6 +892,30 @@ function renderMiddleSections(title: string, _color: string, showName: boolean) 
                       {errors.accountNumber && (
                         <p className="mt-1 text-sm text-red-500">{errors.accountNumber.message}</p>
                       )}
+                    </div>
+                    <div>
+                      <label htmlFor="amount" className="block text-sm font-medium text-gray-700 mb-1">
+                        Amount (optional)
+                      </label>
+                      <Controller
+                        name="amount"
+                        control={control}
+                        render={({ field }) => (
+                          <Input
+                            id="amount"
+                            type="text"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
+                            value={field.value}
+                            onChange={(e) => {
+                              const value = e.target.value.replace(/\D/g, "");
+                              field.onChange(value);
+                            }}
+                            className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold"
+                            placeholder="1000"
+                          />
+                        )}
+                      />
                     </div>
                   </>
                 )}
@@ -1133,13 +1187,14 @@ function renderMiddleSections(title: string, _color: string, showName: boolean) 
                 }}
               >
                 <div className="w-full" style={{ aspectRatio: "1/1" }}>
-                  <QRCodeSVG
-                    value={generateQRCodeData()}
-                    width="100%"
-                    height="100%"
-                    level="H"
-                    style={{ display: 'block', width: '100%', height: 'auto' }}
-                  />
+                <QRCodeSVG
+                  value={generateQRCodeData()}
+                  width="100%"
+                  height="100%"
+                  level="H"
+                  fgColor={selectedColor} // Use your selected color for the QR code
+                  style={{ display: 'block', width: '100%', height: 'auto' }}
+                />
                 </div>
                 <br />
                 <p className="text-center text-lg font-bold text-white mt-1"
