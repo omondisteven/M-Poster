@@ -13,7 +13,7 @@ import { ColorPicker } from "@/components/ui/color-picker";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { useForm, Controller } from "react-hook-form";
+import { useForm, Controller, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import templates from "@/data/templates.json";
@@ -24,21 +24,21 @@ import QRCode from 'qrcode';
 
 // Define zod schema for validation
 const formSchema = z
-  .object({
-    phoneNumber: z.string().min(10, "Phone number must be at least 10 digits").optional(),
-    name: z.string().optional(),
+.object({
+  phoneNumber: z.string().min(10, "Phone number must be at least 10 digits").optional().or(z.literal('')),
+  name: z.string().optional().or(z.literal('')),
     selectedColor: z.string(),
-    showName: z.boolean(),
+    showName: z.boolean().or(z.literal('')),
     title: z.string().min(1, "Title cannot be empty"),
-    businessNumber: z.string().optional(),
+    businessNumber: z.string().optional().or(z.literal('')),
     businessNumberLabel: z.string().optional(),
-    accountNumber: z.string().optional(),
+    accountNumber: z.string().optional().or(z.literal('')),
     accountNumberLabel: z.string().optional(),
-    tillNumber: z.string().optional(),
+    tillNumber: z.string().optional().or(z.literal('')),
     tillNumberLabel: z.string().optional(),
-    agentNumber: z.string().optional(),
+    agentNumber: z.string().optional().or(z.literal('')),
     agentNumberLabel: z.string().optional(),
-    storeNumber: z.string().optional(),
+    storeNumber: z.string().optional().or(z.literal('')),
     storeNumberLabel: z.string().optional(),
   })
   .superRefine((data, ctx) => {
@@ -111,22 +111,21 @@ const formSchema = z
 
 // Define form type
 interface FormValues {
-  phoneNumber?: string;
-  phoneNumberLabel?: string;
-  businessNumber?: string;
-  businessNumberLabel?: string;
-  accountNumber?: string;
-  accountNumberLabel?: string;
-  tillNumber?: string;
-  tillNumberLabel?: string;
-  agentNumber?: string;
-  agentNumberLabel?: string;
-  storeNumber?: string;
-  storeNumberLabel?: string;
-  name?: string;
+  phoneNumber?: string | undefined;
+  name?: string | undefined;
   selectedColor: string;
   showName: boolean;
   title: string;
+  businessNumber?: string | undefined;
+  businessNumberLabel?: string | undefined;
+  accountNumber?: string | undefined;
+  accountNumberLabel?: string | undefined;
+  tillNumber?: string | undefined;
+  tillNumberLabel?: string | undefined;
+  agentNumber?: string | undefined;
+  agentNumberLabel?: string | undefined;
+  storeNumber?: string | undefined;
+  storeNumberLabel?: string | undefined;
 }
 
 export const Route = createFileRoute("/")({
@@ -142,26 +141,25 @@ function Home() {
     handleSubmit,
     watch,
     setValue,
-    formState: { errors, isValid},
-    trigger, // Add this line to get the trigger function
+    formState: { errors, isValid },
+    trigger,
   } = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(formSchema) as Resolver<FormValues>,
     defaultValues: {
-      phoneNumber: "",
-      name: "",
+      phoneNumber: undefined,
+      name: undefined,
       selectedColor: "#16a34a",
-      showName: true,
+      showName: false,
       title: "Send Money",
-      // Add defaults for all transaction types
-      businessNumber: "",
+      businessNumber: undefined,
       businessNumberLabel: "Business Number",
-      accountNumber: "",
+      accountNumber: undefined,
       accountNumberLabel: "Account Number",
-      tillNumber: "",
+      tillNumber: undefined,
       tillNumberLabel: "Till Number",
-      agentNumber: "",
+      agentNumber: undefined,
       agentNumberLabel: "Agent Number",
-      storeNumber: "",
+      storeNumber: undefined,
       storeNumberLabel: "Store Number"
     },
     mode: "onChange",
@@ -184,11 +182,28 @@ function Home() {
   const storeNumberLabel = watch("storeNumberLabel");
 
   // Add this effect to trigger validation when title changes
-    useEffect(() => {
-      if (title) {
-        trigger(); // Now trigger is available
-      }
-    }, [title, trigger]); // Make sure to include trigger in dependencies
+  useEffect(() => {
+    // Reset validation for all fields
+    trigger();
+    
+    // Clear fields that aren't relevant for the current transaction type
+    if (title !== "Send Money") {
+      setValue("phoneNumber", undefined);
+      setValue("name", undefined);
+      setValue("showName", false);
+    }
+    if (title !== "Pay Bill") {
+      setValue("businessNumber", undefined);
+      setValue("accountNumber", undefined);
+    }
+    if (title !== "Buy Goods") {
+      setValue("tillNumber", undefined);
+    }
+    if (title !== "Withdraw Money") {
+      setValue("agentNumber", undefined);
+      setValue("storeNumber", undefined);
+    }
+  }, [title, setValue, trigger]);
 
 
   const colorOptions = [
@@ -567,8 +582,18 @@ function Home() {
                     render={({ field }) => (
                       <Select 
                         onValueChange={(value) => {
+                          // Reset all fields when transaction type changes
+                          if (value !== field.value) {
+                            setValue("phoneNumber", undefined);
+                            setValue("name", undefined);
+                            setValue("businessNumber", undefined);
+                            setValue("accountNumber", undefined);
+                            setValue("tillNumber", undefined);
+                            setValue("agentNumber", undefined);
+                            setValue("storeNumber", undefined);
+                          }
                           field.onChange(value);
-                          trigger(); // Explicitly trigger validation
+                          trigger();
                         }}
                         value={field.value}
                       >
