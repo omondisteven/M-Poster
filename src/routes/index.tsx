@@ -24,9 +24,9 @@ import QRCode from 'qrcode';
 
 // Define zod schema for validation
 const formSchema = z
-.object({
-  phoneNumber: z.string().min(10, "Phone number must be at least 10 digits").optional().or(z.literal('')),
-  name: z.string().optional().or(z.literal('')),
+  .object({
+    phoneNumber: z.string().min(10, "Phone number must be at least 10 digits").optional().or(z.literal('')),
+    name: z.string().optional().or(z.literal('')),
     selectedColor: z.string(),
     showName: z.boolean().or(z.literal('')),
     title: z.string().min(1, "Title cannot be empty"),
@@ -42,11 +42,11 @@ const formSchema = z
     storeNumberLabel: z.string().optional(),
   })
   .superRefine((data, ctx) => {
-    // Name is only required when showName is true AND title is Send Money
-    if (data.showName && data.title === "Send Money" && !data.name?.trim()) {
+    // Name is only required when showName is true
+    if (data.showName && !data.name?.trim()) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: "Name is required when 'Show Name' is enabled for Send Money",
+        message: "Name is required when 'Show Name' is enabled",
         path: ["name"],
       });
     }
@@ -189,8 +189,6 @@ function Home() {
     // Clear fields that aren't relevant for the current transaction type
     if (title !== "Send Money") {
       setValue("phoneNumber", undefined);
-      setValue("name", undefined);
-      setValue("showName", false);
     }
     if (title !== "Pay Bill") {
       setValue("businessNumber", undefined);
@@ -204,7 +202,6 @@ function Home() {
       setValue("storeNumber", undefined);
     }
   }, [title, setValue, trigger]);
-
 
   const colorOptions = [
     { name: "Green", value: "#16a34a", class: "bg-green-600" },
@@ -226,7 +223,7 @@ function Home() {
     await handleDownload();
   });
 
-  const handleDownload = async () => {
+const handleDownload = async () => {
     if (!posterRef.current) return;
 
     try {
@@ -273,46 +270,64 @@ function Home() {
         let sectionCount = 2; // Default to 2 sections
         
         // Determine section count based on content
-        if (showName && title === "Send Money") {
-            sectionCount = 3;
-        } else if (title === "Withdraw Money" || title === "Pay Bill") {
-            sectionCount = 3;
+        if (showName && (title === "Pay Bill" || title === "Withdraw Money")) {
+            sectionCount = 4; // Title + 2 fields + name
+        } else if (showName) {
+            sectionCount = 3; // Title + field + name
+        } else if (title === "Pay Bill" || title === "Withdraw Money") {
+            sectionCount = 3; // Title + 2 fields
         }
         
         const sectionHeight = originalPosterHeight / sectionCount;
 
         // Padding values
-        const valueTopPadding = Math.round(sectionHeight * 0.1);
-        const valueBottomPadding = Math.round(sectionHeight * 0.125);
+        const valueTopPadding = Math.round(sectionHeight * 0.15);
+        const valueBottomPadding = Math.round(sectionHeight * 0.1);
         const labelHeight = Math.round(Math.min(width, originalPosterHeight) * 0.06) * 1.5;
 
-        // Draw top section (colored with header)
-        ctx.fillStyle = mainColor;
-        ctx.fillRect(
-            borderSize,
-            borderSize,
-            width - 2 * borderSize,
-            sectionHeight - 2 * borderSize // Adjusted height
-        );
-
-        // Draw middle section (white with details)
-        ctx.fillStyle = whiteColor;
-        ctx.fillRect(
-            borderSize,
-            sectionHeight + borderSize,
-            width - 2 * borderSize,
-            sectionHeight - 2 * borderSize
-        );
-
-        // Draw third section if needed
-        if (sectionCount === 3) {
-            ctx.fillStyle = mainColor;
-            ctx.fillRect(
-                borderSize,
-                2 * sectionHeight + borderSize,
-                width - 2 * borderSize,
-                sectionHeight - 2 * borderSize
-            );
+        // Draw sections with alternating colors and proper borders
+        for (let i = 0; i < sectionCount; i++) {
+          const yPos = i * sectionHeight + borderSize;
+          let sectionHeightWithBorder = sectionHeight;
+          
+          // Adjust for top border on first section
+          if (i === 0) {
+              sectionHeightWithBorder = sectionHeight - borderSize;
+          }
+          // Adjust for bottom border on last section
+          else if (i === sectionCount - 1) {
+              sectionHeightWithBorder = sectionHeight - borderSize;
+          }
+          // Middle sections get full height (they'll have borders from adjacent sections)
+          else {
+              sectionHeightWithBorder = sectionHeight;
+          }
+          
+          if (i === 0) {
+              // First section (always colored)
+              ctx.fillStyle = mainColor;
+          } else {
+              // Alternate between white and main color
+              ctx.fillStyle = i % 2 === 0 ? mainColor : whiteColor;
+          }
+          
+          ctx.fillRect(
+              borderSize,
+              yPos,
+              width - 2 * borderSize,
+              sectionHeightWithBorder
+          );
+          
+          // Draw top border for all sections except the first one
+          if (i > 0) {
+              ctx.fillStyle = borderColor;
+              ctx.fillRect(
+                  borderSize,
+                  yPos - borderSize,
+                  width - 2 * borderSize,
+                  borderSize
+              );
+          }
         }
 
         // Set text properties
@@ -322,10 +337,11 @@ function Home() {
         // Font sizes
         const titleFontSize = Math.round(Math.min(width, originalPosterHeight) * 0.1);
         const labelFontSize = Math.round(Math.min(width, originalPosterHeight) * 0.06);
-        const valueFontSize = Math.round(Math.min(width, originalPosterHeight) * 0.2);
+        const valueFontSize = Math.round(Math.min(width, originalPosterHeight) * 0.15);
+        const tillValueFontSize = Math.round(Math.min(width, originalPosterHeight) * 0.2);
         const nameFontSize = Math.round(Math.min(width, originalPosterHeight) * 0.1);
 
-        // Draw Title text
+        // Draw Title text (always in first section)
         ctx.fillStyle = whiteColor;
         ctx.font = `bold ${titleFontSize}px Inter, sans-serif`;
         ctx.fillText(title.toUpperCase(), width / 2, sectionHeight / 2);
@@ -343,13 +359,7 @@ function Home() {
                 break;
             
             case "Pay Bill":
-                ctx.fillStyle = whiteColor;
-                ctx.fillRect(
-                    borderSize,
-                    sectionHeight + sectionHeight * 0.15 - labelHeight/2,
-                    width - 2 * borderSize,
-                    labelHeight
-                );
+                // Business Number (second section)
                 ctx.fillStyle = textColor;
                 ctx.font = `bold ${labelFontSize}px Inter, sans-serif`;
                 ctx.fillText(businessNumberLabel || "BUSINESS NUMBER", width / 2, sectionHeight + sectionHeight * 0.15);
@@ -358,47 +368,36 @@ function Home() {
                 ctx.font = `bold ${valueFontSize}px Inter, sans-serif`;
                 ctx.fillText(businessNumber || "12345", width / 2, sectionHeight + sectionHeight * 0.35 + valueTopPadding + valueBottomPadding);
                 
-                ctx.fillStyle = mainColor;
-                ctx.fillRect(
-                    borderSize,
-                    2 * sectionHeight + sectionHeight * 0.15 - labelHeight/2,
-                    width - 2 * borderSize,
-                    labelHeight
-                );
+                // Account Number (third section)
+                const accountNumberSection = showName ? 2 : 1;
                 ctx.fillStyle = whiteColor;
                 ctx.font = `bold ${labelFontSize}px Inter, sans-serif`;
-                ctx.fillText(accountNumberLabel || "ACCOUNT NUMBER", width / 2, 2 * sectionHeight + sectionHeight * 0.15);
+                ctx.fillText(accountNumberLabel || "ACCOUNT NUMBER", width / 2, (accountNumberSection * sectionHeight) + sectionHeight * 0.15);
                 
                 ctx.fillStyle = whiteColor;
                 ctx.font = `bold ${valueFontSize}px Inter, sans-serif`;
-                ctx.fillText(accountNumber || "12345", width / 2, 2 * sectionHeight + sectionHeight * 0.35 + valueTopPadding + valueBottomPadding);
+                ctx.fillText(accountNumber || "12345", width / 2, (accountNumberSection * sectionHeight) + sectionHeight * 0.35 + valueTopPadding + valueBottomPadding);
                 break;
             
             case "Buy Goods":
-                ctx.fillStyle = labelBgColor;
+                ctx.fillStyle = whiteColor;
                 ctx.fillRect(
                     borderSize,
                     sectionHeight + sectionHeight * 0.15 - labelHeight/2,
                     width - 2 * borderSize,
                     labelHeight
                 );
-                ctx.fillStyle = whiteColor;
+                ctx.fillStyle = textColor;
                 ctx.font = `bold ${labelFontSize}px Inter, sans-serif`;
                 ctx.fillText(tillNumberLabel || "TILL NUMBER", width / 2, sectionHeight + sectionHeight * 0.15);
                 
                 ctx.fillStyle = textColor;
-                ctx.font = `bold ${valueFontSize}px Inter, sans-serif`;
+                ctx.font = `bold ${tillValueFontSize}px Inter, sans-serif`;
                 ctx.fillText(tillNumber || "12345", width / 2, sectionHeight + sectionHeight * 0.35 + valueTopPadding + valueBottomPadding);
                 break;
             
             case "Withdraw Money":
-                ctx.fillStyle = whiteColor;
-                ctx.fillRect(
-                    borderSize,
-                    sectionHeight + sectionHeight * 0.15 - labelHeight/2,
-                    width - 2 * borderSize,
-                    labelHeight
-                );
+                // Agent Number (second section)
                 ctx.fillStyle = textColor;
                 ctx.font = `bold ${labelFontSize}px Inter, sans-serif`;
                 ctx.fillText(agentNumberLabel || "AGENT NUMBER", width / 2, sectionHeight + sectionHeight * 0.15);
@@ -407,29 +406,35 @@ function Home() {
                 ctx.font = `bold ${valueFontSize}px Inter, sans-serif`;
                 ctx.fillText(agentNumber || "12345", width / 2, sectionHeight + sectionHeight * 0.35 + valueTopPadding + valueBottomPadding);
                 
-                ctx.fillStyle = mainColor;
-                ctx.fillRect(
-                    borderSize,
-                    2 * sectionHeight + sectionHeight * 0.15 - labelHeight/2,
-                    width - 2 * borderSize,
-                    labelHeight
-                );
+                // Store Number (third section)
+                const storeNumberSection = showName ? 2 : 1;
                 ctx.fillStyle = whiteColor;
                 ctx.font = `bold ${labelFontSize}px Inter, sans-serif`;
-                ctx.fillText(storeNumberLabel || "STORE NUMBER", width / 2, 2 * sectionHeight + sectionHeight * 0.15);
+                ctx.fillText(storeNumberLabel || "STORE NUMBER", width / 2, (storeNumberSection * sectionHeight) + sectionHeight * 0.15);
                 
                 ctx.fillStyle = whiteColor;
                 ctx.font = `bold ${valueFontSize}px Inter, sans-serif`;
-                ctx.fillText(storeNumber || "12345", width / 2, 2 * sectionHeight + sectionHeight * 0.35 + valueTopPadding + valueBottomPadding);
+                ctx.fillText(storeNumber || "12345", width / 2, (storeNumberSection * sectionHeight) + sectionHeight * 0.35 + valueTopPadding + valueBottomPadding);
                 break;
         }
 
-        // Draw name (only for Send Money when showName is true)
-        if (showName && title === "Send Money") {
-            ctx.fillStyle = whiteColor;
-            ctx.font = `bold ${nameFontSize}px Inter, sans-serif`;
-            ctx.fillText(name?.toUpperCase() || "NELSON ANANGWE", width / 2, originalPosterHeight - sectionHeight / 2);
-        }
+        // Draw name when showName is true (last section)
+        if (showName) {
+          const nameSection = sectionCount - 1;
+          const isWhiteBackground = nameSection % 2 === 1; // Check if background is white
+          ctx.fillStyle = isWhiteBackground ? whiteColor : mainColor;
+          
+          // Set text color based on background
+          const nameTextColor = isWhiteBackground ? "#000000" : "#ffffff";
+          ctx.fillStyle = nameTextColor;
+          
+          ctx.font = `bold ${nameFontSize}px Inter, sans-serif`;
+          ctx.fillText(
+              name?.toUpperCase() || "NELSON ANANGWE", 
+              width / 2, 
+              (nameSection * sectionHeight) + (sectionHeight / 2)
+          );
+      }
 
         // QR Code Section
         const qrSectionY = originalPosterHeight;
@@ -508,8 +513,7 @@ function Home() {
     } catch (error) {
         console.error("Error generating image:", error);
     }
-};
-  
+  };
   // Generate QR code data based on the current form values
   const generateQRCodeData = () => {
     switch (title) {
@@ -525,6 +529,166 @@ function Home() {
         return "Payment Information";
     }
   };
+
+  // Helper functions for the preview
+  function getGridTemplateRows(title: string, showName: boolean): string {
+    const sectionCount = getSectionCount(title, showName);
+    return `repeat(${sectionCount}, minmax(80px, 1fr))`; // Each section gets equal space, minimum 80px
+  }
+
+  // Helper function to calculate poster height based on visible sections
+  function calculatePosterMinHeight(title: string, showName: boolean): string {
+    const sectionCount = getSectionCount(title, showName);
+    return `${sectionCount * 80}px`; // Minimum height based on section count
+  }
+
+  function getSectionCount(title: string, showName: boolean): number {
+    let count = 2; // Title + one content section by default
+    
+    if (title === "Pay Bill" || title === "Withdraw Money") {
+      count = 3; // Title + two content sections
+    }
+    
+    if (showName) {
+      count += 1; // Add name section
+    }
+    
+    return count;
+  }
+
+  function getSectionColor(title: string, showName: boolean, sectionIndex: number): string {
+    // First section is always the selected color
+    if (sectionIndex === 0) return selectedColor;
+    
+    // For sections after the first, alternate between white and selected color
+    if (title === "Pay Bill" || title === "Withdraw Money") {
+      // For these types, we have more sections so we need to adjust the pattern
+      if (showName) {
+        // 4 sections: colored, white, colored, white
+        return sectionIndex % 2 === 0 ? selectedColor : "#ffffff";
+      } else {
+        // 3 sections: colored, white, colored
+        return sectionIndex % 2 === 1 ? "#ffffff" : selectedColor;
+      }
+    } else {
+      // For other types with showName: colored, white, colored
+      // Without showName: colored, white
+      return sectionIndex % 2 === 1 ? "#ffffff" : selectedColor;
+    }
+  }
+
+  function getTextColor(title: string, showName: boolean, sectionIndex: number): string {
+    return getSectionColor(title, showName, sectionIndex) === selectedColor ? "#ffffff" : "#000000";
+}
+
+  // Update renderMiddleSections to use minHeight instead of height:
+function renderMiddleSections(title: string, _color: string, showName: boolean) {
+  const sections = [];
+  let sectionCount = showName 
+    ? (title === "Pay Bill" || title === "Withdraw Money" ? 2 : 1) 
+    : (title === "Pay Bill" || title === "Withdraw Money" ? 2 : 1);
+
+  for (let i = 0; i < sectionCount; i++) {
+    const sectionIndex = i + 1; // +1 because title is section 0
+    const isWhite = getSectionColor(title, showName, sectionIndex) === "#ffffff";
+    
+    sections.push(
+      <div
+        key={i}
+        className="flex flex-col justify-center"
+        style={{
+          backgroundColor: getSectionColor(title, showName, sectionIndex),
+          minHeight: "80px", // Changed from height to minHeight
+          padding: "0.5rem 0",
+          borderTop: "8px solid #1a2335",
+          borderBottom: i === sectionCount - 1 && !showName ? "none" : "none"
+        }}
+      >
+        {renderSectionContent(title, i, isWhite)}
+      </div>
+    );
+  }
+
+  return sections;
+}
+
+  function renderSectionContent(title: string, sectionIndex: number, isWhite: boolean) {
+    const textColor = isWhite ? "#000000" : "#ffffff";
+    
+    switch (title) {
+      case "Send Money":
+        return (
+          <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-center py-2" style={{ color: textColor }}>
+            {phoneNumber || " 0722 256 123"}
+          </div>
+        );
+      
+      case "Pay Bill":
+        if (sectionIndex === 0) {
+          return (
+            <>
+              <div className="text-lg font-bold w-full py-1 px-0 text-center" style={{ color: textColor }}>
+                Business Number
+              </div>
+              <div className="text-xl sm:text-2xl md:text-3xl lg:text-3xl font-bold text-center py-1" style={{ color: textColor }}>
+                {businessNumber || "12345"}
+              </div>
+            </>
+          );
+        } else {
+          return (
+            <>
+              <div className="text-lg font-bold w-full py-1 px-0 text-center" style={{ color: textColor }}>
+                Account Number
+              </div>
+              <div className="text-xl sm:text-2xl md:text-3xl lg:text-3xl font-bold text-center py-1" style={{ color: textColor }}>
+                {accountNumber || "67890"}
+              </div>
+            </>
+          );
+        }
+      
+      case "Buy Goods":
+        return (
+          <>
+            <div className="text-lg font-bold w-full py-1 px-0 text-center" style={{ color: textColor }}>
+              Till Number
+            </div>
+            <div className="text-xl sm:text-2xl md:text-3xl lg:text-3xl font-bold text-center py-1" style={{ color: textColor }}>
+              {tillNumber || "54321"}
+            </div>
+          </>
+        );
+      
+      case "Withdraw Money":
+        if (sectionIndex === 0) {
+          return (
+            <>
+              <div className="text-lg font-bold w-full py-1 px-0 text-center" style={{ color: textColor }}>
+                Agent Number
+              </div>
+              <div className="text-xl sm:text-2xl md:text-3xl lg:text-3xl font-bold text-center py-1" style={{ color: textColor }}>
+                {agentNumber || "98765"}
+              </div>
+            </>
+          );
+        } else {
+          return (
+            <>
+              <div className="text-lg font-bold w-full py-1 px-0 text-center" style={{ color: textColor }}>
+                Store Number
+              </div>
+              <div className="text-xl sm:text-2xl md:text-3xl lg:text-3xl font-bold text-center py-1" style={{ color: textColor }}>
+                {storeNumber || "24680"}
+              </div>
+            </>
+          );
+        }
+      
+      default:
+        return null;
+    }
+  }
 
   return (
     <div className="flex flex-col bg-gray-100">
@@ -571,7 +735,7 @@ function Home() {
 
             <CardContent>
               <form onSubmit={onSubmit} className="space-y-4">
-                {/* Transaction Type Selector (unchanged) */}
+                {/* Transaction Type Selector */}
                 <div>
                   <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
                     Transaction Type
@@ -585,7 +749,6 @@ function Home() {
                           // Reset all fields when transaction type changes
                           if (value !== field.value) {
                             setValue("phoneNumber", undefined);
-                            setValue("name", undefined);
                             setValue("businessNumber", undefined);
                             setValue("accountNumber", undefined);
                             setValue("tillNumber", undefined);
@@ -615,87 +778,35 @@ function Home() {
                 </div>
 
                 {title === "Send Money" && (
-                  <>
-                    <div>
-                      <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
-                        Phone Number
-                      </label>
-                      <Controller
-                        name="phoneNumber"
-                        control={control}
-                        render={({ field }) => (
-                          <Input
-                            id="phone"
-                            type="text"
-                            inputMode="numeric"
-                            pattern="[0-9 && ( )]"
-                            value={field.value}
-                            onChange={(e) => {
-                              const value = e.target.value.replace(/\D/g, "");
-                              if (value.length <= 10) {
-                                field.onChange(formatPhoneNumber(value));
-                              }
-                            }}
-                            className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold"
-                            placeholder="0722 256 123"
-                          />
-                        )}
-                      />
-                      {errors.phoneNumber && (
-                        <p className="mt-1 text-sm text-red-500">{errors.phoneNumber.message}</p>
-                      )}
-                    </div>
-
-                    {/* Show Name Checkbox and Name Input (unchanged) */}
-                    <div className="flex items-center space-x-2 mb-2">
-                      <Controller
-                        name="showName"
-                        control={control}
-                        render={({ field }) => (
-                          <Checkbox
-                            id="showName"
-                            checked={field.value}
-                            onCheckedChange={(checked: boolean) => {
-                              field.onChange(checked);
-                            }}
-                          />
-                        )}
-                      />
-                      <label
-                        htmlFor="showName"
-                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                      >
-                        Show Name Field
-                      </label>
-                    </div>
-
-                    {showName && (
-                      <div>
-                        <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-                          Your Name
-                        </label>
-                        <Controller
-                          name="name"
-                          control={control}
-                          render={({ field }) => (
-                            <Input
-                              id="name"
-                              type="text"
-                              value={field.value}
-                              onChange={(e) => {
-                                field.onChange(e.target.value.toUpperCase());
-                              }}
-                              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold"
-                              placeholder="NELSON ANANGWE"
-                            />
-                          )}
+                  <div>
+                    <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
+                      Phone Number
+                    </label>
+                    <Controller
+                      name="phoneNumber"
+                      control={control}
+                      render={({ field }) => (
+                        <Input
+                          id="phone"
+                          type="text"
+                          inputMode="numeric"
+                          pattern="[0-9 && ( )]"
+                          value={field.value}
+                          onChange={(e) => {
+                            const value = e.target.value.replace(/\D/g, "");
+                            if (value.length <= 10) {
+                              field.onChange(formatPhoneNumber(value));
+                            }
+                          }}
+                          className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold"
+                          placeholder="0722 256 123"
                         />
-                        {errors.name && (
-                          <p className="mt-1 text-sm text-red-500">{errors.name.message}</p>
-                        )}
-                      </div>
+                      )}
+                    />
+                    {errors.phoneNumber && (
+                      <p className="mt-1 text-sm text-red-500">{errors.phoneNumber.message}</p>
                     )}
-                  </>
+                  </div>
                 )}
 
                 {title === "Pay Bill" && (
@@ -844,7 +955,57 @@ function Home() {
                   </>
                 )}
 
-                {/* Color Picker and Download Button (unchanged) */}
+                {/* Show Name Checkbox and Name Input for all transaction types */}
+                <div className="flex items-center space-x-2 mb-2">
+                  <Controller
+                    name="showName"
+                    control={control}
+                    render={({ field }) => (
+                      <Checkbox
+                        id="showName"
+                        checked={field.value}
+                        onCheckedChange={(checked: boolean) => {
+                          field.onChange(checked);
+                        }}
+                      />
+                    )}
+                  />
+                  <label
+                    htmlFor="showName"
+                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  >
+                    Show Name Field
+                  </label>
+                </div>
+
+                {showName && (
+                  <div>
+                    <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+                      Your Name
+                    </label>
+                    <Controller
+                      name="name"
+                      control={control}
+                      render={({ field }) => (
+                        <Input
+                          id="name"
+                          type="text"
+                          value={field.value}
+                          onChange={(e) => {
+                            field.onChange(e.target.value.toUpperCase());
+                          }}
+                          className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold"
+                          placeholder="NELSON ANANGWE"
+                        />
+                      )}
+                    />
+                    {errors.name && (
+                      <p className="mt-1 text-sm text-red-500">{errors.name.message}</p>
+                    )}
+                  </div>
+                )}
+
+                {/* Color Picker and Download Button */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-3">
                     Poster Color
@@ -895,7 +1056,7 @@ function Home() {
                   <Button
                     type="submit"
                     className="w-full bg-gray-800 text-white text-xl font-bold py-8 rounded-lg shadow-lg hover:bg-gray-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                    disabled={!isValid} // Add this prop
+                    disabled={!isValid}
                   >
                     DOWNLOAD
                   </Button>
@@ -910,126 +1071,57 @@ function Home() {
         </div>
 
         <div className="w-full md:w-1/2 flex flex-col items-center justify-center md:py-12">
-          {/* Poster Container */}
-          <div className="w-full max-w-lg">
-            {/* Poster Preview */}
-            <div
-              id="poster"
-              ref={posterRef}
-              className="grid bg-white w-full rounded-lg shadow-lg overflow-hidden border-8 border-gray-800"
-              style={{
-                gridTemplateRows: showName && title === "Send Money" 
-                  ? "auto auto auto"  // Changed from fr to auto
-                  : "auto auto",      // Changed from fr to auto
-                aspectRatio: `${selectedTemplate.size.width} / ${selectedTemplate.size.height}`,
-                maxHeight: "300px",
-                height: "280px"       // Added fixed height
+        {/* Poster Container */}
+        <div className="w-full max-w-lg">
+          {/* Poster Preview */}
+          <div
+            id="poster"
+            ref={posterRef}
+            className="grid bg-white w-full rounded-lg shadow-lg overflow-hidden border-8 border-gray-800"
+            style={{
+              gridTemplateRows: getGridTemplateRows(title, showName),
+              aspectRatio: `${selectedTemplate.size.width} / ${selectedTemplate.size.height}`,
+              height: 'auto', // Let the content determine the height
+              minHeight: calculatePosterMinHeight(title, showName) // Ensure minimum height
+            }}
+          >
+            {/* Title Section (always first) */}
+            <div 
+              className="flex items-center justify-center" 
+              style={{ 
+                backgroundColor: selectedColor,
+                minHeight: "80px",
+                padding: "0.5rem 0"
               }}
             >
-              {/* Title Section */}
-              <div 
-                className="flex items-center justify-center" 
-                style={{ 
-                  backgroundColor: selectedColor,
-                  minHeight: "80px",  // Increased from 50px
-                  padding: "0.5rem 0"
-                }}
-              >
-                <h2 className="text-2xl sm:text-3xl font-bold text-white text-center px-2">{title.toUpperCase()}</h2>
-              </div>
+              <h2 className="text-2xl sm:text-3xl font-bold text-white text-center px-2">{title.toUpperCase()}</h2>
+            </div>
 
-              {/* Middle Section */}
+            {/* Middle Sections */}
+            {renderMiddleSections(title, selectedColor, showName)}
+
+            {/* Name Section (when showName is true) */}
+            {showName && (
               <div
-                className="bg-white flex flex-col justify-center"
+                className="flex items-center justify-center"
                 style={{
-                  borderTop: "8px solid #1a2335",
-                  borderBottom: showName && title === "Send Money" ? "8px solid #1a2335" : "none",
+                  backgroundColor: getSectionColor(title, showName, 3),
                   minHeight: "80px",
-                  height: "100%"
+                  padding: "0.3rem 0",
+                  borderTop: "8px solid #1a2335"
                 }}
               >
-                {title === "Send Money" && (
-                  <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-center py-2">
-                    {phoneNumber || " 0722 256 123"}
-                  </div>
-                )}
-
-                {title === "Pay Bill" && (
-                  <div className="w-full h-full flex flex-col justify-center">
-                    <div className="text-lg font-bold w-full py-1 px-0 text-center">
-                      Business Number
-                    </div>
-                    <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-center py-1">
-                      {businessNumber || "12345"}
-                    </div>
-                  </div>
-                )}
-
-                {title === "Buy Goods" && (
-                  <div className="w-full h-full flex flex-col justify-center">
-                    <div className="text-lg font-bold w-full py-1 px-0 text-center">
-                      Till Number
-                    </div>
-                    <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-center py-1">
-                      {tillNumber || "54321"}
-                    </div>
-                  </div>
-                )}
-
-                {title === "Withdraw Money" && (
-                  <div className="w-full h-full flex flex-col justify-center">
-                    <div className="text-lg font-bold w-full py-1 px-0 text-center">
-                      Agent Number
-                    </div>
-                    <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-center py-1">
-                      {agentNumber || "98765"}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Bottom Section */}
-              {(showName && title === "Send Money") || title === "Pay Bill" || title === "Withdraw Money" ? (
-                <div
-                  className="flex flex-col justify-center"
-                  style={{
-                    backgroundColor: selectedColor,
-                    padding: "0.5rem 0",
-                    borderTop: title !== "Send Money" ? "8px solid #1a2335" : "none",
-                    minHeight: "80px",
-                    height: "100%"
+                <div className="text-2xl sm:text-3xl font-bold text-center px-2"
+                  style={{ 
+                    color: getTextColor(title, showName, 3),
+                    lineHeight: "80px"
                   }}
                 >
-                  {title === "Send Money" && (
-                    <div className="text-2xl sm:text-3xl font-bold text-white text-center px-2">
-                      {name || "JOHN DOE"}
-                    </div>
-                  )}
-
-                  {title === "Pay Bill" && (
-                    <div className="h-full flex flex-col justify-center">
-                      <div className="text-lg font-bold w-full py-2 px-0 text-center text-white">
-                        Account Number
-                      </div>
-                      <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-center text-white py-2">
-                        {accountNumber || "67890"}
-                      </div>
-                    </div>
-                  )}
-
-                  {title === "Withdraw Money" && (
-                    <div className="h-full flex flex-col justify-center">
-                      <div className="text-lg font-bold w-full py-2 px-0 text-center text-white">
-                        Store Number
-                      </div>
-                      <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-center text-white py-2">
-                        {storeNumber || "24680"}
-                      </div>
-                    </div>
-                  )}
+                  {name || "NELSON ANANGWE"}
                 </div>
-              ) : null}
-            </div>
+              </div>
+            )}
+          </div>
 
             {/* QR Code Component */}
             <div className="w-full mt-3 flex justify-center">
@@ -1046,7 +1138,6 @@ function Home() {
                     width="100%"
                     height="100%"
                     level="H"
-                    // fgColor={selectedColor}
                     style={{ display: 'block', width: '100%', height: 'auto' }}
                   />
                 </div>
@@ -1069,70 +1160,70 @@ function Home() {
             </div>
           </div>
 
-              {/* Template Selector */}
-              <div className="w-full max-w-lg mt-8">
-                <h3 className="text-lg font-bold text-gray-800 mb-3 flex items-center">
-                  Select Template Size
-                  <span className="ml-2 text-xs text-gray-500 italic">
-                    (scroll horizontally to see more)
-                  </span>
-                </h3>
-                <div className="relative w-full rounded-xl overflow-hidden">
-                  {/* Left scroll indicator */}
-                  <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-gray-100 to-transparent z-10 pointer-events-none flex items-center justify-start pl-1">
-                    <ChevronLeftIcon className="h-6 w-6 text-gray-500 animate-pulse" />
-                  </div>
-
-                  {/* Right scroll indicator */}
-                  <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-gray-100 to-transparent z-10 pointer-events-none flex items-center justify-end pr-1">
-                    <ChevronRightIcon className="h-6 w-6 text-gray-500 animate-pulse" />
-                  </div>
-
-                  <ScrollArea className="w-full h-[170px] rounded-lg">
-                    <div className="flex space-x-4 px-8 py-1 min-w-max">
-                      {templates.map((template) => (
-                        <div
-                          key={template.slug}
-                          onClick={() => setSelectedTemplate(template)}
-                          className={`p-3 rounded-lg cursor-pointer transition-all w-[160px] h-[150px] flex flex-col ${
-                            selectedTemplate.slug === template.slug
-                              ? "bg-gray-800 text-white ring-2 ring-green-500"
-                              : "bg-white hover:bg-gray-100 border border-gray-200"
-                          }`}
-                        >
-                          <div className="font-medium truncate">
-                            {template.name}
-                          </div>
-                          <div className="text-xs mt-1 line-clamp-2 flex-grow">
-                            {template.description}
-                          </div>
-                          <div
-                            className={`text-xs mt-1 font-semibold ${
-                              selectedTemplate.slug === template.slug
-                                ? "text-green-300"
-                                : "text-green-600"
-                            }`}
-                          >
-                            {template.size.label}
-                          </div>
-                          <div
-                            className={`text-xs mt-1 ${
-                              selectedTemplate.slug === template.slug
-                                ? "text-gray-300"
-                                : "text-gray-500"
-                            }`}
-                          >
-                            {template.size.width}×{template.size.height}px
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                    <ScrollBar orientation="horizontal" />
-                  </ScrollArea>
-                </div>
+          {/* Template Selector */}
+          <div className="w-full max-w-lg mt-8">
+            <h3 className="text-lg font-bold text-gray-800 mb-3 flex items-center">
+              Select Template Size
+              <span className="ml-2 text-xs text-gray-500 italic">
+                (scroll horizontally to see more)
+              </span>
+            </h3>
+            <div className="relative w-full rounded-xl overflow-hidden">
+              {/* Left scroll indicator */}
+              <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-gray-100 to-transparent z-10 pointer-events-none flex items-center justify-start pl-1">
+                <ChevronLeftIcon className="h-6 w-6 text-gray-500 animate-pulse" />
               </div>
+
+              {/* Right scroll indicator */}
+              <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-gray-100 to-transparent z-10 pointer-events-none flex items-center justify-end pr-1">
+                <ChevronRightIcon className="h-6 w-6 text-gray-500 animate-pulse" />
+              </div>
+
+              <ScrollArea className="w-full h-[170px] rounded-lg">
+                <div className="flex space-x-4 px-8 py-1 min-w-max">
+                  {templates.map((template) => (
+                    <div
+                      key={template.slug}
+                      onClick={() => setSelectedTemplate(template)}
+                      className={`p-3 rounded-lg cursor-pointer transition-all w-[160px] h-[150px] flex flex-col ${
+                        selectedTemplate.slug === template.slug
+                          ? "bg-gray-800 text-white ring-2 ring-green-500"
+                          : "bg-white hover:bg-gray-100 border border-gray-200"
+                      }`}
+                    >
+                      <div className="font-medium truncate">
+                        {template.name}
+                      </div>
+                      <div className="text-xs mt-1 line-clamp-2 flex-grow">
+                        {template.description}
+                      </div>
+                      <div
+                        className={`text-xs mt-1 font-semibold ${
+                          selectedTemplate.slug === template.slug
+                            ? "text-green-300"
+                            : "text-green-600"
+                        }`}
+                      >
+                        {template.size.label}
+                      </div>
+                      <div
+                        className={`text-xs mt-1 ${
+                          selectedTemplate.slug === template.slug
+                            ? "text-gray-300"
+                            : "text-gray-500"
+                        }`}
+                      >
+                        {template.size.width}×{template.size.height}px
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <ScrollBar orientation="horizontal" />
+              </ScrollArea>
             </div>
           </div>
+        </div>
+      </div>
 
       {/* Twitter CTA for Template Contributions */}
       <div className="w-full py-4 bg-blue-50 border-t border-blue-100 relative z-10">
