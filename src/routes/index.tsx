@@ -42,7 +42,7 @@ const formSchema = z
     storeNumberLabel: z.string().optional(),
   })
   .superRefine((data, ctx) => {
-    // Only enforce name validation when both showName is true AND title is Send Money
+    // Name is only required when showName is true AND title is Send Money
     if (data.showName && data.title === "Send Money" && !data.name?.trim()) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
@@ -50,7 +50,7 @@ const formSchema = z
         path: ["name"],
       });
     }
-  
+
     // Validate based on transaction type
     switch (data.title) {
       case "Send Money":
@@ -142,8 +142,8 @@ function Home() {
     handleSubmit,
     watch,
     setValue,
-    formState: { errors, isValid },
-    trigger,
+    formState: { errors, isValid},
+    trigger, // Add this line to get the trigger function
   } = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -152,6 +152,7 @@ function Home() {
       selectedColor: "#16a34a",
       showName: true,
       title: "Send Money",
+      // Add defaults for all transaction types
       businessNumber: "",
       businessNumberLabel: "Business Number",
       accountNumber: "",
@@ -164,7 +165,6 @@ function Home() {
       storeNumberLabel: "Store Number"
     },
     mode: "onChange",
-    shouldUnregister: true, // Add this line
   });
   
   const phoneNumber = watch("phoneNumber");
@@ -184,13 +184,11 @@ function Home() {
   const storeNumberLabel = watch("storeNumberLabel");
 
   // Add this effect to trigger validation when title changes
-  useEffect(() => {
-    // Reset showName to false when switching to non-Send Money transaction types
-    if (title !== "Send Money" && showName) {
-      setValue("showName", false);
-    }
-    trigger(); // Trigger validation after any title change
-  }, [title, trigger, showName, setValue]);
+    useEffect(() => {
+      if (title) {
+        trigger(); // Now trigger is available
+      }
+    }, [title, trigger]); // Make sure to include trigger in dependencies
 
 
   const colorOptions = [
@@ -570,27 +568,7 @@ function Home() {
                       <Select 
                         onValueChange={(value) => {
                           field.onChange(value);
-                          // Reset relevant fields when transaction type changes
-                          if (value !== "Send Money") {
-                            setValue("phoneNumber", "");
-                            setValue("name", "");
-                            setValue ("showName", true)
-                          }
-                          if (value !== "Pay Bill") {
-                            setValue("businessNumber", "");
-                            setValue("accountNumber", "");
-                            setValue ("showName", false)
-                          }
-                          if (value !== "Buy Goods") {
-                            setValue("tillNumber", "");
-                            setValue ("showName", false)
-                          }
-                          if (value !== "Withdraw Money") {
-                            setValue("agentNumber", "");
-                            setValue("storeNumber", "");
-                            setValue ("showName", false)
-                          }
-                          trigger();
+                          trigger(); // Explicitly trigger validation
                         }}
                         value={field.value}
                       >
