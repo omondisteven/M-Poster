@@ -1225,25 +1225,29 @@ function renderMiddleSections(title: string, _color: string, showName: boolean) 
             )}
           </div>
 
-            {/* QR Code Component - Removed mt-3 to eliminate gap */}
+            {/* QR Code Component */}
             <div className="w-full flex justify-center">
               <div 
-                className="bg-white rounded-b-lg border-8 border-t-0 border-gray-800 flex flex-col" 
+                className="bg-white border-8 border-t-0 border-gray-800 flex flex-col w-full"
                 style={{ 
-                  width: "100%",
                   maxWidth: `${selectedTemplate.size.width}px`
                 }}
               >
-                {/* Permanent Dark Gray Section - now at top */}
+                {/* Enhanced Dark Gray Section with guaranteed visibility */}
                 <div 
-                  className="w-full flex items-center justify-center p-4"
+                  className="w-full flex items-center justify-center py-4 px-2"
                   style={{
-                    backgroundColor: "solidrgb(101, 102, 104)", // Dark gray background
-                    minHeight: "60px", // Similar height to other sections
-                    borderBottom: "8px solid #1a2335" // Matching border style
+                    backgroundColor: "#1a2335",
+                    minHeight: "70px", // Increased minimum height
+                    borderBottom: "8px solid #1a2335"
                   }}
                 >
-                  <p className="text-center text-3xl font-bold text-white">
+                  <p 
+                    className="text-center text-3xl font-bold text-white whitespace-nowrap"
+                    style={{
+                      fontSize: "clamp(1.25rem, 4vw, 2rem)" // Responsive font sizing
+                    }}
+                  >
                     SCAN TO PAY!
                   </p>
                 </div>
@@ -1255,7 +1259,7 @@ function renderMiddleSections(title: string, _color: string, showName: boolean) 
                     width="100%"
                     height="100%"
                     level="H"
-                    fgColor= "#000000"
+                    fgColor={selectedColor}
                     style={{ display: 'block', width: '100%', height: 'auto' }}
                   />
                 </div>
