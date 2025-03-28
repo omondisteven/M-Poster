@@ -676,28 +676,6 @@ function Home() {
     return count;
   }
 
-  function getSectionColor(title: string, showName: boolean, sectionIndex: number): string {
-    // First section is always the selected color
-    if (sectionIndex === 0) return selectedColor;
-    
-    // For sections after the first, alternate between white and selected color
-    if (title === "Pay Bill" || title === "Withdraw Money") {
-      // For these types, we have more sections so we need to adjust the pattern
-      if (showName) {
-        // 4 sections: colored, white, colored, white
-        return sectionIndex % 2 === 0 ? selectedColor : "#ffffff";
-      } else {
-        // 3 sections: colored, white, colored
-        return sectionIndex % 2 === 1 ? "#ffffff" : selectedColor;
-      }
-    } else {
-      // For other types with showName: colored, white, colored
-      // Without showName: colored, white
-      return sectionIndex % 2 === 1 ? "#ffffff" : selectedColor;
-    }
-  }
-
-
   // Updated renderMiddleSections to use the new color logic
   function renderMiddleSections(title: string, _color: string, showName: boolean) {
     const sections = [];
