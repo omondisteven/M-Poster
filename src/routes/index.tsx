@@ -892,33 +892,29 @@ function renderMiddleSections(title: string, _color: string, showName: boolean) 
                 {watch("type") === TRANSACTION_TYPE.SEND_MONEY && (
                   <div>
                     <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700 mb-1">
-                      Phone Number (start with 254)
+                      Phone Number
                     </label>
                     <Controller
-                      name="phoneNumber"
-                      control={control}
-                      render={({ field }) => (
-                        <Input
-                          id="phoneNumber"
-                          type="text"
-                          inputMode="numeric"
-                          value={field.value}
-                          onChange={(e) => {
-                            let value = e.target.value.replace(/\D/g, "");
-                            // Ensure it starts with 254
-                            if (!value.startsWith("254") && value.length > 0) {
-                              value = `254${value}`;
-                            }
-                            // Limit to 12 digits (254 + 9 digits)
-                            if (value.length <= 12) {
-                              field.onChange(formatPhoneNumber(value));
-                            }
-                          }}
-                          className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold"
-                          placeholder="254712345678"
-                        />
-                      )}
-                    />
+                        name="phoneNumber"
+                        control={control}
+                        render={({ field }) => (
+                          <Input
+                            id="phone"
+                            type="text"
+                            inputMode="numeric"
+                            pattern="[0-9 && ( )]"
+                            value={field.value}
+                            onChange={(e) => {
+                              const value = e.target.value.replace(/\D/g, "");
+                              if (value.length <= 10) {
+                                field.onChange(formatPhoneNumber(value));
+                              }
+                            }}
+                            className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold"
+                            placeholder="0722 256 123"
+                          />
+                        )}
+                      />
                     {errors.phoneNumber && (
                       <p className="mt-1 text-sm text-red-500">{errors.phoneNumber.message}</p>
                     )}
