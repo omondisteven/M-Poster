@@ -1,42 +1,34 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  CheckIcon,
-  GithubIcon,
-  LockIcon,
-  ChevronLeftIcon,
-  ChevronRightIcon,
-} from "lucide-react";
-import { motion } from "motion/react";
+import { CheckIcon, GithubIcon, LockIcon, ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
+import { motion } from "framer-motion";
 import { ColorPicker } from "@/components/ui/color-picker";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { useForm, Controller, type Resolver } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import templates from "@/data/templates.json";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { QRCodeSVG } from 'qrcode.react';
-import QRCode from 'qrcode';
-
-// Mpesa App imports
-import type { FormData } from "@/@types/Data";
-import { TRANSACTION_TYPE } from "@/@types/TransactionType";
+import { createRoot } from 'react-dom/client';
+import QrSvg from "@wojtekmaj/react-qr-svg";
 import { generateQRCode } from "@/utils/helpers";
+import { useAppContext,  } from "@/context/AppContext";
+import { TRANSACTION_TYPE } from "@/@types/TransactionType";
 
 // Define zod schema for validation
 const formSchema = z.object({
   type: z.nativeEnum(TRANSACTION_TYPE),
   selectedColor: z.string(),
-  showName: z.boolean().or(z.literal('')),
+  showName: z.boolean(),
   title: z.string().min(1, "Title cannot be empty"),
   phoneNumber: z.string().min(10, "Phone number must be at least 10 digits").optional().or(z.literal('')),
   name: z.string().optional().or(z.literal('')),
-  businessNumber: z.string().optional().or(z.literal('')),
-  businessNumberLabel: z.string().optional(),
+  paybillNumber: z.string().optional().or(z.literal('')),
+  paybillNumberLabel: z.string().optional(),
   accountNumber: z.string().optional().or(z.literal('')),
   accountNumberLabel: z.string().optional(),
   tillNumber: z.string().optional().or(z.literal('')),
@@ -44,9 +36,7 @@ const formSchema = z.object({
   agentNumber: z.string().optional().or(z.literal('')),
   agentNumberLabel: z.string().optional(),
   storeNumber: z.string().optional().or(z.literal('')),
-  storeNumberLabel: z.string().optional(),
-  amount: z.string().optional().or(z.literal('')),
-  hideAmount: z.boolean().optional().default(false),
+  storeNumberLabel: z.string().optional(), 
 })
   .superRefine((data, ctx) => {
     // Name is only required when showName is true
@@ -71,11 +61,11 @@ const formSchema = z.object({
         break;
       
       case "Pay Bill":
-        if (!data.businessNumber?.trim()) {
+        if (!data.paybillNumber?.trim()) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             message: "Business number is required for Pay Bill",
-            path: ["businessNumber"],
+            path: ["paybillNumber"],
           });
         }
         if (!data.accountNumber?.trim()) {
@@ -127,11 +117,11 @@ const formSchema = z.object({
         break;
       
       case TRANSACTION_TYPE.PAYBILL:
-        if (!data.businessNumber?.trim()) {
+        if (!data.paybillNumber?.trim()) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             message: "Business number is required for Pay Bill",
-            path: ["businessNumber"],
+            path: ["paybillNumber"],
           });
         }
         if (!data.accountNumber?.trim()) {
@@ -180,8 +170,8 @@ interface FormValues {
   title: string;
   phoneNumber?: string;
   name?: string;
-  businessNumber?: string;
-  businessNumberLabel?: string;
+  paybillNumber?: string;
+  paybillNumberLabel?: string;
   accountNumber?: string;
   accountNumberLabel?: string;
   tillNumber?: string;
@@ -190,8 +180,6 @@ interface FormValues {
   agentNumberLabel?: string;
   storeNumber?: string;
   storeNumberLabel?: string;
-  amount?: string;
-  hideAmount?: boolean;
 }
 
 export const Route = createFileRoute("/")({
@@ -199,35 +187,29 @@ export const Route = createFileRoute("/")({
 });
 
 function Home() {
+  const { data } = useAppContext();
   const posterRef = useRef<HTMLDivElement>(null);
   const [selectedTemplate, setSelectedTemplate] = useState(templates[0]);
 
-  const {
-    control,
-    handleSubmit,
-    watch,
-    setValue,
-    formState: { errors, isValid },
-    trigger,
-  } = useForm<FormValues>({
-    resolver: zodResolver(formSchema) as unknown as Resolver<FormValues>, // Remove the type assertion
+  const { control, handleSubmit, watch, setValue, formState: { errors, isValid }, trigger } = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
     defaultValues: {
       type: TRANSACTION_TYPE.SEND_MONEY,
       selectedColor: "#16a34a",
       showName: false,
       title: "Send Money",
-      businessNumber: undefined,
-      businessNumberLabel: "Business Number",
-      accountNumber: undefined,
+      phoneNumber: data.phoneNumber || "",
+      name: data.name || "",
+      paybillNumber: data.paybillNumber || "",
+      paybillNumberLabel: "Business Number",
+      accountNumber: data.accountNumber || "",
       accountNumberLabel: "Account Number",
-      tillNumber: undefined,
+      tillNumber: data.tillNumber || "",
       tillNumberLabel: "Till Number",
-      agentNumber: undefined,
+      agentNumber: data.agentNumber || "",
       agentNumberLabel: "Agent Number",
-      storeNumber: undefined,
+      storeNumber: data.storeNumber || "",
       storeNumberLabel: "Store Number",
-      amount: undefined,
-      hideAmount: false,
     },
     mode: "onChange",
   });
@@ -237,16 +219,39 @@ function Home() {
   const selectedColor = watch("selectedColor");
   const showName = watch("showName");
   const title = watch("title");
-  const businessNumber = watch("businessNumber");
+  const paybillNumber = watch("paybillNumber");
   const accountNumber = watch("accountNumber");
   const tillNumber = watch("tillNumber");
   const agentNumber = watch("agentNumber");
   const storeNumber = watch("storeNumber");
-  const businessNumberLabel = watch("businessNumberLabel");
+  const paybillNumberLabel = watch("paybillNumberLabel");
   const accountNumberLabel = watch("accountNumberLabel");
   const tillNumberLabel = watch("tillNumberLabel");
   const agentNumberLabel = watch("agentNumberLabel");
   const storeNumberLabel = watch("storeNumberLabel");
+
+  // Sync form values with context
+  useEffect(() => {
+    setValue("paybillNumber", data.paybillNumber);
+    setValue("accountNumber", data.accountNumber);
+    setValue("tillNumber", data.tillNumber);
+    setValue("agentNumber", data.agentNumber);
+    setValue("storeNumber", data.storeNumber);
+    setValue("phoneNumber", data.phoneNumber);
+  }, [data, setValue]);
+
+  const generateQRCodeData = () => {
+    const formData = {
+      type: watch("type"),
+      phoneNumber: watch("phoneNumber"),
+      paybillNumber: watch("paybillNumber"),
+      accountNumber: watch("accountNumber"),
+      tillNumber: watch("tillNumber"),
+      agentNumber: watch("agentNumber"),
+      storeNumber: watch("storeNumber"),
+    };
+    return generateQRCode(formData) || "";
+  };
 
   // Add this effect to trigger validation when title changes
   useEffect(() => {
@@ -255,18 +260,18 @@ function Home() {
     
     // Clear fields that aren't relevant for the current transaction type
     if (title !== "Send Money") {
-      setValue("phoneNumber", undefined);
+      setValue("phoneNumber", "");
     }
     if (title !== "Pay Bill") {
-      setValue("businessNumber", undefined);
-      setValue("accountNumber", undefined);
+      setValue("paybillNumber", "");
+      setValue("accountNumber", "");
     }
     if (title !== "Buy Goods") {
-      setValue("tillNumber", undefined);
+      setValue("tillNumber", "");
     }
     if (title !== "Withdraw Money") {
-      setValue("agentNumber", undefined);
-      setValue("storeNumber", undefined);
+      setValue("agentNumber", "");
+      setValue("storeNumber", "");
     }
   }, [title, setValue, trigger]);
 
@@ -296,7 +301,7 @@ function Home() {
     try {
       await document.fonts.load("bold 120px Inter");
   
-      const canvas = document.createElement("canvas");
+      const canvas = document.createElement('canvas');
       const width = selectedTemplate.size.width;
       const posterHeight = selectedTemplate.size.height;
       const qrCodePadding = 40;
@@ -340,7 +345,7 @@ function Home() {
       // Draw outer border for the entire canvas
       ctx.fillStyle = borderColor;
       ctx.fillRect(0, 0, width, totalHeight);    
-  
+    
       // Draw sections with proper colors and borders
       for (let i = 0; i < sectionCount; i++) {
         const yPos = i * sectionHeight + borderSize;
@@ -418,7 +423,7 @@ function Home() {
           ctx.fillStyle = textColor;
           ctx.font = `bold ${labelFontSize}px Inter, sans-serif`;
           ctx.fillText(
-            businessNumberLabel || "BUSINESS NUMBER", 
+            paybillNumberLabel || "BUSINESS NUMBER", 
             width / 2, 
             sectionHeight + (sectionHeight * 0.15)
           );
@@ -426,7 +431,7 @@ function Home() {
           ctx.fillStyle = textColor;
           ctx.font = `bold ${valueFontSize}px Inter, sans-serif`;
           ctx.fillText(
-            businessNumber || "12345", 
+            paybillNumber || "12345", 
             width / 2, 
             sectionHeight + (sectionHeight * 0.5)
           );
@@ -569,23 +574,55 @@ function Home() {
       // Position QR code below the scan section
       const qrCodeY = scanSectionY + scanSectionHeight + borderSize + 20;
   
-      // Generate QR code
-      const qrCodeDataURL = await QRCode.toDataURL(generateQRCodeData(), {
-        width: qrCodeWidth,
-        margin: 0,
-        color: {
-          light: whiteColor,
-        },
-        errorCorrectionLevel: 'H'
+      // Generate QR code data
+      const qrData = generateQRCodeData();
+      if (!qrData) {
+        throw new Error("Invalid QR code data - please fill all required fields");
+      }
+
+      // Create a temporary container for the QR code
+      const tempDiv = document.createElement('div');
+      tempDiv.style.position = 'absolute';
+      tempDiv.style.left = '-9999px';
+      document.body.appendChild(tempDiv);
+
+      // Create a root and render the QR code
+      const root = createRoot(tempDiv);
+      root.render(
+        <QrSvg
+          value={qrData}
+          className="qr-code-svg"
+          fgColor="#000000"
+          style={{ width: qrCodeWidth, height: qrCodeWidth }}
+        />
+      );
+
+      // Wait briefly for React to render
+      await new Promise(resolve => setTimeout(resolve, 50));
+
+      // Get the SVG element
+      const svgElement = tempDiv.querySelector('.qr-code-svg') as SVGSVGElement;
+      if (!svgElement) {
+        throw new Error("Could not generate QR code");
+      }
+
+      // Serialize the SVG
+      const svgData = new XMLSerializer().serializeToString(svgElement);
+      const img = new Image();
+
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = reject;
+        img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgData);
       });
-  
-      const qrCodeImg = new Image();
-      qrCodeImg.src = qrCodeDataURL;
-      await new Promise((resolve) => {
-        qrCodeImg.onload = resolve;
-      });
-      ctx.drawImage(qrCodeImg, qrCodePadding, qrCodeY, qrCodeWidth, qrCodeWidth);
-  
+
+      // Draw the QR code to the main canvas
+      ctx.drawImage(img, qrCodePadding, qrCodeY, qrCodeWidth, qrCodeWidth);
+
+      // Clean up
+      root.unmount();
+      document.body.removeChild(tempDiv);
+      
       // Generate download link
       const dataUrl = canvas.toDataURL("image/png", 1.0);
       const link = document.createElement("a");
@@ -594,7 +631,7 @@ function Home() {
           link.download = `${phoneNumber}-${title.toLowerCase().replace(/\s/g, "-")}.png`;
           break;
         case "Pay Bill":
-          link.download = `${businessNumber}-${title.toLowerCase().replace(/\s/g, "-")}.png`;
+          link.download = `${paybillNumber}-${title.toLowerCase().replace(/\s/g, "-")}.png`;
           break;
         case "Buy Goods":
           link.download = `${tillNumber}-${title.toLowerCase().replace(/\s/g, "-")}.png`;
@@ -611,21 +648,6 @@ function Home() {
     } catch (error) {
       console.error("Error generating image:", error);
     }
-  };
-  // Replace the existing generateQRCodeData function wwith this M-Pesa specific version
-  const generateQRCodeData = () => {
-    const formData: FormData = {
-      type: watch("type"), // Use the type field directly
-      phoneNumber: watch("phoneNumber"),
-      paybillNumber: watch("businessNumber"), // Note the mapping
-      accountNumber: watch("accountNumber"),
-      tillNumber: watch("tillNumber"),
-      agentNumber: watch("agentNumber"),
-      storeNumber: watch("storeNumber"),
-      amount: watch("amount"),      
-    };
-  
-    return generateQRCode(formData) || "";
   };
 
   // Helper functions for the preview
@@ -677,38 +699,38 @@ function Home() {
 
   function getTextColor(title: string, showName: boolean, sectionIndex: number): string {
     return getSectionColor(title, showName, sectionIndex) === selectedColor ? "#ffffff" : "#000000";
-}
-
-  // Update renderMiddleSections to use minHeight instead of height:
-function renderMiddleSections(title: string, _color: string, showName: boolean) {
-  const sections = [];
-  let sectionCount = showName 
-    ? (title === "Pay Bill" || title === "Withdraw Money" ? 2 : 1) 
-    : (title === "Pay Bill" || title === "Withdraw Money" ? 2 : 1);
-
-  for (let i = 0; i < sectionCount; i++) {
-    const sectionIndex = i + 1; // +1 because title is section 0
-    const isWhite = getSectionColor(title, showName, sectionIndex) === "#ffffff";
-    
-    sections.push(
-      <div
-        key={i}
-        className="flex flex-col justify-center"
-        style={{
-          backgroundColor: getSectionColor(title, showName, sectionIndex),
-          minHeight: "80px", // Changed from height to minHeight
-          padding: "0.5rem 0",
-          borderTop: "8px solid #1a2335",
-          borderBottom: i === sectionCount - 1 && !showName ? "none" : "none"
-        }}
-      >
-        {renderSectionContent(title, i, isWhite)}
-      </div>
-    );
   }
 
-  return sections;
-}
+  // Update renderMiddleSections to use minHeight instead of height:
+  function renderMiddleSections(title: string, _color: string, showName: boolean) {
+    const sections = [];
+    let sectionCount = showName 
+      ? (title === "Pay Bill" || title === "Withdraw Money" ? 2 : 1) 
+      : (title === "Pay Bill" || title === "Withdraw Money" ? 2 : 1);
+
+    for (let i = 0; i < sectionCount; i++) {
+      const sectionIndex = i + 1; // +1 because title is section 0
+      const isWhite = getSectionColor(title, showName, sectionIndex) === "#ffffff";
+      
+      sections.push(
+        <div
+          key={i}
+          className="flex flex-col justify-center"
+          style={{
+            backgroundColor: getSectionColor(title, showName, sectionIndex),
+            minHeight: "80px", // Changed from height to minHeight
+            padding: "0.5rem 0",
+            borderTop: "8px solid #1a2335",
+            borderBottom: i === sectionCount - 1 && !showName ? "none" : "none"
+          }}
+        >
+          {renderSectionContent(title, i, isWhite)}
+        </div>
+      );
+    }
+
+    return sections;
+  }
 
   function renderSectionContent(title: string, sectionIndex: number, isWhite: boolean) {
     const textColor = isWhite ? "#000000" : "#ffffff";
@@ -717,7 +739,7 @@ function renderMiddleSections(title: string, _color: string, showName: boolean) 
       case "Send Money":
         return (
           <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-center py-2" style={{ color: textColor }}>
-            {phoneNumber || " 0722 256 123"}
+            {phoneNumber || "0722 256 123"}
           </div>
         );
       
@@ -729,7 +751,7 @@ function renderMiddleSections(title: string, _color: string, showName: boolean) 
                 Business Number
               </div>
               <div className="text-xl sm:text-2xl md:text-3xl lg:text-3xl font-bold text-center py-1" style={{ color: textColor }}>
-                {businessNumber || "12345"}
+                {paybillNumber || "12345"}
               </div>
             </>
           );
@@ -861,12 +883,12 @@ function renderMiddleSections(title: string, _color: string, showName: boolean) 
                               break;
                           }
                           // Clear irrelevant fields when type changes
-                          setValue("phoneNumber", undefined);
-                          setValue("businessNumber", undefined);
-                          setValue("accountNumber", undefined);
-                          setValue("tillNumber", undefined);
-                          setValue("agentNumber", undefined);
-                          setValue("storeNumber", undefined);
+                          setValue("phoneNumber", "");
+                          setValue("paybillNumber", "");
+                          setValue("accountNumber", "");
+                          setValue("tillNumber", "");
+                          setValue("agentNumber", "");
+                          setValue("storeNumber", "");
                           trigger();
                         }}
                         value={field.value}
@@ -902,8 +924,8 @@ function renderMiddleSections(title: string, _color: string, showName: boolean) 
                             id="phone"
                             type="text"
                             inputMode="numeric"
-                            pattern="[0-9 && ( )]"
-                            value={field.value}
+                            pattern="[0-9,()]"
+                            value={field.value || ""}
                             onChange={(e) => {
                               const value = e.target.value.replace(/\D/g, "");
                               if (value.length <= 10) {
@@ -925,18 +947,18 @@ function renderMiddleSections(title: string, _color: string, showName: boolean) 
                 {watch("type") === TRANSACTION_TYPE.PAYBILL && (
                   <>
                     <div>
-                      <label htmlFor="businessNumber" className="block text-sm font-medium text-gray-700 mb-1">
+                      <label htmlFor="paybillNumber" className="block text-sm font-medium text-gray-700 mb-1">
                         Business Number
                       </label>
                       <Controller
-                        name="businessNumber"
+                        name="paybillNumber"
                         control={control}
                         render={({ field }) => (
                           <Input
-                            id="businessNumber"
+                            id="paybillNumber"
                             type="text"
                             inputMode="numeric"
-                            value={field.value}
+                            value={field.value || ""}
                             onChange={(e) => {
                               const value = e.target.value.replace(/\D/g, "");
                               field.onChange(value);
@@ -946,8 +968,8 @@ function renderMiddleSections(title: string, _color: string, showName: boolean) 
                           />
                         )}
                       />
-                      {errors.businessNumber && (
-                        <p className="mt-1 text-sm text-red-500">{errors.businessNumber.message}</p>
+                      {errors.paybillNumber && (
+                        <p className="mt-1 text-sm text-red-500">{errors.paybillNumber.message}</p>
                       )}
                     </div>
                     <div>
@@ -961,7 +983,7 @@ function renderMiddleSections(title: string, _color: string, showName: boolean) 
                           <Input
                             id="accountNumber"
                             type="text"
-                            value={field.value}
+                            value={field.value || ""}
                             onChange={field.onChange}
                             className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold"
                             placeholder="Account number"
@@ -989,7 +1011,7 @@ function renderMiddleSections(title: string, _color: string, showName: boolean) 
                           id="tillNumber"
                           type="text"
                           inputMode="numeric"
-                          value={field.value}
+                          value={field.value || ""}
                           onChange={(e) => {
                             const value = e.target.value.replace(/\D/g, "");
                             field.onChange(value);
@@ -1020,7 +1042,7 @@ function renderMiddleSections(title: string, _color: string, showName: boolean) 
                             id="agentNumber"
                             type="text"
                             inputMode="numeric"
-                            value={field.value}
+                            value={field.value || ""}
                             onChange={(e) => {
                               const value = e.target.value.replace(/\D/g, "");
                               field.onChange(value);
@@ -1045,7 +1067,7 @@ function renderMiddleSections(title: string, _color: string, showName: boolean) 
                           <Input
                             id="storeNumber"
                             type="text"
-                            value={field.value}
+                            value={field.value || ""}
                             onChange={field.onChange}
                             className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold"
                             placeholder="Store number"
@@ -1058,32 +1080,7 @@ function renderMiddleSections(title: string, _color: string, showName: boolean) 
                     </div>
                   </>
                 )}
-
-                {/* Amount Field (for all transaction types) */}
-                {/* <div>
-                  <label htmlFor="amount" className="block text-sm font-medium text-gray-700 mb-1">
-                    Amount (optional)
-                  </label>
-                  <Controller
-                    name="amount"
-                    control={control}
-                    render={({ field }) => (
-                      <Input
-                        id="amount"
-                        type="text"
-                        inputMode="numeric"
-                        value={field.value}
-                        onChange={(e) => {
-                          const value = e.target.value.replace(/\D/g, "");
-                          field.onChange(value);
-                        }}
-                        className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold"
-                        placeholder="Amount in KES"
-                      />
-                    )}
-                  />
-                </div> */}
-                
+               
                 {/* Show Name Checkbox and Name Input */}
                 <div className="flex items-center space-x-2 mb-2">
                   <Controller
@@ -1119,7 +1116,7 @@ function renderMiddleSections(title: string, _color: string, showName: boolean) 
                         <Input
                           id="name"
                           type="text"
-                          value={field.value}
+                          value={field.value || ""}
                           onChange={(e) => {
                             field.onChange(e.target.value.toUpperCase());
                           }}
@@ -1282,14 +1279,11 @@ function renderMiddleSections(title: string, _color: string, showName: boolean) 
                 
                 {/* QR Code Section */}
                 <div className="w-full p-3" style={{ aspectRatio: "1/1" }}>
-                  <QRCodeSVG
-                    value={generateQRCodeData()}
-                    width="100%"
-                    height="100%"
-                    level="H"
-                    fgColor= "solid #000000"
-                    style={{ display: 'block', width: '100%', height: 'auto' }}
-                  />
+                <QrSvg
+                  value={generateQRCodeData()}
+                  className="qr-code-svg w-full h-full"
+                  fgColor="#000000"
+                />
                 </div>
               </div>
             </div>

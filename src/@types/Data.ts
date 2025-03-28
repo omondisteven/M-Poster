@@ -1,3 +1,4 @@
+//...src/@types/Data.ts
 import { TRANSACTION_TYPE } from "./TransactionType";
 
 export interface Data {
@@ -15,17 +16,6 @@ export interface Data {
   color: string;
   phoneNumber:string;
   hideAmount:boolean;
-
-  // New fields for settings
-  defaultPhoneNumber: string;
-  defaultPaybillNumber: string;
-  defaultAccountNumber: string;
-  defaultAgentNumber: string;
-  defaultTillNumber: string;
-  defaultStoreNumber: string;
-  autoOpenLinks: boolean;
-  defaultCamera: "front" | "back";
-  theme: "light" | "dark";
 }
 
 export type FormData = Partial<Data>;
