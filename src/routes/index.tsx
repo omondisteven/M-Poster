@@ -1192,6 +1192,44 @@ function Home() {
         <div className="w-full md:w-1/2 flex flex-col items-center justify-center md:py-12">
         {/* Poster Container */}
         <div className="w-full max-w-lg">
+          {/* QR Code Component */}
+          <div className="w-full flex justify-center">
+            <div 
+              className="bg-white border-l-8 border-r-8 border-t-0 border-gray-800 flex flex-col w-full"
+              style={{ 
+                maxWidth: `${selectedTemplate.size.width}px`
+              }}
+            >
+              {/* Enhanced Dark Gray Section with guaranteed visibility */}
+              <div 
+                className="w-full flex items-center justify-center py-4 px-2"
+                style={{
+                  backgroundColor: "#1a2335",
+                  minHeight: "70px",
+                  borderBottom: "8px solid #1a2335"
+                }}
+              >
+                <p 
+                  className="text-center text-3xl font-bold text-white whitespace-nowrap"
+                  style={{
+                    fontSize: "clamp(1.25rem, 4vw, 2rem)"
+                  }}
+                >
+                  SCAN TO PAY!
+                </p>
+              </div>
+              
+              {/* QR Code Section */}
+              <div className="w-full p-3" style={{ aspectRatio: "1/1" }}>
+                <QrSvg
+                  value={generateQRCodeData()}
+                  className="qr-code-svg w-full h-full"
+                  fgColor="#000000"
+                />
+              </div>
+            </div>
+          </div>
+            
           {/* Poster Preview */}
           <div
             id="poster"
@@ -1241,51 +1279,13 @@ function Home() {
               </div>
             )}
           </div>
-
-            {/* QR Code Component */}
-            <div className="w-full flex justify-center">
-              <div 
-                className="bg-white border-8 border-t-0 border-gray-800 flex flex-col w-full"
-                style={{ 
-                  maxWidth: `${selectedTemplate.size.width}px`
-                }}
-              >
-                {/* Enhanced Dark Gray Section with guaranteed visibility */}
-                <div 
-                  className="w-full flex items-center justify-center py-4 px-2"
-                  style={{
-                    backgroundColor: "#1a2335",
-                    minHeight: "70px", // Increased minimum height
-                    borderBottom: "8px solid #1a2335"
-                  }}
-                >
-                  <p 
-                    className="text-center text-3xl font-bold text-white whitespace-nowrap"
-                    style={{
-                      fontSize: "clamp(1.25rem, 4vw, 2rem)" // Responsive font sizing
-                    }}
-                  >
-                    SCAN TO PAY!
-                  </p>
-                </div>
-                
-                {/* QR Code Section */}
-                <div className="w-full p-3" style={{ aspectRatio: "1/1" }}>
-                <QrSvg
-                  value={generateQRCodeData()}
-                  className="qr-code-svg w-full h-full"
-                  fgColor="#000000"
-                />
-                </div>
-              </div>
-            </div>
-
             {/* Preview text */}
             <div className="flex flex-col items-center justify-center text-center mt-3">
               <p className="font-handwriting text-xl text-gray-600">
                 Preview of your poster
               </p>
             </div>
+            
           </div>
 
           {/* Template Selector */}
