@@ -1204,7 +1204,8 @@ function Home() {
               <div 
                 className="w-full flex items-center justify-center py-4 px-2"
                 style={{
-                  backgroundColor: "#1a2335",
+                  backgroundColor: "rgb(8, 160, 66)",
+                  borderTop: "8px solid #1a2335",  // Added top border
                   minHeight: "70px",
                   borderBottom: "8px solid #1a2335"
                 }}
