@@ -290,294 +290,331 @@ function Home() {
     await handleDownload();
   });
 
-const handleDownload = async () => {
+  const handleDownload = async () => {
     if (!posterRef.current) return;
-
+  
     try {
-        await document.fonts.load("bold 120px Inter");
-
-        const canvas = document.createElement("canvas");
-        const width = selectedTemplate.size.width;
-        
-        // Calculate dynamic height based on content
-        const posterHeight = selectedTemplate.size.height;
-        const qrCodePadding = 40;
-        const qrCodeWidth = width - (qrCodePadding * 2);
-        
-        // Calculate total height with proper spacing
-        const scanTextFontSize = Math.round(qrCodeWidth * 0.06);
-        const textPadding = 10;
-        const scanTextSectionHeight = scanTextFontSize + textPadding * 2;
-        const qrSectionHeight = qrCodeWidth + scanTextSectionHeight + 20;
-        const borderSize = 8; // Define border size
-        const totalHeight = posterHeight + qrSectionHeight + borderSize;
-        
-        canvas.width = width;
-        canvas.height = totalHeight;
-
-        const ctx = canvas.getContext("2d");
-        if (!ctx) {
-            console.error("Unable to get canvas context");
-            return;
-        }
-
-        // Colors
-        const mainColor = selectedColor;
-        const borderColor = "#1a2335";
-        const whiteColor = "#ffffff";
-        const textColor = "#000000";
-
-        // Draw outer border for the entire canvas
-        ctx.fillStyle = borderColor;
-        ctx.fillRect(0, 0, width, totalHeight);
-
-        // Adjust heights based on content
-        const originalPosterHeight = posterHeight;
-        let sectionCount = 2; // Default to 2 sections
-        
-        // Determine section count based on content
-        if (showName && (title === "Pay Bill" || title === "Withdraw Money")) {
-            sectionCount = 4; // Title + 2 fields + name
-        } else if (showName) {
-            sectionCount = 3; // Title + field + name
-        } else if (title === "Pay Bill" || title === "Withdraw Money") {
-            sectionCount = 3; // Title + 2 fields
-        }
-        
-        const sectionHeight = originalPosterHeight / sectionCount;
-
-        // Padding values
-        const valueTopPadding = Math.round(sectionHeight * 0.15);
-        const valueBottomPadding = Math.round(sectionHeight * 0.1);
-        const labelHeight = Math.round(Math.min(width, originalPosterHeight) * 0.06) * 1.5;
-
-        // Draw sections with alternating colors and proper borders
-        for (let i = 0; i < sectionCount; i++) {
-          const yPos = i * sectionHeight + borderSize;
-          let sectionHeightWithBorder = sectionHeight;
-          
-          // Adjust for top border on first section
-          if (i === 0) {
-              sectionHeightWithBorder = sectionHeight - borderSize;
-          }
-          // Adjust for bottom border on last section
-          else if (i === sectionCount - 1) {
-              sectionHeightWithBorder = sectionHeight - borderSize;
-          }
-          // Middle sections get full height (they'll have borders from adjacent sections)
-          else {
-              sectionHeightWithBorder = sectionHeight;
-          }
-          
-          if (i === 0) {
-              // First section (always colored)
-              ctx.fillStyle = mainColor;
-          } else {
-              // Alternate between white and main color
-              ctx.fillStyle = i % 2 === 0 ? mainColor : whiteColor;
-          }
-          
-          ctx.fillRect(
-              borderSize,
-              yPos,
-              width - 2 * borderSize,
-              sectionHeightWithBorder
-          );
-          
-          // Draw top border for all sections except the first one
-          if (i > 0) {
-              ctx.fillStyle = borderColor;
-              ctx.fillRect(
-                  borderSize,
-                  yPos - borderSize,
-                  width - 2 * borderSize,
-                  borderSize
-              );
-          }
-        }
-
-        // Set text properties
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-
-        // Font sizes
-        const titleFontSize = Math.round(Math.min(width, originalPosterHeight) * 0.1);
-        const labelFontSize = Math.round(Math.min(width, originalPosterHeight) * 0.06);
-        const valueFontSize = Math.round(Math.min(width, originalPosterHeight) * 0.15);
-        const tillValueFontSize = Math.round(Math.min(width, originalPosterHeight) * 0.2);
-        const nameFontSize = Math.round(Math.min(width, originalPosterHeight) * 0.1);
-
-        // Draw Title text (always in first section)
-        ctx.fillStyle = whiteColor;
-        ctx.font = `bold ${titleFontSize}px Inter, sans-serif`;
-        ctx.fillText(title.toUpperCase(), width / 2, sectionHeight / 2);
-
-        // Draw content based on transaction type
-        switch (title) {
-            case "Send Money":
-                ctx.fillStyle = textColor;
-                ctx.font = `bold ${valueFontSize}px Inter, sans-serif`;
-                ctx.fillText(
-                    phoneNumber || "0722 256 123",
-                    width / 2,
-                    (showName ? originalPosterHeight / 2 : sectionHeight + (originalPosterHeight - sectionHeight) / 2) + valueTopPadding
-                );
-                break;
-            
-            case "Pay Bill":
-                // Business Number (second section)
-                ctx.fillStyle = textColor;
-                ctx.font = `bold ${labelFontSize}px Inter, sans-serif`;
-                ctx.fillText(businessNumberLabel || "BUSINESS NUMBER", width / 2, sectionHeight + sectionHeight * 0.15);
-                
-                ctx.fillStyle = textColor;
-                ctx.font = `bold ${valueFontSize}px Inter, sans-serif`;
-                ctx.fillText(businessNumber || "12345", width / 2, sectionHeight + sectionHeight * 0.35 + valueTopPadding + valueBottomPadding);
-                
-                // Account Number (third section)
-                const accountNumberSection = showName ? 2 : 1;
-                ctx.fillStyle = whiteColor;
-                ctx.font = `bold ${labelFontSize}px Inter, sans-serif`;
-                ctx.fillText(accountNumberLabel || "ACCOUNT NUMBER", width / 2, (accountNumberSection * sectionHeight) + sectionHeight * 0.15);
-                
-                ctx.fillStyle = whiteColor;
-                ctx.font = `bold ${valueFontSize}px Inter, sans-serif`;
-                ctx.fillText(accountNumber || "12345", width / 2, (accountNumberSection * sectionHeight) + sectionHeight * 0.35 + valueTopPadding + valueBottomPadding);
-                break;
-            
-            case "Buy Goods":
-                ctx.fillStyle = whiteColor;
-                ctx.fillRect(
-                    borderSize,
-                    sectionHeight + sectionHeight * 0.15 - labelHeight/2,
-                    width - 2 * borderSize,
-                    labelHeight
-                );
-                ctx.fillStyle = textColor;
-                ctx.font = `bold ${labelFontSize}px Inter, sans-serif`;
-                ctx.fillText(tillNumberLabel || "TILL NUMBER", width / 2, sectionHeight + sectionHeight * 0.15);
-                
-                ctx.fillStyle = textColor;
-                ctx.font = `bold ${tillValueFontSize}px Inter, sans-serif`;
-                ctx.fillText(tillNumber || "12345", width / 2, sectionHeight + sectionHeight * 0.35 + valueTopPadding + valueBottomPadding);
-                break;
-            
-            case "Withdraw Money":
-                // Agent Number (second section)
-                ctx.fillStyle = textColor;
-                ctx.font = `bold ${labelFontSize}px Inter, sans-serif`;
-                ctx.fillText(agentNumberLabel || "AGENT NUMBER", width / 2, sectionHeight + sectionHeight * 0.15);
-                
-                ctx.fillStyle = textColor;
-                ctx.font = `bold ${valueFontSize}px Inter, sans-serif`;
-                ctx.fillText(agentNumber || "12345", width / 2, sectionHeight + sectionHeight * 0.35 + valueTopPadding + valueBottomPadding);
-                
-                // Store Number (third section)
-                const storeNumberSection = showName ? 2 : 1;
-                ctx.fillStyle = whiteColor;
-                ctx.font = `bold ${labelFontSize}px Inter, sans-serif`;
-                ctx.fillText(storeNumberLabel || "STORE NUMBER", width / 2, (storeNumberSection * sectionHeight) + sectionHeight * 0.15);
-                
-                ctx.fillStyle = whiteColor;
-                ctx.font = `bold ${valueFontSize}px Inter, sans-serif`;
-                ctx.fillText(storeNumber || "12345", width / 2, (storeNumberSection * sectionHeight) + sectionHeight * 0.35 + valueTopPadding + valueBottomPadding);
-                break;
-        }
-
-        // Draw name when showName is true (last section)
-        if (showName) {
-          const nameSection = sectionCount - 1;
-          const isWhiteBackground = nameSection % 2 === 1; // Check if background is white
-          ctx.fillStyle = isWhiteBackground ? whiteColor : mainColor;
-          
-          // Set text color based on background
-          const nameTextColor = isWhiteBackground ? "#000000" : "#ffffff";
-          ctx.fillStyle = nameTextColor;
-          
-          ctx.font = `bold ${nameFontSize}px Inter, sans-serif`;
-          ctx.fillText(
-              name?.toUpperCase() || "NELSON ANANGWE", 
-              width / 2, 
-              (nameSection * sectionHeight) + (sectionHeight / 2)
-          );
+      await document.fonts.load("bold 120px Inter");
+  
+      const canvas = document.createElement("canvas");
+      const width = selectedTemplate.size.width;
+      const posterHeight = selectedTemplate.size.height;
+      const qrCodePadding = 40;
+      const qrCodeWidth = width - (qrCodePadding * 2);
+      
+      // Calculate section count based on title and showName
+      let sectionCount = 2; // Default to 2 sections
+      if (title === "Pay Bill" || title === "Withdraw Money") {
+        sectionCount = 3; // Title + 2 fields
       }
-
-        // QR Code Section
-        const qrSectionY = originalPosterHeight;
-
-        // Draw white background for QR code section
-        ctx.fillStyle = whiteColor;
-        ctx.fillRect(
-            borderSize,
-            qrSectionY + borderSize,
-            width - 2 * borderSize,
-            qrSectionHeight - borderSize
-        );
-
-        // Position QR code
-        const qrCodeY = qrSectionY + borderSize + 20;
-
-        // Generate QR code
-        const qrCodeDataURL = await QRCode.toDataURL(generateQRCodeData(), {
-            width: qrCodeWidth,
-            margin: 0,
-            color: {
-                light: whiteColor,
-            },
-            errorCorrectionLevel: 'H'
-        });
-
-        const qrCodeImg = new Image();
-        qrCodeImg.src = qrCodeDataURL;
-        await new Promise((resolve) => {
-            qrCodeImg.onload = resolve;
-        });
-        ctx.drawImage(qrCodeImg, qrCodePadding, qrCodeY, qrCodeWidth, qrCodeWidth);
-    
-        // Add "SCAN TO PAY!" text
-        const scanText = "SCAN TO PAY!";
-        const textYPosition = qrCodeY + qrCodeWidth + 20;
-        const backgroundHeight = scanTextFontSize + textPadding * 2;
+      if (showName) {
+        sectionCount += 1; // Add name section
+      }
+      
+      const sectionHeight = posterHeight / sectionCount;
+      
+      // QR code section height (scan section + QR code + padding)
+      const scanTextFontSize = Math.round(qrCodeWidth * 0.06);
+      const scanSectionHeight = sectionHeight;
+      const qrSectionHeight = qrCodeWidth + scanSectionHeight + 20;
+      
+      const borderSize = 8;
+      const totalHeight = posterHeight + qrSectionHeight + borderSize;
+      
+      canvas.width = width;
+      canvas.height = totalHeight;
+  
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        console.error("Unable to get canvas context");
+        return;
+      }
+  
+      // Colors
+      const mainColor = selectedColor;
+      const borderColor = "#1a2335";
+      const whiteColor = "#ffffff";
+      const textColor = "#000000";
+      const grayColor = "#f0f0f0";
+  
+      // Draw outer border for the entire canvas
+      ctx.fillStyle = borderColor;
+      ctx.fillRect(0, 0, width, totalHeight);
+  
+      // Padding values
+      const valueTopPadding = Math.round(sectionHeight * 0.15);
+      const valueBottomPadding = Math.round(sectionHeight * 0.1);
+      const labelHeight = Math.round(Math.min(width, posterHeight) * 0.06) * 1.5;
+  
+      // Draw sections with proper colors and borders
+      for (let i = 0; i < sectionCount; i++) {
+        const yPos = i * sectionHeight + borderSize;
+        let currentSectionHeight = sectionHeight;
         
-        // Draw text background
-        ctx.fillStyle = mainColor;
-        ctx.fillRect(
-            borderSize,
-            textYPosition - scanTextFontSize/2 - textPadding,
-            width - 2 * borderSize,
-            backgroundHeight
-        );
-        
-        // Draw text
-        ctx.fillStyle = whiteColor;
-        ctx.font = `bold ${scanTextFontSize}px Inter, sans-serif`;
-        ctx.textAlign = "center";
-        ctx.fillText(scanText, width / 2, textYPosition);
-
-        // Generate download link
-        const dataUrl = canvas.toDataURL("image/png", 1.0);
-        const link = document.createElement("a");
-        switch (title){
-            case "Send Money":
-                link.download = `${phoneNumber}-${title.toLowerCase().replace(/\s/g, "-")}.png`;
-                break;
-            case "Pay Bill":
-                link.download = `${businessNumber}-${title.toLowerCase().replace(/\s/g, "-")}.png`;
-                break;
-            case "Buy Goods":
-                link.download = `${tillNumber}-${title.toLowerCase().replace(/\s/g, "-")}.png`;
-                break;
-            case "Withdraw Money":
-                link.download = `${agentNumber}-${title.toLowerCase().replace(/\s/g, "-")}.png`;
-                break;
+        // Adjust for top border on first section
+        if (i === 0) {
+          currentSectionHeight = sectionHeight - borderSize;
+        }
+        // Adjust for bottom border on last section
+        else if (i === sectionCount - 1) {
+          currentSectionHeight = sectionHeight - borderSize;
         }
         
-        link.href = dataUrl;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        // Determine section color
+        let sectionColor;
+        if (i === 0) {
+          sectionColor = mainColor; // First section is always main color
+        } else {
+          // Alternate between white and main color
+          sectionColor = i % 2 === 0 ? mainColor : whiteColor;
+        }
+        
+        ctx.fillStyle = sectionColor;
+        ctx.fillRect(
+          borderSize,
+          yPos,
+          width - 2 * borderSize,
+          currentSectionHeight
+        );
+        
+        // Draw top border for all sections except the first one
+        if (i > 0) {
+          ctx.fillStyle = borderColor;
+          ctx.fillRect(
+            borderSize,
+            yPos - borderSize,
+            width - 2 * borderSize,
+            borderSize
+          );
+        }
+      }
+  
+      // Set text properties
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+  
+      // Font sizes
+      const titleFontSize = Math.round(Math.min(width, posterHeight) * 0.1);
+      const labelFontSize = Math.round(Math.min(width, posterHeight) * 0.06);
+      const valueFontSize = Math.round(Math.min(width, posterHeight) * 0.15);
+      const tillValueFontSize = Math.round(Math.min(width, posterHeight) * 0.2);
+      const nameFontSize = Math.round(Math.min(width, posterHeight) * 0.1);
+  
+      // Draw Title text (always in first section)
+      ctx.fillStyle = whiteColor;
+      ctx.font = `bold ${titleFontSize}px Inter, sans-serif`;
+      ctx.fillText(title.toUpperCase(), width / 2, sectionHeight / 2);
+  
+      // Draw content based on transaction type
+      switch (title) {
+        case "Send Money":
+          // Phone number in second section
+          ctx.fillStyle = textColor;
+          ctx.font = `bold ${valueFontSize}px Inter, sans-serif`;
+          ctx.fillText(
+            phoneNumber || "0722 256 123",
+            width / 2,
+            sectionHeight + (sectionHeight / 2)
+          );
+          break;
+        
+        case "Pay Bill":
+          // Business Number (second section)
+          ctx.fillStyle = textColor;
+          ctx.font = `bold ${labelFontSize}px Inter, sans-serif`;
+          ctx.fillText(
+            businessNumberLabel || "BUSINESS NUMBER", 
+            width / 2, 
+            sectionHeight + (sectionHeight * 0.15)
+          );
+          
+          ctx.fillStyle = textColor;
+          ctx.font = `bold ${valueFontSize}px Inter, sans-serif`;
+          ctx.fillText(
+            businessNumber || "12345", 
+            width / 2, 
+            sectionHeight + (sectionHeight * 0.5)
+          );
+          
+          // Account Number (third section)
+          const accountNumberYPos = (2 * sectionHeight) + (sectionHeight * 0.15);
+          ctx.fillStyle = whiteColor;
+          ctx.font = `bold ${labelFontSize}px Inter, sans-serif`;
+          ctx.fillText(
+            accountNumberLabel || "ACCOUNT NUMBER", 
+            width / 2, 
+            accountNumberYPos
+          );
+          
+          ctx.fillStyle = whiteColor;
+          ctx.font = `bold ${valueFontSize}px Inter, sans-serif`;
+          ctx.fillText(
+            accountNumber || "12345", 
+            width / 2, 
+            accountNumberYPos + (sectionHeight * 0.35)
+          );
+          break;
+        
+        case "Buy Goods":
+          // Till Number (second section)
+          ctx.fillStyle = textColor;
+          ctx.font = `bold ${labelFontSize}px Inter, sans-serif`;
+          ctx.fillText(
+            tillNumberLabel || "TILL NUMBER", 
+            width / 2, 
+            sectionHeight + (sectionHeight * 0.15)
+          );
+          
+          ctx.fillStyle = textColor;
+          ctx.font = `bold ${tillValueFontSize}px Inter, sans-serif`;
+          ctx.fillText(
+            tillNumber || "12345", 
+            width / 2, 
+            sectionHeight + (sectionHeight * 0.5)
+          );
+          break;
+        
+        case "Withdraw Money":
+          // Agent Number (second section)
+          ctx.fillStyle = textColor;
+          ctx.font = `bold ${labelFontSize}px Inter, sans-serif`;
+          ctx.fillText(
+            agentNumberLabel || "AGENT NUMBER", 
+            width / 2, 
+            sectionHeight + (sectionHeight * 0.15)
+          );
+          
+          ctx.fillStyle = textColor;
+          ctx.font = `bold ${valueFontSize}px Inter, sans-serif`;
+          ctx.fillText(
+            agentNumber || "12345", 
+            width / 2, 
+            sectionHeight + (sectionHeight * 0.5)
+          );
+          
+          // Store Number (third section)
+          const storeNumberYPos = (2 * sectionHeight) + (sectionHeight * 0.15);
+          ctx.fillStyle = whiteColor;
+          ctx.font = `bold ${labelFontSize}px Inter, sans-serif`;
+          ctx.fillText(
+            storeNumberLabel || "STORE NUMBER", 
+            width / 2, 
+            storeNumberYPos
+          );
+          
+          ctx.fillStyle = whiteColor;
+          ctx.font = `bold ${valueFontSize}px Inter, sans-serif`;
+          ctx.fillText(
+            storeNumber || "12345", 
+            width / 2, 
+            storeNumberYPos + (sectionHeight * 0.35)
+          );
+          break;
+      }
+  
+      // Draw name when showName is true (last section)
+      if (showName) {
+        const nameSectionIndex = sectionCount - 1;
+        const nameYPos = (nameSectionIndex * sectionHeight) + (sectionHeight / 2);
+        const nameTextColor = nameSectionIndex % 2 === 0 ? whiteColor : textColor;
+        
+        ctx.fillStyle = nameTextColor;
+        ctx.font = `bold ${nameFontSize}px Inter, sans-serif`;
+        ctx.fillText(
+          name?.toUpperCase() || "NELSON ANANGWE", 
+          width / 2, 
+          nameYPos
+        );
+      }
+  
+      // QR Code Section
+      const qrSectionY = posterHeight;
+  
+      // Draw white background for QR code section
+      ctx.fillStyle = whiteColor;
+      ctx.fillRect(
+        borderSize,
+        qrSectionY + borderSize,
+        width - 2 * borderSize,
+        qrSectionHeight - borderSize
+      );
+  
+      // Create scan section with same height as other sections
+      const scanSectionY = qrSectionY + borderSize;
+      
+      // Draw gray background for scan section
+      ctx.fillStyle = grayColor;
+      ctx.fillRect(
+        borderSize,
+        scanSectionY,
+        width - 2 * borderSize,
+        scanSectionHeight
+      );
+      
+      // Add border between scan section and QR code
+      ctx.fillStyle = borderColor;
+      ctx.fillRect(
+        borderSize,
+        scanSectionY + scanSectionHeight,
+        width - 2 * borderSize,
+        borderSize
+      );
+  
+      // Add "SCAN TO PAY!" text in the scan section
+      const scanText = "SCAN TO PAY!";
+      ctx.fillStyle = textColor;
+      ctx.font = `bold ${scanTextFontSize}px Inter, sans-serif`;
+      ctx.textAlign = "center";
+      ctx.fillText(
+        scanText, 
+        width / 2, 
+        scanSectionY + (scanSectionHeight / 2)
+      );
+  
+      // Position QR code below the scan section
+      const qrCodeY = scanSectionY + scanSectionHeight + borderSize + 20;
+  
+      // Generate QR code
+      const qrCodeDataURL = await QRCode.toDataURL(generateQRCodeData(), {
+        width: qrCodeWidth,
+        margin: 0,
+        color: {
+          light: whiteColor,
+        },
+        errorCorrectionLevel: 'H'
+      });
+  
+      const qrCodeImg = new Image();
+      qrCodeImg.src = qrCodeDataURL;
+      await new Promise((resolve) => {
+        qrCodeImg.onload = resolve;
+      });
+      ctx.drawImage(qrCodeImg, qrCodePadding, qrCodeY, qrCodeWidth, qrCodeWidth);
+  
+      // Generate download link
+      const dataUrl = canvas.toDataURL("image/png", 1.0);
+      const link = document.createElement("a");
+      switch (title){
+        case "Send Money":
+          link.download = `${phoneNumber}-${title.toLowerCase().replace(/\s/g, "-")}.png`;
+          break;
+        case "Pay Bill":
+          link.download = `${businessNumber}-${title.toLowerCase().replace(/\s/g, "-")}.png`;
+          break;
+        case "Buy Goods":
+          link.download = `${tillNumber}-${title.toLowerCase().replace(/\s/g, "-")}.png`;
+          break;
+        case "Withdraw Money":
+          link.download = `${agentNumber}-${title.toLowerCase().replace(/\s/g, "-")}.png`;
+          break;
+      }
+      
+      link.href = dataUrl;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     } catch (error) {
-        console.error("Error generating image:", error);
+      console.error("Error generating image:", error);
     }
   };
   // Replace the existing generateQRCodeData function wwith this M-Pesa specific version
@@ -1259,7 +1296,7 @@ function renderMiddleSections(title: string, _color: string, showName: boolean) 
                     width="100%"
                     height="100%"
                     level="H"
-                    fgColor={selectedColor}
+                    fgColor= "solid #000000"
                     style={{ display: 'block', width: '100%', height: 'auto' }}
                   />
                 </div>
