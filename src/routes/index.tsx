@@ -701,24 +701,25 @@ function Home() {
     return getSectionColor(title, showName, sectionIndex) === selectedColor ? "#ffffff" : "#000000";
   }
 
-  // Update renderMiddleSections to use minHeight instead of height:
+  // Updated renderMiddleSections to use the new color logic
   function renderMiddleSections(title: string, _color: string, showName: boolean) {
     const sections = [];
+    const sectionColors = getSectionColors(title, showName);
     let sectionCount = showName 
       ? (title === "Pay Bill" || title === "Withdraw Money" ? 2 : 1) 
       : (title === "Pay Bill" || title === "Withdraw Money" ? 2 : 1);
 
     for (let i = 0; i < sectionCount; i++) {
       const sectionIndex = i + 1; // +1 because title is section 0
-      const isWhite = getSectionColor(title, showName, sectionIndex) === "#ffffff";
+      const isWhite = sectionColors[sectionIndex] === "#ffffff";
       
       sections.push(
         <div
           key={i}
           className="flex flex-col justify-center"
           style={{
-            backgroundColor: getSectionColor(title, showName, sectionIndex),
-            minHeight: "80px", // Changed from height to minHeight
+            backgroundColor: sectionColors[sectionIndex],
+            minHeight: "80px",
             padding: "0.5rem 0",
             borderTop: "8px solid #1a2335",
             borderBottom: i === sectionCount - 1 && !showName ? "none" : "none"
@@ -808,6 +809,22 @@ function Home() {
       default:
         return null;
     }
+  }
+
+  // Helper function to determine section colors
+  function getSectionColors(title: string, showName: boolean): string[] {
+    const sectionCount = getSectionCount(title, showName);
+    const colors = [];
+    
+    // First section is always green
+    colors.push(selectedColor);
+    
+    // Alternate colors for subsequent sections
+    for (let i = 1; i < sectionCount; i++) {
+      colors.push(colors[i-1] === selectedColor ? "#ffffff" : selectedColor);
+    }
+    
+    return colors;
   }
 
   return (
@@ -1208,8 +1225,8 @@ function Home() {
             style={{
               gridTemplateRows: getGridTemplateRows(title, showName),
               aspectRatio: `${selectedTemplate.size.width} / ${selectedTemplate.size.height}`,
-              height: 'auto', // Let the content determine the height
-              minHeight: calculatePosterMinHeight(title, showName) // Ensure minimum height
+              height: 'auto',
+              minHeight: calculatePosterMinHeight(title, showName)
             }}
           >
             {/* Title Section (always first) */}
@@ -1232,7 +1249,7 @@ function Home() {
               <div
                 className="flex items-center justify-center"
                 style={{
-                  backgroundColor: getSectionColor(title, showName, 3),
+                  backgroundColor: getSectionColors(title, showName)[getSectionCount(title, showName) - 1],
                   minHeight: "80px",
                   padding: "0.3rem 0",
                   borderTop: "8px solid #1a2335"
@@ -1240,7 +1257,7 @@ function Home() {
               >
                 <div className="text-2xl sm:text-3xl font-bold text-center px-2"
                   style={{ 
-                    color: getTextColor(title, showName, 3),
+                    color: getSectionColors(title, showName)[getSectionCount(title, showName) - 1] === selectedColor ? "#ffffff" : "#000000",
                     lineHeight: "80px"
                   }}
                 >
