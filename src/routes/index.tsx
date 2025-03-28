@@ -339,12 +339,7 @@ function Home() {
   
       // Draw outer border for the entire canvas
       ctx.fillStyle = borderColor;
-      ctx.fillRect(0, 0, width, totalHeight);
-  
-      // Padding values
-      const valueTopPadding = Math.round(sectionHeight * 0.15);
-      const valueBottomPadding = Math.round(sectionHeight * 0.1);
-      const labelHeight = Math.round(Math.min(width, posterHeight) * 0.06) * 1.5;
+      ctx.fillRect(0, 0, width, totalHeight);    
   
       // Draw sections with proper colors and borders
       for (let i = 0; i < sectionCount; i++) {
