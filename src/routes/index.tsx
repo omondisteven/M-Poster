@@ -697,9 +697,6 @@ function Home() {
     }
   }
 
-  function getTextColor(title: string, showName: boolean, sectionIndex: number): string {
-    return getSectionColor(title, showName, sectionIndex) === selectedColor ? "#ffffff" : "#000000";
-  }
 
   // Updated renderMiddleSections to use the new color logic
   function renderMiddleSections(title: string, _color: string, showName: boolean) {
