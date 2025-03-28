@@ -22,26 +22,32 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { QRCodeSVG } from 'qrcode.react';
 import QRCode from 'qrcode';
 
+// Mpesa App imports
+import type { FormData } from "@/@types/Data";
+import { TRANSACTION_TYPE } from "@/@types/TransactionType";
+import { generateQRCode } from "@/utils/helpers";
+
 // Define zod schema for validation
-const formSchema = z
-  .object({
-    phoneNumber: z.string().min(10, "Phone number must be at least 10 digits").optional().or(z.literal('')),
-    name: z.string().optional().or(z.literal('')),
-    selectedColor: z.string(),
-    showName: z.boolean().or(z.literal('')),
-    title: z.string().min(1, "Title cannot be empty"),
-    businessNumber: z.string().optional().or(z.literal('')),
-    businessNumberLabel: z.string().optional(),
-    accountNumber: z.string().optional().or(z.literal('')),
-    accountNumberLabel: z.string().optional(),
-    tillNumber: z.string().optional().or(z.literal('')),
-    tillNumberLabel: z.string().optional(),
-    agentNumber: z.string().optional().or(z.literal('')),
-    agentNumberLabel: z.string().optional(),
-    storeNumber: z.string().optional().or(z.literal('')),
-    storeNumberLabel: z.string().optional(),
-    amount: z.string().optional().or(z.literal('')),
-  })
+const formSchema = z.object({
+  type: z.nativeEnum(TRANSACTION_TYPE),
+  selectedColor: z.string(),
+  showName: z.boolean().or(z.literal('')),
+  title: z.string().min(1, "Title cannot be empty"),
+  phoneNumber: z.string().min(10, "Phone number must be at least 10 digits").optional().or(z.literal('')),
+  name: z.string().optional().or(z.literal('')),
+  businessNumber: z.string().optional().or(z.literal('')),
+  businessNumberLabel: z.string().optional(),
+  accountNumber: z.string().optional().or(z.literal('')),
+  accountNumberLabel: z.string().optional(),
+  tillNumber: z.string().optional().or(z.literal('')),
+  tillNumberLabel: z.string().optional(),
+  agentNumber: z.string().optional().or(z.literal('')),
+  agentNumberLabel: z.string().optional(),
+  storeNumber: z.string().optional().or(z.literal('')),
+  storeNumberLabel: z.string().optional(),
+  amount: z.string().optional().or(z.literal('')),
+  hideAmount: z.boolean().optional().default(false),
+})
   .superRefine((data, ctx) => {
     // Name is only required when showName is true
     if (data.showName && !data.name?.trim()) {
@@ -108,26 +114,84 @@ const formSchema = z
         }
         break;
     }
+    // Update validation to use TRANSACTION_TYPE
+    switch (data.type) {
+      case TRANSACTION_TYPE.SEND_MONEY:
+        if (!data.phoneNumber?.trim()) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Phone number is required for Send Money",
+            path: ["phoneNumber"],
+          });
+        }
+        break;
+      
+      case TRANSACTION_TYPE.PAYBILL:
+        if (!data.businessNumber?.trim()) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Business number is required for Pay Bill",
+            path: ["businessNumber"],
+          });
+        }
+        if (!data.accountNumber?.trim()) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Account number is required for Pay Bill",
+            path: ["accountNumber"],
+          });
+        }
+        break;
+      
+      case TRANSACTION_TYPE.TILL_NUMBER:
+        if (!data.tillNumber?.trim()) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Till number is required for Buy Goods",
+            path: ["tillNumber"],
+          });
+        }
+        break;
+      
+      case TRANSACTION_TYPE.AGENT:
+        if (!data.agentNumber?.trim()) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Agent number is required for Withdraw Money",
+            path: ["agentNumber"],
+          });
+        }
+        if (!data.storeNumber?.trim()) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Store number is required for Withdraw Money",
+            path: ["storeNumber"],
+          });
+        }
+        break;
+    }
   });
 
 // Define form type
 interface FormValues {
-  phoneNumber?: string | undefined;
-  name?: string | undefined;
+  type: TRANSACTION_TYPE;
   selectedColor: string;
   showName: boolean;
   title: string;
-  businessNumber?: string | undefined;
-  businessNumberLabel?: string | undefined;
-  accountNumber?: string | undefined;
-  accountNumberLabel?: string | undefined;
-  tillNumber?: string | undefined;
-  tillNumberLabel?: string | undefined;
-  agentNumber?: string | undefined;
-  agentNumberLabel?: string | undefined;
-  storeNumber?: string | undefined;
-  storeNumberLabel?: string | undefined;
-  amount?: string | undefined;
+  phoneNumber?: string;
+  name?: string;
+  businessNumber?: string;
+  businessNumberLabel?: string;
+  accountNumber?: string;
+  accountNumberLabel?: string;
+  tillNumber?: string;
+  tillNumberLabel?: string;
+  agentNumber?: string;
+  agentNumberLabel?: string;
+  storeNumber?: string;
+  storeNumberLabel?: string;
+  amount?: string;
+  hideAmount?: boolean;
 }
 
 export const Route = createFileRoute("/")({
@@ -146,10 +210,9 @@ function Home() {
     formState: { errors, isValid },
     trigger,
   } = useForm<FormValues>({
-    resolver: zodResolver(formSchema) as Resolver<FormValues>,
+    resolver: zodResolver(formSchema) as unknown as Resolver<FormValues>, // Remove the type assertion
     defaultValues: {
-      phoneNumber: undefined,
-      name: undefined,
+      type: TRANSACTION_TYPE.SEND_MONEY,
       selectedColor: "#16a34a",
       showName: false,
       title: "Send Money",
@@ -162,7 +225,9 @@ function Home() {
       agentNumber: undefined,
       agentNumberLabel: "Agent Number",
       storeNumber: undefined,
-      storeNumberLabel: "Store Number"
+      storeNumberLabel: "Store Number",
+      amount: undefined,
+      hideAmount: false,
     },
     mode: "onChange",
   });
@@ -517,21 +582,18 @@ const handleDownload = async () => {
   };
   // Replace the existing generateQRCodeData function wwith this M-Pesa specific version
   const generateQRCodeData = () => {
-    const amount = watch("amount");
-    const amountSuffix = amount ? `|${amount}` : '';
-    
-    switch (title) {
-      case "Send Money":
-        return `SM|${phoneNumber?.replace(/\s/g, "") || "254712345678"}${amountSuffix}`;
-      case "Pay Bill":
-        return `PB|${businessNumber || "12345"}|${accountNumber || "12345"}${amountSuffix}`;
-      case "Buy Goods":
-        return `BG|${tillNumber || "12345"}${amountSuffix}`;
-      case "Withdraw Money":
-        return `WA|${agentNumber || "12345"}|${storeNumber || "12345"}${amountSuffix}`;
-      default:
-        return "Payment Information";
-    }
+    const formData: FormData = {
+      type: watch("type"), // Use the type field directly
+      phoneNumber: watch("phoneNumber"),
+      paybillNumber: watch("businessNumber"), // Note the mapping
+      accountNumber: watch("accountNumber"),
+      tillNumber: watch("tillNumber"),
+      agentNumber: watch("agentNumber"),
+      storeNumber: watch("storeNumber"),
+      amount: watch("amount"),      
+    };
+  
+    return generateQRCode(formData) || "";
   };
 
   // Helper functions for the preview
@@ -741,25 +803,38 @@ function renderMiddleSections(title: string, _color: string, showName: boolean) 
               <form onSubmit={onSubmit} className="space-y-4">
                 {/* Transaction Type Selector */}
                 <div>
-                  <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label htmlFor="type" className="block text-sm font-medium text-gray-700 mb-1">
                     Transaction Type
                   </label>
                   <Controller
-                    name="title"
+                    name="type"
                     control={control}
                     render={({ field }) => (
                       <Select 
-                        onValueChange={(value) => {
-                          // Reset all fields when transaction type changes
-                          if (value !== field.value) {
-                            setValue("phoneNumber", undefined);
-                            setValue("businessNumber", undefined);
-                            setValue("accountNumber", undefined);
-                            setValue("tillNumber", undefined);
-                            setValue("agentNumber", undefined);
-                            setValue("storeNumber", undefined);
-                          }
+                        onValueChange={(value: TRANSACTION_TYPE) => {
                           field.onChange(value);
+                          // Update the title for display purposes
+                          switch(value) {
+                            case TRANSACTION_TYPE.SEND_MONEY:
+                              setValue("title", "Send Money");
+                              break;
+                            case TRANSACTION_TYPE.PAYBILL:
+                              setValue("title", "Pay Bill");
+                              break;
+                            case TRANSACTION_TYPE.TILL_NUMBER:
+                              setValue("title", "Buy Goods");
+                              break;
+                            case TRANSACTION_TYPE.AGENT:
+                              setValue("title", "Withdraw Money");
+                              break;
+                          }
+                          // Clear irrelevant fields when type changes
+                          setValue("phoneNumber", undefined);
+                          setValue("businessNumber", undefined);
+                          setValue("accountNumber", undefined);
+                          setValue("tillNumber", undefined);
+                          setValue("agentNumber", undefined);
+                          setValue("storeNumber", undefined);
                           trigger();
                         }}
                         value={field.value}
@@ -768,43 +843,47 @@ function renderMiddleSections(title: string, _color: string, showName: boolean) 
                           <SelectValue placeholder="Select transaction type" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="Send Money">Send Money</SelectItem>
-                          <SelectItem value="Pay Bill">Pay Bill</SelectItem>
-                          <SelectItem value="Buy Goods">Buy Goods</SelectItem>
-                          <SelectItem value="Withdraw Money">Withdraw Money</SelectItem>
+                          <SelectItem value={TRANSACTION_TYPE.SEND_MONEY}>Send Money</SelectItem>
+                          <SelectItem value={TRANSACTION_TYPE.PAYBILL}>Pay Bill</SelectItem>
+                          <SelectItem value={TRANSACTION_TYPE.TILL_NUMBER}>Buy Goods</SelectItem>
+                          <SelectItem value={TRANSACTION_TYPE.AGENT}>Withdraw Money</SelectItem>
                         </SelectContent>
                       </Select>
                     )}
                   />
-                  {errors.title && (
-                    <p className="mt-1 text-sm text-red-500">{errors.title.message}</p>
+                  {errors.type && (
+                    <p className="mt-1 text-sm text-red-500">{errors.type.message}</p>
                   )}
                 </div>
 
-                {title === "Send Money" && (
-                  <>
+                {/* Send Money Fields */}
+                {watch("type") === TRANSACTION_TYPE.SEND_MONEY && (
                   <div>
-                    <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
-                      Phone Number
+                    <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700 mb-1">
+                      Phone Number (start with 254)
                     </label>
                     <Controller
                       name="phoneNumber"
                       control={control}
                       render={({ field }) => (
                         <Input
-                          id="phone"
+                          id="phoneNumber"
                           type="text"
                           inputMode="numeric"
-                          pattern="[0-9 && ( )]"
                           value={field.value}
                           onChange={(e) => {
-                            const value = e.target.value.replace(/\D/g, "");
-                            if (value.length <= 10) {
+                            let value = e.target.value.replace(/\D/g, "");
+                            // Ensure it starts with 254
+                            if (!value.startsWith("254") && value.length > 0) {
+                              value = `254${value}`;
+                            }
+                            // Limit to 12 digits (254 + 9 digits)
+                            if (value.length <= 12) {
                               field.onChange(formatPhoneNumber(value));
                             }
                           }}
                           className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold"
-                          placeholder="0722 256 123"
+                          placeholder="254712345678"
                         />
                       )}
                     />
@@ -812,34 +891,10 @@ function renderMiddleSections(title: string, _color: string, showName: boolean) 
                       <p className="mt-1 text-sm text-red-500">{errors.phoneNumber.message}</p>
                     )}
                   </div>
-                  <div>
-                    <label htmlFor="amount" className="block text-sm font-medium text-gray-700 mb-1">
-                      Amount (optional)
-                    </label>
-                    <Controller
-                      name="amount"
-                      control={control}
-                      render={({ field }) => (
-                        <Input
-                          id="amount"
-                          type="text"
-                          inputMode="numeric"
-                          pattern="[0-9]*"
-                          value={field.value}
-                          onChange={(e) => {
-                            const value = e.target.value.replace(/\D/g, "");
-                            field.onChange(value);
-                          }}
-                          className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold"
-                          placeholder="1000"
-                        />
-                      )}
-                    />
-                  </div>
-                  </>
                 )}
 
-                {title === "Pay Bill" && (
+                {/* Pay Bill Fields */}
+                {watch("type") === TRANSACTION_TYPE.PAYBILL && (
                   <>
                     <div>
                       <label htmlFor="businessNumber" className="block text-sm font-medium text-gray-700 mb-1">
@@ -853,14 +908,13 @@ function renderMiddleSections(title: string, _color: string, showName: boolean) 
                             id="businessNumber"
                             type="text"
                             inputMode="numeric"
-                            pattern="[0-9]*"
                             value={field.value}
                             onChange={(e) => {
                               const value = e.target.value.replace(/\D/g, "");
                               field.onChange(value);
                             }}
                             className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold"
-                            placeholder="12345"
+                            placeholder="123456"
                           />
                         )}
                       />
@@ -880,12 +934,9 @@ function renderMiddleSections(title: string, _color: string, showName: boolean) 
                             id="accountNumber"
                             type="text"
                             value={field.value}
-                            onChange={(e) => {
-                              const value = e.target.value.replace(/\D/g, "");
-                              field.onChange(value);
-                            }}
+                            onChange={field.onChange}
                             className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold"
-                            placeholder="12345"
+                            placeholder="Account number"
                           />
                         )}
                       />
@@ -893,34 +944,11 @@ function renderMiddleSections(title: string, _color: string, showName: boolean) 
                         <p className="mt-1 text-sm text-red-500">{errors.accountNumber.message}</p>
                       )}
                     </div>
-                    <div>
-                      <label htmlFor="amount" className="block text-sm font-medium text-gray-700 mb-1">
-                        Amount (optional)
-                      </label>
-                      <Controller
-                        name="amount"
-                        control={control}
-                        render={({ field }) => (
-                          <Input
-                            id="amount"
-                            type="text"
-                            inputMode="numeric"
-                            pattern="[0-9]*"
-                            value={field.value}
-                            onChange={(e) => {
-                              const value = e.target.value.replace(/\D/g, "");
-                              field.onChange(value);
-                            }}
-                            className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold"
-                            placeholder="1000"
-                          />
-                        )}
-                      />
-                    </div>
                   </>
                 )}
 
-                {title === "Buy Goods" && (
+                {/* Buy Goods (Till Number) Fields */}
+                {watch("type") === TRANSACTION_TYPE.TILL_NUMBER && (
                   <div>
                     <label htmlFor="tillNumber" className="block text-sm font-medium text-gray-700 mb-1">
                       Till Number
@@ -933,14 +961,13 @@ function renderMiddleSections(title: string, _color: string, showName: boolean) 
                           id="tillNumber"
                           type="text"
                           inputMode="numeric"
-                          pattern="[0-9]*"
                           value={field.value}
                           onChange={(e) => {
                             const value = e.target.value.replace(/\D/g, "");
                             field.onChange(value);
                           }}
                           className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold"
-                          placeholder="12345"
+                          placeholder="123456"
                         />
                       )}
                     />
@@ -950,7 +977,8 @@ function renderMiddleSections(title: string, _color: string, showName: boolean) 
                   </div>
                 )}
 
-                {title === "Withdraw Money" && (
+                {/* Withdraw Money (Agent) Fields */}
+                {watch("type") === TRANSACTION_TYPE.AGENT && (
                   <>
                     <div>
                       <label htmlFor="agentNumber" className="block text-sm font-medium text-gray-700 mb-1">
@@ -964,14 +992,13 @@ function renderMiddleSections(title: string, _color: string, showName: boolean) 
                             id="agentNumber"
                             type="text"
                             inputMode="numeric"
-                            pattern="[0-9]*"
                             value={field.value}
                             onChange={(e) => {
                               const value = e.target.value.replace(/\D/g, "");
                               field.onChange(value);
                             }}
                             className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold"
-                            placeholder="12345"
+                            placeholder="Agent number"
                           />
                         )}
                       />
@@ -990,15 +1017,10 @@ function renderMiddleSections(title: string, _color: string, showName: boolean) 
                           <Input
                             id="storeNumber"
                             type="text"
-                            inputMode="numeric"
-                            pattern="[0-9]*"
                             value={field.value}
-                            onChange={(e) => {
-                              const value = e.target.value.replace(/\D/g, "");
-                              field.onChange(value);
-                            }}
+                            onChange={field.onChange}
                             className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold"
-                            placeholder="12345"
+                            placeholder="Store number"
                           />
                         )}
                       />
@@ -1009,7 +1031,32 @@ function renderMiddleSections(title: string, _color: string, showName: boolean) 
                   </>
                 )}
 
-                {/* Show Name Checkbox and Name Input for all transaction types */}
+                {/* Amount Field (for all transaction types) */}
+                {/* <div>
+                  <label htmlFor="amount" className="block text-sm font-medium text-gray-700 mb-1">
+                    Amount (optional)
+                  </label>
+                  <Controller
+                    name="amount"
+                    control={control}
+                    render={({ field }) => (
+                      <Input
+                        id="amount"
+                        type="text"
+                        inputMode="numeric"
+                        value={field.value}
+                        onChange={(e) => {
+                          const value = e.target.value.replace(/\D/g, "");
+                          field.onChange(value);
+                        }}
+                        className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold"
+                        placeholder="Amount in KES"
+                      />
+                    )}
+                  />
+                </div> */}
+                
+                {/* Show Name Checkbox and Name Input */}
                 <div className="flex items-center space-x-2 mb-2">
                   <Controller
                     name="showName"
@@ -1032,7 +1079,7 @@ function renderMiddleSections(title: string, _color: string, showName: boolean) 
                   </label>
                 </div>
 
-                {showName && (
+                {watch("showName") && (
                   <div>
                     <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
                       Your Name
@@ -1059,7 +1106,7 @@ function renderMiddleSections(title: string, _color: string, showName: boolean) 
                   </div>
                 )}
 
-                {/* Color Picker and Download Button */}
+                {/* Color Picker */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-3">
                     Poster Color
@@ -1099,6 +1146,7 @@ function renderMiddleSections(title: string, _color: string, showName: boolean) 
                   </div>
                 </div>
 
+                {/* Download Button */}
                 <motion.div
                   whileHover={{
                     scale: 1.05,
@@ -1131,7 +1179,7 @@ function renderMiddleSections(title: string, _color: string, showName: boolean) 
           <div
             id="poster"
             ref={posterRef}
-            className="grid bg-white w-full rounded-lg shadow-lg overflow-hidden border-8 border-gray-800"
+            className="grid bg-white w-full shadow-lg overflow-hidden border-8 border-gray-800"
             style={{
               gridTemplateRows: getGridTemplateRows(title, showName),
               aspectRatio: `${selectedTemplate.size.width} / ${selectedTemplate.size.height}`,
@@ -1177,33 +1225,40 @@ function renderMiddleSections(title: string, _color: string, showName: boolean) 
             )}
           </div>
 
-            {/* QR Code Component */}
-            <div className="w-full mt-3 flex justify-center">
+            {/* QR Code Component - Removed mt-3 to eliminate gap */}
+            <div className="w-full flex justify-center">
               <div 
-                className="bg-white p-3 rounded-lg border-8 border-gray-800" 
+                className="bg-white rounded-b-lg border-8 border-t-0 border-gray-800 flex flex-col" 
                 style={{ 
                   width: "100%",
                   maxWidth: `${selectedTemplate.size.width}px`
                 }}
               >
-                <div className="w-full" style={{ aspectRatio: "1/1" }}>
-                <QRCodeSVG
-                  value={generateQRCodeData()}
-                  width="100%"
-                  height="100%"
-                  level="H"
-                  fgColor={selectedColor} // Use your selected color for the QR code
-                  style={{ display: 'block', width: '100%', height: 'auto' }}
-                />
-                </div>
-                <br />
-                <p className="text-center text-lg font-bold text-white mt-1"
-                style={{ 
-                  backgroundColor: selectedColor
-                }}
+                {/* Permanent Dark Gray Section - now at top */}
+                <div 
+                  className="w-full flex items-center justify-center p-4"
+                  style={{
+                    backgroundColor: "solidrgb(101, 102, 104)", // Dark gray background
+                    minHeight: "60px", // Similar height to other sections
+                    borderBottom: "8px solid #1a2335" // Matching border style
+                  }}
                 >
-                  SCAN TO PAY!
-                </p>
+                  <p className="text-center text-3xl font-bold text-white">
+                    SCAN TO PAY!
+                  </p>
+                </div>
+                
+                {/* QR Code Section */}
+                <div className="w-full p-3" style={{ aspectRatio: "1/1" }}>
+                  <QRCodeSVG
+                    value={generateQRCodeData()}
+                    width="100%"
+                    height="100%"
+                    level="H"
+                    fgColor= "#000000"
+                    style={{ display: 'block', width: '100%', height: 'auto' }}
+                  />
+                </div>
               </div>
             </div>
 
