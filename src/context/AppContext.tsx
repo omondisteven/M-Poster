@@ -16,7 +16,7 @@ const defaultData: FormData = {
   color: colors.green[600],
   hideAmount: false,
   type: TRANSACTION_TYPE.SEND_MONEY,
-  bannerText: "SCAN WITH M-PESA",
+  bannerText: "SCAN WITH M-PESA APP",
 
 };
 

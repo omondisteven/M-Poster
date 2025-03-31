@@ -321,7 +321,7 @@ function Home() {
       // QR code section height (scan section + QR code + padding)
       const scanTextFontSize = Math.round(qrCodeWidth * 0.06);
       const scanSectionHeight = sectionHeight;
-      const qrSectionHeight = qrCodeWidth + scanSectionHeight + 20;
+      const qrSectionHeight = qrCodeWidth + scanSectionHeight + 70;
       
       const borderSize = 8;
       const totalHeight = posterHeight + qrSectionHeight + borderSize;
@@ -340,15 +340,70 @@ function Home() {
       const borderColor = "#1a2335";
       const whiteColor = "#ffffff";
       const textColor = "#000000";
-      const grayColor = "#f0f0f0";
   
       // Draw outer border for the entire canvas
       ctx.fillStyle = borderColor;
       ctx.fillRect(0, 0, width, totalHeight);    
-    
-      // Draw sections with proper colors and borders
+
+      // QR Code Section - NOW AT THE TOP
+      const qrSectionY = 0;
+
+      // Draw white background for QR code section
+      ctx.fillStyle = whiteColor;
+      ctx.fillRect(
+        borderSize,
+        qrSectionY + borderSize,
+        width - 2 * borderSize,
+        qrSectionHeight - borderSize
+      );
+
+      // Create scan section with same height as other sections
+      const scanSectionY = qrSectionY + borderSize;
+      
+      // Draw main color background for scan section (changed from gray to mainColor)
+      ctx.fillStyle = mainColor;
+      ctx.fillRect(
+        borderSize,
+        scanSectionY,
+        width - 2 * borderSize,
+        scanSectionHeight
+      );
+      
+      // Add border between scan section and QR code
+      ctx.fillStyle = borderColor;
+      ctx.fillRect(
+        borderSize,
+        scanSectionY + scanSectionHeight,
+        width - 2 * borderSize,
+        borderSize
+      );
+
+      // Add bottom border to QR code section
+      ctx.fillStyle = borderColor;
+      ctx.fillRect(
+        borderSize,
+        scanSectionY + qrSectionHeight - borderSize,
+        width - 2 * borderSize,
+        borderSize
+      );
+
+      // Add "SCAN TO PAY!" text in the scan section (changed text color to white)
+      const scanText = "SCAN TO PAY!";
+      ctx.fillStyle = whiteColor; // Changed from textColor to whiteColor
+      ctx.font = `bold ${scanTextFontSize}px Inter, sans-serif`;
+      ctx.textAlign = "center";
+      ctx.fillText(
+        scanText, 
+        width / 2, 
+        scanSectionY + (scanSectionHeight / 2)
+      );
+
+      // Position QR code below the scan section
+      const qrCodeY = scanSectionY + scanSectionHeight + borderSize + 30;
+
+      // Draw sections with proper colors and borders (shifted down by qrSectionHeight)
       for (let i = 0; i < sectionCount; i++) {
-        const yPos = i * sectionHeight + borderSize;
+        const yPos = i * sectionHeight + qrSectionHeight + borderSize;
         let currentSectionHeight = sectionHeight;
         
         // Adjust for top border on first section
@@ -401,9 +456,10 @@ function Home() {
       const nameFontSize = Math.round(Math.min(width, posterHeight) * 0.1);
   
       // Draw Title text (always in first section)
+      const titleSectionY = qrSectionHeight + borderSize;
       ctx.fillStyle = whiteColor;
       ctx.font = `bold ${titleFontSize}px Inter, sans-serif`;
-      ctx.fillText(title.toUpperCase(), width / 2, sectionHeight / 2);
+      ctx.fillText(title.toUpperCase(), width / 2, titleSectionY + (sectionHeight / 2));
   
       // Draw content based on transaction type
       switch (title) {
@@ -414,7 +470,7 @@ function Home() {
           ctx.fillText(
             phoneNumber || "0722 256 123",
             width / 2,
-            sectionHeight + (sectionHeight / 2)
+            titleSectionY + sectionHeight + (sectionHeight / 2)
           );
           break;
         
@@ -425,7 +481,7 @@ function Home() {
           ctx.fillText(
             paybillNumberLabel || "BUSINESS NUMBER", 
             width / 2, 
-            sectionHeight + (sectionHeight * 0.15)
+            titleSectionY + sectionHeight + (sectionHeight * 0.15)
           );
           
           ctx.fillStyle = textColor;
@@ -433,11 +489,11 @@ function Home() {
           ctx.fillText(
             paybillNumber || "12345", 
             width / 2, 
-            sectionHeight + (sectionHeight * 0.5)
+            titleSectionY + sectionHeight + (sectionHeight * 0.5)
           );
           
           // Account Number (third section)
-          const accountNumberYPos = (2 * sectionHeight) + (sectionHeight * 0.15);
+          const accountNumberYPos = titleSectionY + (2 * sectionHeight) + (sectionHeight * 0.15);
           ctx.fillStyle = whiteColor;
           ctx.font = `bold ${labelFontSize}px Inter, sans-serif`;
           ctx.fillText(
@@ -462,7 +518,7 @@ function Home() {
           ctx.fillText(
             tillNumberLabel || "TILL NUMBER", 
             width / 2, 
-            sectionHeight + (sectionHeight * 0.15)
+            titleSectionY + sectionHeight + (sectionHeight * 0.15)
           );
           
           ctx.fillStyle = textColor;
@@ -470,7 +526,7 @@ function Home() {
           ctx.fillText(
             tillNumber || "12345", 
             width / 2, 
-            sectionHeight + (sectionHeight * 0.5)
+            titleSectionY + sectionHeight + (sectionHeight * 0.5)
           );
           break;
         
@@ -481,7 +537,7 @@ function Home() {
           ctx.fillText(
             agentNumberLabel || "AGENT NUMBER", 
             width / 2, 
-            sectionHeight + (sectionHeight * 0.15)
+            titleSectionY + sectionHeight + (sectionHeight * 0.15)
           );
           
           ctx.fillStyle = textColor;
@@ -489,11 +545,11 @@ function Home() {
           ctx.fillText(
             agentNumber || "12345", 
             width / 2, 
-            sectionHeight + (sectionHeight * 0.5)
+            titleSectionY + sectionHeight + (sectionHeight * 0.5)
           );
           
           // Store Number (third section)
-          const storeNumberYPos = (2 * sectionHeight) + (sectionHeight * 0.15);
+          const storeNumberYPos = titleSectionY + (2 * sectionHeight) + (sectionHeight * 0.15);
           ctx.fillStyle = whiteColor;
           ctx.font = `bold ${labelFontSize}px Inter, sans-serif`;
           ctx.fillText(
@@ -515,7 +571,7 @@ function Home() {
       // Draw name when showName is true (last section)
       if (showName) {
         const nameSectionIndex = sectionCount - 1;
-        const nameYPos = (nameSectionIndex * sectionHeight) + (sectionHeight / 2);
+        const nameYPos = qrSectionHeight + (nameSectionIndex * sectionHeight) + (sectionHeight / 2);
         const nameTextColor = nameSectionIndex % 2 === 0 ? whiteColor : textColor;
         
         ctx.fillStyle = nameTextColor;
@@ -526,54 +582,7 @@ function Home() {
           nameYPos
         );
       }
-  
-      // QR Code Section
-      const qrSectionY = posterHeight;
-  
-      // Draw white background for QR code section
-      ctx.fillStyle = whiteColor;
-      ctx.fillRect(
-        borderSize,
-        qrSectionY + borderSize,
-        width - 2 * borderSize,
-        qrSectionHeight - borderSize
-      );
-  
-      // Create scan section with same height as other sections
-      const scanSectionY = qrSectionY + borderSize;
-      
-      // Draw gray background for scan section
-      ctx.fillStyle = grayColor;
-      ctx.fillRect(
-        borderSize,
-        scanSectionY,
-        width - 2 * borderSize,
-        scanSectionHeight
-      );
-      
-      // Add border between scan section and QR code
-      ctx.fillStyle = borderColor;
-      ctx.fillRect(
-        borderSize,
-        scanSectionY + scanSectionHeight,
-        width - 2 * borderSize,
-        borderSize
-      );
-  
-      // Add "SCAN TO PAY!" text in the scan section
-      const scanText = "SCAN TO PAY!";
-      ctx.fillStyle = textColor;
-      ctx.font = `bold ${scanTextFontSize}px Inter, sans-serif`;
-      ctx.textAlign = "center";
-      ctx.fillText(
-        scanText, 
-        width / 2, 
-        scanSectionY + (scanSectionHeight / 2)
-      );
-  
-      // Position QR code below the scan section
-      const qrCodeY = scanSectionY + scanSectionHeight + borderSize + 20;
-  
+
       // Generate QR code data
       const qrData = generateQRCodeData();
       if (!qrData) {
@@ -649,7 +658,6 @@ function Home() {
       console.error("Error generating image:", error);
     }
   };
-
   // Helper functions for the preview
   function getGridTemplateRows(title: string, showName: boolean): string {
     const sectionCount = getSectionCount(title, showName);

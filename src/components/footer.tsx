@@ -11,7 +11,7 @@ const Footer = () => {
             rel="noopener noreferrer"
             className="text-blue-600 hover:text-blue-800 font-medium"
           >
-            Nelson Anangwe
+            BLTA Solutions Limited
           </a>
         </p>
       </div>
