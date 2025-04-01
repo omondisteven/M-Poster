@@ -18,6 +18,8 @@ import QrSvg from "@wojtekmaj/react-qr-svg";
 import { generateQRCode } from "@/utils/helpers";
 import { useAppContext,  } from "@/context/AppContext";
 import { TRANSACTION_TYPE } from "@/@types/TransactionType";
+// import { parsePhoneNumberFromString } from 'libphonenumber-js';
+import { AsYouType } from 'libphonenumber-js';
 
 // Define zod schema for validation
 const formSchema = z.object({
@@ -283,12 +285,51 @@ function Home() {
   ];
 
   const formatPhoneNumber = (value: string): string => {
-    const numbers = value.replace(/\D/g, "");
-    const match = numbers.match(/^(\d{4})(\d{3})(\d{3})$/);
-    if (match) {
-      return `${match[1]} ${match[2]} ${match[3]}`;
+    // Remove all non-digit characters except leading +
+    const cleanedValue = value.replace(/[^\d+]/g, '');
+    
+    // Use AsYouType formatter for real-time formatting
+    const formatter = new AsYouType('KE');
+    
+    // Feed the input character by character to get proper formatting
+    cleanedValue.split('').forEach(char => formatter.input(char));
+    
+    // Get the formatted number
+    const formattedNumber = formatter.getNumber();
+    
+    if (formattedNumber) {
+      // Return in national format if it's a local number (starts with 0)
+      if (formattedNumber.number.startsWith('+2540')) {
+        return formattedNumber.formatNational();
+      }
+      // Return in international format if it's a full international number
+      return formattedNumber.formatInternational();
     }
-    return value;
+    
+    // Fallback formatting for incomplete numbers
+    if (cleanedValue.startsWith('+254') || cleanedValue.startsWith('254')) {
+      // Format international-style numbers
+      const digits = cleanedValue.replace(/^\+/, '').replace(/^254/, '');
+      if (digits.length >= 9) {
+        return `+254 ${digits.substring(0, 3)} ${digits.substring(3, 6)} ${digits.substring(6)}`;
+      } else if (digits.length >= 6) {
+        return `+254 ${digits.substring(0, 3)} ${digits.substring(3)}`;
+      } else if (digits.length >= 3) {
+        return `+254 ${digits}`;
+      }
+      return `+254 ${digits}`;
+    } else {
+      // Format local-style numbers
+      const digits = cleanedValue.replace(/^0/, '');
+      if (digits.length >= 9) {
+        return `0${digits.substring(0, 3)} ${digits.substring(3, 6)} ${digits.substring(6)}`;
+      } else if (digits.length >= 6) {
+        return `0${digits.substring(0, 3)} ${digits.substring(3)}`;
+      } else if (digits.length >= 3) {
+        return `0${digits}`;
+      }
+      return cleanedValue;
+    }
   };
 
   const onSubmit = handleSubmit(async () => {
@@ -917,26 +958,24 @@ function Home() {
                       Phone Number
                     </label>
                     <Controller
-                        name="phoneNumber"
-                        control={control}
-                        render={({ field }) => (
-                          <Input
-                            id="phone"
-                            type="text"
-                            inputMode="numeric"
-                            pattern="[0-9,()]"
-                            value={field.value || ""}
-                            onChange={(e) => {
-                              const value = e.target.value.replace(/\D/g, "");
-                              if (value.length <= 10) {
-                                field.onChange(formatPhoneNumber(value));
-                              }
-                            }}
-                            className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold"
-                            placeholder="0722 256 123"
-                          />
-                        )}
-                      />
+                      name="phoneNumber"
+                      control={control}
+                      render={({ field }) => (
+                        <Input
+                          id="phone"
+                          type="tel"
+                          value={field.value || ""}
+                          onChange={(e) => {
+                            // Get the formatted phone number
+                            const formatted = formatPhoneNumber(e.target.value);
+                            // Update the field value
+                            field.onChange(formatted);
+                          }}
+                          className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold"
+                          placeholder="0722 123 456 or +254 722 123 456"
+                        />
+                      )}
+                    />
                     {errors.phoneNumber && (
                       <p className="mt-1 text-sm text-red-500">{errors.phoneNumber.message}</p>
                     )}
