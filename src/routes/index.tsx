@@ -45,7 +45,7 @@ const formSchema = z.object({
     if (data.showName && !data.name?.trim()) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: "Name is required when 'Show Name' is enabled",
+        // message: "Name is required when 'Show Name' is enabled",
         path: ["name"],
       });
     }
@@ -56,7 +56,7 @@ const formSchema = z.object({
         if (!data.phoneNumber?.trim() || data.phoneNumber.trim().length < 10) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            message: "Phone number is required for Send Money",
+            // message: "Phone number is required for Send Money",
             path: ["phoneNumber"],
           });
         }
@@ -66,14 +66,14 @@ const formSchema = z.object({
         if (!data.paybillNumber?.trim()) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            message: "Business number is required for Pay Bill",
+            // message: "Business number is required for Pay Bill",
             path: ["paybillNumber"],
           });
         }
         if (!data.accountNumber?.trim()) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            message: "Account number is required for Pay Bill",
+            // message: "Account number is required for Pay Bill",
             path: ["accountNumber"],
           });
         }
@@ -83,7 +83,7 @@ const formSchema = z.object({
         if (!data.tillNumber?.trim()) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            message: "Till number is required for Buy Goods",
+            // message: "Till number is required for Buy Goods",
             path: ["tillNumber"],
           });
         }
@@ -93,14 +93,14 @@ const formSchema = z.object({
         if (!data.agentNumber?.trim()) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            message: "Agent number is required for Withdraw Money",
+            // message: "Agent number is required for Withdraw Money",
             path: ["agentNumber"],
           });
         }
         if (!data.storeNumber?.trim()) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            message: "Store number is required for Withdraw Money",
+            // message: "Store number is required for Withdraw Money",
             path: ["storeNumber"],
           });
         }
@@ -112,7 +112,7 @@ const formSchema = z.object({
         if (!data.phoneNumber?.trim()) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            message: "Phone number is required for Send Money",
+            // message: "Phone number is required for Send Money",
             path: ["phoneNumber"],
           });
         }
@@ -122,14 +122,14 @@ const formSchema = z.object({
         if (!data.paybillNumber?.trim()) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            message: "Business number is required for Pay Bill",
+            // message: "Business number is required for Pay Bill",
             path: ["paybillNumber"],
           });
         }
         if (!data.accountNumber?.trim()) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            message: "Account number is required for Pay Bill",
+            // message: "Account number is required for Pay Bill",
             path: ["accountNumber"],
           });
         }
@@ -139,7 +139,7 @@ const formSchema = z.object({
         if (!data.tillNumber?.trim()) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            message: "Till number is required for Buy Goods",
+            // message: "Till number is required for Buy Goods",
             path: ["tillNumber"],
           });
         }
@@ -149,14 +149,14 @@ const formSchema = z.object({
         if (!data.agentNumber?.trim()) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            message: "Agent number is required for Withdraw Money",
+            // message: "Agent number is required for Withdraw Money",
             path: ["agentNumber"],
           });
         }
         if (!data.storeNumber?.trim()) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            message: "Store number is required for Withdraw Money",
+            // message: "Store number is required for Withdraw Money",
             path: ["storeNumber"],
           });
         }
