@@ -3,7 +3,7 @@
     "name": "Generic Display",
     "slug": "generic",
     "description": "Perfect for helmet display",
-    "size": { "width": 1200, "height": 675, "label": "Standard Format" }
+    "size": { "width": 1200, "height": 800, "label": "Standard Format" }
   },
   {
     "name": "Boda boda",
@@ -15,7 +15,7 @@
     "name": "Smokie Cart",
     "slug": "smokie-cart",
     "description": "Standard size for your cart",
-    "size": { "width": 1200, "height": 675, "label": "Standard Format" }
+    "size": { "width": 1200, "height": 800, "label": "Standard Format" }
   },
   {
     "name": "Soko Stall",
