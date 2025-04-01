@@ -193,7 +193,7 @@ function Home() {
   const posterRef = useRef<HTMLDivElement>(null);
   const [selectedTemplate, setSelectedTemplate] = useState(templates[0]);
 
-  const { control, handleSubmit, watch, setValue, formState: { errors, isValid, isSubmitted }, trigger } = useForm<FormValues>({
+  const { control, handleSubmit, watch, setValue, formState: { errors, isValid }, trigger } = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       type: TRANSACTION_TYPE.SEND_MONEY,
@@ -213,8 +213,7 @@ function Home() {
       storeNumber: data.storeNumber || "",
       storeNumberLabel: "Store Number",
     },
-    mode: "onTouched", // Changed from "onChange" to "onTouched"
-    reValidateMode: "onSubmit", // Only re-validate on submit
+    mode: "onChange",
   });
   
   const phoneNumber = watch("phoneNumber");
@@ -333,53 +332,11 @@ function Home() {
     }
   };
 
-  const onSubmit = handleSubmit(async (data) => {
-    // Use the form data to generate the QR code
-    const qrData = generateQRCode({
-      type: data.type,
-      phoneNumber: data.phoneNumber,
-      paybillNumber: data.paybillNumber,
-      accountNumber: data.accountNumber,
-      tillNumber: data.tillNumber,
-      agentNumber: data.agentNumber,
-      storeNumber: data.storeNumber
-    });
-  
-    if (!qrData) {
-      // If QR data is invalid, trigger validation to show errors
-      trigger();
-      return;
-    }
-  
-    // Proceed with download using the form data
-    await handleDownload({
-      title: data.title,
-      phoneNumber: data.phoneNumber,
-      paybillNumber: data.paybillNumber,
-      accountNumber: data.accountNumber,
-      tillNumber: data.tillNumber,
-      agentNumber: data.agentNumber,
-      storeNumber: data.storeNumber,
-      name: data.name,
-      selectedColor: data.selectedColor,
-      showName: data.showName
-    });
-  }, (errors) => {
-    console.log('Form errors:', errors);
+  const onSubmit = handleSubmit(async () => {
+    await handleDownload();
   });
 
-  const handleDownload = async (formData: {
-    title: string;
-    phoneNumber?: string;
-    paybillNumber?: string;
-    accountNumber?: string;
-    tillNumber?: string;
-    agentNumber?: string;
-    storeNumber?: string;
-    name?: string;
-    selectedColor: string;
-    showName: boolean;
-  }) => {
+  const handleDownload = async () => {
     if (!posterRef.current) return;
   
     try {
@@ -393,10 +350,10 @@ function Home() {
       
       // Calculate section count based on title and showName
       let sectionCount = 2; // Default to 2 sections
-      if (formData.title === "Pay Bill" || formData.title === "Withdraw Money") {
+      if (title === "Pay Bill" || title === "Withdraw Money") {
         sectionCount = 3; // Title + 2 fields
       }
-      if (formData.showName) {
+      if (showName) {
         sectionCount += 1; // Add name section
       }
       
@@ -420,7 +377,7 @@ function Home() {
       }
   
       // Colors
-      const mainColor = formData.selectedColor;
+      const mainColor = selectedColor;
       const borderColor = "#1a2335";
       const whiteColor = "#ffffff";
       const textColor = "#000000";
@@ -428,10 +385,10 @@ function Home() {
       // Draw outer border for the entire canvas
       ctx.fillStyle = borderColor;
       ctx.fillRect(0, 0, width, totalHeight);    
-  
+
       // QR Code Section - NOW AT THE TOP
       const qrSectionY = 0;
-  
+
       // Draw white background for QR code section
       ctx.fillStyle = whiteColor;
       ctx.fillRect(
@@ -440,11 +397,11 @@ function Home() {
         width - 2 * borderSize,
         qrSectionHeight - borderSize
       );
-  
+
       // Create scan section with same height as other sections
       const scanSectionY = qrSectionY + borderSize;
       
-      // Draw main color background for scan section
+      // Draw main color background for scan section (changed from gray to mainColor)
       ctx.fillStyle = mainColor;
       ctx.fillRect(
         borderSize,
@@ -461,7 +418,7 @@ function Home() {
         width - 2 * borderSize,
         borderSize
       );
-  
+
       // Add bottom border to QR code section
       ctx.fillStyle = borderColor;
       ctx.fillRect(
@@ -470,10 +427,10 @@ function Home() {
         width - 2 * borderSize,
         borderSize
       );
-  
-      // Add "SCAN TO PAY!" text in the scan section
+
+      // Add "SCAN TO PAY!" text in the scan section (changed text color to white)
       const scanText = "SCAN TO PAY!";
-      ctx.fillStyle = whiteColor;
+      ctx.fillStyle = whiteColor; // Changed from textColor to whiteColor
       ctx.font = `bold ${scanTextFontSize}px Inter, sans-serif`;
       ctx.textAlign = "center";
       ctx.fillText(
@@ -481,10 +438,10 @@ function Home() {
         width / 2, 
         scanSectionY + (scanSectionHeight / 2)
       );
-  
+
       // Position QR code below the scan section
       const qrCodeY = scanSectionY + scanSectionHeight + borderSize + 30;
-  
+
       // Draw sections with proper colors and borders (shifted down by qrSectionHeight)
       for (let i = 0; i < sectionCount; i++) {
         const yPos = i * sectionHeight + qrSectionHeight + borderSize;
@@ -543,16 +500,16 @@ function Home() {
       const titleSectionY = qrSectionHeight + borderSize;
       ctx.fillStyle = whiteColor;
       ctx.font = `bold ${titleFontSize}px Inter, sans-serif`;
-      ctx.fillText(formData.title.toUpperCase(), width / 2, titleSectionY + (sectionHeight / 2));
+      ctx.fillText(title.toUpperCase(), width / 2, titleSectionY + (sectionHeight / 2));
   
       // Draw content based on transaction type
-      switch (formData.title) {
+      switch (title) {
         case "Send Money":
           // Phone number in second section
           ctx.fillStyle = textColor;
           ctx.font = `bold ${valueFontSize}px Inter, sans-serif`;
           ctx.fillText(
-            formData.phoneNumber || "0722 256 123",
+            phoneNumber || "0722 256 123",
             width / 2,
             titleSectionY + sectionHeight + (sectionHeight / 2)
           );
@@ -563,7 +520,7 @@ function Home() {
           ctx.fillStyle = textColor;
           ctx.font = `bold ${labelFontSize}px Inter, sans-serif`;
           ctx.fillText(
-            "BUSINESS NUMBER", 
+            paybillNumberLabel || "BUSINESS NUMBER", 
             width / 2, 
             titleSectionY + sectionHeight + (sectionHeight * 0.15)
           );
@@ -571,7 +528,7 @@ function Home() {
           ctx.fillStyle = textColor;
           ctx.font = `bold ${valueFontSize}px Inter, sans-serif`;
           ctx.fillText(
-            formData.paybillNumber || "12345", 
+            paybillNumber || "12345", 
             width / 2, 
             titleSectionY + sectionHeight + (sectionHeight * 0.5)
           );
@@ -581,7 +538,7 @@ function Home() {
           ctx.fillStyle = whiteColor;
           ctx.font = `bold ${labelFontSize}px Inter, sans-serif`;
           ctx.fillText(
-            "ACCOUNT NUMBER", 
+            accountNumberLabel || "ACCOUNT NUMBER", 
             width / 2, 
             accountNumberYPos
           );
@@ -589,7 +546,7 @@ function Home() {
           ctx.fillStyle = whiteColor;
           ctx.font = `bold ${valueFontSize}px Inter, sans-serif`;
           ctx.fillText(
-            formData.accountNumber || "12345", 
+            accountNumber || "12345", 
             width / 2, 
             accountNumberYPos + (sectionHeight * 0.35)
           );
@@ -600,7 +557,7 @@ function Home() {
           ctx.fillStyle = textColor;
           ctx.font = `bold ${labelFontSize}px Inter, sans-serif`;
           ctx.fillText(
-            "TILL NUMBER", 
+            tillNumberLabel || "TILL NUMBER", 
             width / 2, 
             titleSectionY + sectionHeight + (sectionHeight * 0.15)
           );
@@ -608,7 +565,7 @@ function Home() {
           ctx.fillStyle = textColor;
           ctx.font = `bold ${tillValueFontSize}px Inter, sans-serif`;
           ctx.fillText(
-            formData.tillNumber || "12345", 
+            tillNumber || "12345", 
             width / 2, 
             titleSectionY + sectionHeight + (sectionHeight * 0.5)
           );
@@ -619,7 +576,7 @@ function Home() {
           ctx.fillStyle = textColor;
           ctx.font = `bold ${labelFontSize}px Inter, sans-serif`;
           ctx.fillText(
-            "AGENT NUMBER", 
+            agentNumberLabel || "AGENT NUMBER", 
             width / 2, 
             titleSectionY + sectionHeight + (sectionHeight * 0.15)
           );
@@ -627,7 +584,7 @@ function Home() {
           ctx.fillStyle = textColor;
           ctx.font = `bold ${valueFontSize}px Inter, sans-serif`;
           ctx.fillText(
-            formData.agentNumber || "12345", 
+            agentNumber || "12345", 
             width / 2, 
             titleSectionY + sectionHeight + (sectionHeight * 0.5)
           );
@@ -637,7 +594,7 @@ function Home() {
           ctx.fillStyle = whiteColor;
           ctx.font = `bold ${labelFontSize}px Inter, sans-serif`;
           ctx.fillText(
-            "STORE NUMBER", 
+            storeNumberLabel || "STORE NUMBER", 
             width / 2, 
             storeNumberYPos
           );
@@ -645,7 +602,7 @@ function Home() {
           ctx.fillStyle = whiteColor;
           ctx.font = `bold ${valueFontSize}px Inter, sans-serif`;
           ctx.fillText(
-            formData.storeNumber || "12345", 
+            storeNumber || "12345", 
             width / 2, 
             storeNumberYPos + (sectionHeight * 0.35)
           );
@@ -653,7 +610,7 @@ function Home() {
       }
   
       // Draw name when showName is true (last section)
-      if (formData.showName) {
+      if (showName) {
         const nameSectionIndex = sectionCount - 1;
         const nameYPos = qrSectionHeight + (nameSectionIndex * sectionHeight) + (sectionHeight / 2);
         const nameTextColor = nameSectionIndex % 2 === 0 ? whiteColor : textColor;
@@ -661,33 +618,24 @@ function Home() {
         ctx.fillStyle = nameTextColor;
         ctx.font = `bold ${nameFontSize}px Inter, sans-serif`;
         ctx.fillText(
-          formData.name?.toUpperCase() || "NELSON ANANGWE", 
+          name?.toUpperCase() || "NELSON ANANGWE", 
           width / 2, 
           nameYPos
         );
       }
-  
+
       // Generate QR code data
-      const qrData = generateQRCode({
-        type: formData.title as TRANSACTION_TYPE,
-        phoneNumber: formData.phoneNumber,
-        paybillNumber: formData.paybillNumber,
-        accountNumber: formData.accountNumber,
-        tillNumber: formData.tillNumber,
-        agentNumber: formData.agentNumber,
-        storeNumber: formData.storeNumber
-      });
-  
+      const qrData = generateQRCodeData();
       if (!qrData) {
         throw new Error("Invalid QR code data - please fill all required fields");
       }
-  
+
       // Create a temporary container for the QR code
       const tempDiv = document.createElement('div');
       tempDiv.style.position = 'absolute';
       tempDiv.style.left = '-9999px';
       document.body.appendChild(tempDiv);
-  
+
       // Create a root and render the QR code
       const root = createRoot(tempDiv);
       root.render(
@@ -698,29 +646,29 @@ function Home() {
           style={{ width: qrCodeWidth, height: qrCodeWidth }}
         />
       );
-  
+
       // Wait briefly for React to render
       await new Promise(resolve => setTimeout(resolve, 50));
-  
+
       // Get the SVG element
       const svgElement = tempDiv.querySelector('.qr-code-svg') as SVGSVGElement;
       if (!svgElement) {
         throw new Error("Could not generate QR code");
       }
-  
+
       // Serialize the SVG
       const svgData = new XMLSerializer().serializeToString(svgElement);
       const img = new Image();
-  
+
       await new Promise((resolve, reject) => {
         img.onload = resolve;
         img.onerror = reject;
         img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgData);
       });
-  
+
       // Draw the QR code to the main canvas
       ctx.drawImage(img, qrCodePadding, qrCodeY, qrCodeWidth, qrCodeWidth);
-  
+
       // Clean up
       root.unmount();
       document.body.removeChild(tempDiv);
@@ -728,18 +676,18 @@ function Home() {
       // Generate download link
       const dataUrl = canvas.toDataURL("image/png", 1.0);
       const link = document.createElement("a");
-      switch (formData.title){
+      switch (title){
         case "Send Money":
-          link.download = `${formData.phoneNumber}-${formData.title.toLowerCase().replace(/\s/g, "-")}.png`;
+          link.download = `${phoneNumber}-${title.toLowerCase().replace(/\s/g, "-")}.png`;
           break;
         case "Pay Bill":
-          link.download = `${formData.paybillNumber}-${formData.title.toLowerCase().replace(/\s/g, "-")}.png`;
+          link.download = `${paybillNumber}-${title.toLowerCase().replace(/\s/g, "-")}.png`;
           break;
         case "Buy Goods":
-          link.download = `${formData.tillNumber}-${formData.title.toLowerCase().replace(/\s/g, "-")}.png`;
+          link.download = `${tillNumber}-${title.toLowerCase().replace(/\s/g, "-")}.png`;
           break;
         case "Withdraw Money":
-          link.download = `${formData.agentNumber}-${formData.title.toLowerCase().replace(/\s/g, "-")}.png`;
+          link.download = `${agentNumber}-${title.toLowerCase().replace(/\s/g, "-")}.png`;
           break;
       }
       
@@ -1023,7 +971,6 @@ function Home() {
                             // Update the field value
                             field.onChange(formatted);
                           }}
-                          onBlur={field.onBlur} // Important for onTouched validation
                           className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold"
                           placeholder="0722 123 456 or +254 722 123 456"
                         />
@@ -1055,7 +1002,6 @@ function Home() {
                               const value = e.target.value.replace(/\D/g, "");
                               field.onChange(value);
                             }}
-                            onBlur={field.onBlur} // Important for onTouched validation
                             className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold"
                             placeholder="123456"
                           />
@@ -1078,7 +1024,6 @@ function Home() {
                             type="text"
                             value={field.value || ""}
                             onChange={field.onChange}
-                            onBlur={field.onBlur} // Important for onTouched validation
                             className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold"
                             placeholder="Account number"
                           />
@@ -1110,7 +1055,6 @@ function Home() {
                             const value = e.target.value.replace(/\D/g, "");
                             field.onChange(value);
                           }}
-                          onBlur={field.onBlur} // Important for onTouched validation
                           className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold"
                           placeholder="123456"
                         />
@@ -1142,7 +1086,6 @@ function Home() {
                               const value = e.target.value.replace(/\D/g, "");
                               field.onChange(value);
                             }}
-                            onBlur={field.onBlur} // Important for onTouched validation
                             className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold"
                             placeholder="Agent number"
                           />
@@ -1165,7 +1108,6 @@ function Home() {
                             type="text"
                             value={field.value || ""}
                             onChange={field.onChange}
-                            onBlur={field.onBlur} // Important for onTouched validation
                             className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold"
                             placeholder="Store number"
                           />
@@ -1217,7 +1159,6 @@ function Home() {
                           onChange={(e) => {
                             field.onChange(e.target.value.toUpperCase());
                           }}
-                          onBlur={field.onBlur} // Important for onTouched validation
                           className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold"
                           placeholder="NELSON ANANGWE"
                         />
