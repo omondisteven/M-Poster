@@ -1,5 +1,5 @@
 import { createLazyFileRoute } from '@tanstack/react-router'
 
-export const Route = createLazyFileRoute('/qr-results-page')({
+export const Route = createLazyFileRoute('/QrResultsPage')({
   component:  () => import("./QrResultsPage").then((mod) => mod.default),
 });
