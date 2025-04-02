@@ -13,6 +13,7 @@ import { createFileRoute } from '@tanstack/react-router'
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
+import { Route as QrResultsPageImport } from './routes/QrResultsPage'
 import { Route as IndexImport } from './routes/index'
 
 // Create Virtual Routes
@@ -28,6 +29,12 @@ const QrResultsPageLazyRoute = QrResultsPageLazyImport.update({
 } as any).lazy(() =>
   import('./routes/qr-results-page.lazy').then((d) => d.Route),
 )
+
+const QrResultsPageRoute = QrResultsPageImport.update({
+  id: '/QrResultsPage',
+  path: '/QrResultsPage',
+  getParentRoute: () => rootRoute,
+} as any)
 
 const IndexRoute = IndexImport.update({
   id: '/',
@@ -46,6 +53,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexImport
       parentRoute: typeof rootRoute
     }
+    '/QrResultsPage': {
+      id: '/QrResultsPage'
+      path: '/QrResultsPage'
+      fullPath: '/QrResultsPage'
+      preLoaderRoute: typeof QrResultsPageImport
+      parentRoute: typeof rootRoute
+    }
     '/qr-results-page': {
       id: '/qr-results-page'
       path: '/qr-results-page'
@@ -60,36 +74,41 @@ declare module '@tanstack/react-router' {
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/QrResultsPage': typeof QrResultsPageRoute
   '/qr-results-page': typeof QrResultsPageLazyRoute
 }
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/QrResultsPage': typeof QrResultsPageRoute
   '/qr-results-page': typeof QrResultsPageLazyRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
+  '/QrResultsPage': typeof QrResultsPageRoute
   '/qr-results-page': typeof QrResultsPageLazyRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/qr-results-page'
+  fullPaths: '/' | '/QrResultsPage' | '/qr-results-page'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/qr-results-page'
-  id: '__root__' | '/' | '/qr-results-page'
+  to: '/' | '/QrResultsPage' | '/qr-results-page'
+  id: '__root__' | '/' | '/QrResultsPage' | '/qr-results-page'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  QrResultsPageRoute: typeof QrResultsPageRoute
   QrResultsPageLazyRoute: typeof QrResultsPageLazyRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  QrResultsPageRoute: QrResultsPageRoute,
   QrResultsPageLazyRoute: QrResultsPageLazyRoute,
 }
 
@@ -104,11 +123,15 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
+        "/QrResultsPage",
         "/qr-results-page"
       ]
     },
     "/": {
       "filePath": "index.tsx"
+    },
+    "/QrResultsPage": {
+      "filePath": "QrResultsPage.tsx"
     },
     "/qr-results-page": {
       "filePath": "qr-results-page.lazy.tsx"

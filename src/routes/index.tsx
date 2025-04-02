@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useRef, useState, useEffect, } from "react";
+import { type FC, useRef, useState, useEffect, } from "react";
 import { Button } from "@/components/ui/button";
 import { CheckIcon, GithubIcon, LockIcon, ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { motion } from "framer-motion";
@@ -20,6 +20,7 @@ import { useAppContext,  } from "@/context/AppContext";
 import { TRANSACTION_TYPE } from "@/@types/TransactionType";
 // import { parsePhoneNumberFromString } from 'libphonenumber-js';
 import { AsYouType } from 'libphonenumber-js';
+import  QrResultsPage  from './QrResultsPage';
 
 // Define zod schema for validation
 const formSchema = z.object({
@@ -201,11 +202,12 @@ interface FormValues {
   storeNumberLabel?: string;
 }
 
-export const Route = createFileRoute("/")({
-  component: Home,
+
+export const QrResultsRoute = createFileRoute("/")({
+  component: QrResultsPage,
 });
 
-function Home() {
+const Home: FC = () => {
   const [qrGenerationMethod, setQrGenerationMethod] = useState<"mpesa" | "push">("push");
   const [previewQrData, setPreviewQrData] = useState("");
 
@@ -293,7 +295,7 @@ function Home() {
           PhoneNumber: "254"
         };
         const encodedData = encodeURIComponent(JSON.stringify(qrData));
-        setPreviewQrData(`/qr-results-page?data=${encodedData}`);
+        setPreviewQrData(`/QrResultsPage?data=${encodedData}`);
       }
     };
   
@@ -331,7 +333,7 @@ const generateDownloadQrData = async (): Promise<string> => {
       };
 
       const encodedData = encodeURIComponent(JSON.stringify(qrData));
-      const fullUrl = `${window.location.origin}/qr-results-page?data=${encodedData}`;
+      const fullUrl = `${window.location.origin}/QrResultsPage?data=${encodedData}`;
 
       // Create TinyURL
       const response = await fetch(`https://api.tinyurl.com/create`, {
@@ -1544,3 +1546,5 @@ const generateDownloadQrData = async (): Promise<string> => {
     </div>
   );
 }
+
+export default Home

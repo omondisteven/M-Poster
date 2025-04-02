@@ -1,4 +1,4 @@
-// src/pages/QrResultsPage.tsx
+// src/QrResultsPage.tsx
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { HiOutlineCreditCard } from "react-icons/hi";
@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import toast from "react-hot-toast";
 import { createFileRoute } from "@tanstack/react-router";
 
-export const Route = createFileRoute("/qr-results-page")({
+export const Route = createFileRoute("/QrResultsPage")({
   component: QrResultsPage,
 });
 
