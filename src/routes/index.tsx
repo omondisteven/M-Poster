@@ -293,7 +293,7 @@ function Home() {
           PhoneNumber: "254"
         };
         const encodedData = encodeURIComponent(JSON.stringify(qrData));
-        setPreviewQrData(`/pages/QrResultsPage?data=${encodedData}`);
+        setPreviewQrData(`/qr-results-page?data=${encodedData}`);
       }
     };
   
@@ -331,7 +331,7 @@ const generateDownloadQrData = async (): Promise<string> => {
       };
 
       const encodedData = encodeURIComponent(JSON.stringify(qrData));
-      const fullUrl = `${window.location.origin}/QrResultsPage?data=${encodedData}`;
+      const fullUrl = `${window.location.origin}/qr-results-page?data=${encodedData}`;
 
       // Create TinyURL
       const response = await fetch(`https://api.tinyurl.com/create`, {

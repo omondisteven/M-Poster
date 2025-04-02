@@ -8,12 +8,26 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
+import { createFileRoute } from '@tanstack/react-router'
+
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
 import { Route as IndexImport } from './routes/index'
 
+// Create Virtual Routes
+
+const QrResultsPageLazyImport = createFileRoute('/qr-results-page')()
+
 // Create/Update Routes
+
+const QrResultsPageLazyRoute = QrResultsPageLazyImport.update({
+  id: '/qr-results-page',
+  path: '/qr-results-page',
+  getParentRoute: () => rootRoute,
+} as any).lazy(() =>
+  import('./routes/qr-results-page.lazy').then((d) => d.Route),
+)
 
 const IndexRoute = IndexImport.update({
   id: '/',
@@ -32,6 +46,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexImport
       parentRoute: typeof rootRoute
     }
+    '/qr-results-page': {
+      id: '/qr-results-page'
+      path: '/qr-results-page'
+      fullPath: '/qr-results-page'
+      preLoaderRoute: typeof QrResultsPageLazyImport
+      parentRoute: typeof rootRoute
+    }
   }
 }
 
@@ -39,32 +60,37 @@ declare module '@tanstack/react-router' {
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/qr-results-page': typeof QrResultsPageLazyRoute
 }
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/qr-results-page': typeof QrResultsPageLazyRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
+  '/qr-results-page': typeof QrResultsPageLazyRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/qr-results-page'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/qr-results-page'
+  id: '__root__' | '/' | '/qr-results-page'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  QrResultsPageLazyRoute: typeof QrResultsPageLazyRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  QrResultsPageLazyRoute: QrResultsPageLazyRoute,
 }
 
 export const routeTree = rootRoute
@@ -77,11 +103,15 @@ export const routeTree = rootRoute
     "__root__": {
       "filePath": "__root.tsx",
       "children": [
-        "/"
+        "/",
+        "/qr-results-page"
       ]
     },
     "/": {
       "filePath": "index.tsx"
+    },
+    "/qr-results-page": {
+      "filePath": "qr-results-page.lazy.tsx"
     }
   }
 }
