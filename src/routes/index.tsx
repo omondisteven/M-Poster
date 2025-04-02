@@ -189,6 +189,9 @@ export const Route = createFileRoute("/")({
 });
 
 function Home() {
+  const [qrGenerationMethod, setQrGenerationMethod] = useState<"mpesa" | "push">("push");
+  const [previewQrData, setPreviewQrData] = useState("");
+
   const { data } = useAppContext();
   const posterRef = useRef<HTMLDivElement>(null);
   const [selectedTemplate, setSelectedTemplate] = useState(templates[0]);
@@ -242,18 +245,132 @@ function Home() {
     setValue("phoneNumber", data.phoneNumber);
   }, [data, setValue]);
 
-  const generateQRCodeData = () => {
-    const formData = {
-      type: watch("type"),
-      phoneNumber: watch("phoneNumber"),
-      paybillNumber: watch("paybillNumber"),
-      accountNumber: watch("accountNumber"),
-      tillNumber: watch("tillNumber"),
-      agentNumber: watch("agentNumber"),
-      storeNumber: watch("storeNumber"),
+  // Add this useEffect to update the preview QR data
+  useEffect(() => {
+    const updatePreviewQr = async () => {
+      const formData = {
+        type: watch("type"),
+        phoneNumber: watch("phoneNumber"),
+        paybillNumber: watch("paybillNumber"),
+        accountNumber: watch("accountNumber"),
+        tillNumber: watch("tillNumber"),
+        agentNumber: watch("agentNumber"),
+        storeNumber: watch("storeNumber"),
+      };
+  
+      if (qrGenerationMethod === "mpesa") {
+        setPreviewQrData(generateQRCode(formData) || "");
+      } else {
+        // For Push STK, generate a simple URL without API call for preview
+        const qrData = {
+          TransactionType: formData.type === TRANSACTION_TYPE.SEND_MONEY ? "SendMoney" :
+                        formData.type === TRANSACTION_TYPE.PAYBILL ? "PayBill" :
+                        formData.type === TRANSACTION_TYPE.TILL_NUMBER ? "BuyGoods" :
+                        "WithdrawMoney",
+          PaybillNumber: formData.paybillNumber,
+          AccountNumber: formData.accountNumber,
+          TillNumber: formData.tillNumber,
+          AgentId: formData.agentNumber,
+          StoreNumber: formData.storeNumber,
+          RecepientPhoneNumber: formData.phoneNumber,
+          PhoneNumber: "254"
+        };
+        const encodedData = encodeURIComponent(JSON.stringify(qrData));
+        setPreviewQrData(`/QrResultsPage?data=${encodedData}`);
+      }
     };
-    return generateQRCode(formData) || "";
+  
+    updatePreviewQr();
+  }, [qrGenerationMethod, watch("type"), watch("phoneNumber"), watch("paybillNumber"), 
+      watch("accountNumber"), watch("tillNumber"), watch("agentNumber"), watch("storeNumber")]);
+    
+    // For preview purposes (synchronous)
+// const generatePreviewQrData = () => {
+//   const formData = {
+//     type: watch("type"),
+//     phoneNumber: watch("phoneNumber"),
+//     paybillNumber: watch("paybillNumber"),
+//     accountNumber: watch("accountNumber"),
+//     tillNumber: watch("tillNumber"),
+//     agentNumber: watch("agentNumber"),
+//     storeNumber: watch("storeNumber"),
+//   };
+
+//   if (qrGenerationMethod === "mpesa") {
+//     return generateQRCode(formData) || "";
+//   } else {
+//     // For Push STK preview - generate URL without API call
+//     const qrData = {
+//       TransactionType: formData.type === TRANSACTION_TYPE.SEND_MONEY ? "SendMoney" :
+//                     formData.type === TRANSACTION_TYPE.PAYBILL ? "PayBill" :
+//                     formData.type === TRANSACTION_TYPE.TILL_NUMBER ? "BuyGoods" :
+//                     "WithdrawMoney",
+//       PaybillNumber: formData.paybillNumber,
+//       AccountNumber: formData.accountNumber,
+//       TillNumber: formData.tillNumber,
+//       AgentId: formData.agentNumber,
+//       StoreNumber: formData.storeNumber,
+//       RecepientPhoneNumber: formData.phoneNumber,
+//       PhoneNumber: "254"
+//     };
+//     const encodedData = encodeURIComponent(JSON.stringify(qrData));
+//     return `/QrResultsPage?data=${encodedData}`;
+//   }
+// };
+
+// For download purposes (async with TinyURL)
+const generateDownloadQrData = async (): Promise<string> => {
+  const formData = {
+    type: watch("type"),
+    phoneNumber: watch("phoneNumber"),
+    paybillNumber: watch("paybillNumber"),
+    accountNumber: watch("accountNumber"),
+    tillNumber: watch("tillNumber"),
+    agentNumber: watch("agentNumber"),
+    storeNumber: watch("storeNumber"),
   };
+
+  if (qrGenerationMethod === "mpesa") {
+    return generateQRCode(formData) || "";
+  } else {
+    try {
+      const qrData = {
+        TransactionType: formData.type === TRANSACTION_TYPE.SEND_MONEY ? "SendMoney" :
+                      formData.type === TRANSACTION_TYPE.PAYBILL ? "PayBill" :
+                      formData.type === TRANSACTION_TYPE.TILL_NUMBER ? "BuyGoods" :
+                      "WithdrawMoney",
+        PaybillNumber: formData.paybillNumber,
+        AccountNumber: formData.accountNumber,
+        TillNumber: formData.tillNumber,
+        AgentId: formData.agentNumber,
+        StoreNumber: formData.storeNumber,
+        RecepientPhoneNumber: formData.phoneNumber,
+        PhoneNumber: "254"
+      };
+
+      const encodedData = encodeURIComponent(JSON.stringify(qrData));
+      const originalUrl = `/QrResultsPage?data=${encodedData}`;
+
+      const response = await fetch(`https://api.tinyurl.com/create`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer QeiZ8ZP85UdMKoZxaDDo2k8xuquZNXT6vys45A1JImuP4emSxSi2Zz655QDJ',
+        },
+        body: JSON.stringify({
+          url: originalUrl,
+          domain: "tiny.one",
+        }),
+      });
+
+      const result = await response.json();
+      return result.data?.tiny_url || originalUrl;
+    } catch (error) {
+      console.error("Error creating TinyURL:", error);
+      return generateQRCode(formData) || "";
+    }
+  }
+};
 
   // Add this effect to trigger validation when title changes
   useEffect(() => {
@@ -624,11 +741,11 @@ function Home() {
         );
       }
 
-      // Generate QR code data
-      const qrData = generateQRCodeData();
-      if (!qrData) {
-        throw new Error("Invalid QR code data - please fill all required fields");
-      }
+       // Generate QR code data - await the result
+       const qrData = await generateDownloadQrData();
+       if (!qrData) {
+         throw new Error("Invalid QR code data");
+       }
 
       // Create a temporary container for the QR code
       const tempDiv = document.createElement('div');
@@ -638,15 +755,14 @@ function Home() {
 
       // Create a root and render the QR code
       const root = createRoot(tempDiv);
-      root.render(
-        <QrSvg
-          value={qrData}
-          className="qr-code-svg"
-          fgColor="#000000"
-          style={{ width: qrCodeWidth, height: qrCodeWidth }}
-        />
-      );
-
+        root.render(
+          <QrSvg
+            value={qrData} // Now this is definitely a string
+            className="qr-code-svg"
+            fgColor="#000000"
+            style={{ width: qrCodeWidth, height: qrCodeWidth }}
+          />
+        );
       // Wait briefly for React to render
       await new Promise(resolve => setTimeout(resolve, 50));
 
@@ -950,7 +1066,37 @@ function Home() {
                     <p className="mt-1 text-sm text-red-500">{errors.type.message}</p>
                   )}
                 </div>
-
+                  {/* Radio buttons */}
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Generate QR Code for:
+                    </label>
+                    <div className="flex space-x-4">
+                      <label className="flex items-center space-x-2">
+                        <input
+                          type="radio"
+                          className="form-radio h-4 w-4 text-green-600"
+                          checked={qrGenerationMethod === "push"}
+                          onChange={() => setQrGenerationMethod("push")}
+                        />
+                        <span>Push STK</span>
+                      </label>
+                      <label className="flex items-center space-x-2">
+                        <input
+                          type="radio"
+                          className="form-radio h-4 w-4 text-green-600"
+                          checked={qrGenerationMethod === "mpesa"}
+                          onChange={() => setQrGenerationMethod("mpesa")}
+                        />
+                        <span>M-Pesa App</span>
+                      </label>
+                    </div>
+                    <p className="text-sm text-gray-500 mt-2">
+                      {qrGenerationMethod === "push" 
+                        ? "Scanning will initiate an M-Pesa payment directly"
+                        : "Scanning will open the M-Pesa app"}
+                    </p>
+                  </div>
                 {/* Send Money Fields */}
                 {watch("type") === TRANSACTION_TYPE.SEND_MONEY && (
                   <div>
@@ -1269,11 +1415,17 @@ function Home() {
               
               {/* QR Code Section */}
               <div className="w-full p-3" style={{ aspectRatio: "1/1" }}>
-                <QrSvg
-                  value={generateQRCodeData()}
-                  className="qr-code-svg w-full h-full"
-                  fgColor="#000000"
-                />
+                {previewQrData ? (
+                  <QrSvg
+                    value={previewQrData}
+                    className="qr-code-svg w-full h-full"
+                    fgColor="#000000"
+                  />
+                ) : (
+                  <div className="flex items-center justify-center h-full text-gray-500">
+                    Generating QR code...
+                  </div>
+                )}
               </div>
             </div>
           </div>
