@@ -1083,7 +1083,7 @@ const generateDownloadQrData = async (): Promise<string> => {
                             field.onChange(formatted);
                           }}
                           className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold"
-                          placeholder="Enter Phone No."
+                          placeholder="0722 256 123"
                         />
                       )}
                     />
