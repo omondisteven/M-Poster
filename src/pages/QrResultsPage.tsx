@@ -15,19 +15,41 @@ const QrResultsPage = () => {
   const [warning, setWarning] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (router.query.data) {
-      try {
-        const parsedData = JSON.parse(decodeURIComponent(router.query.data as string));
-        setTransactionType(parsedData.TransactionType);
-        setData(parsedData);
-        setAmount(parsedData.Amount || "");
-        setPhoneNumber(parsedData.PhoneNumber || "254");
-      } catch (e) {
-        console.error("Error parsing QR data:", e);
-      }
-    }
-  }, [router.query]);
+  // In QrResultsPage.tsx
+    useEffect(() => {
+      const fetchData = async () => {
+        if (router.query.data) {
+          try {
+            // Handle case where the URL might be a TinyURL that redirects to our page
+            const queryData = router.query.data as string;
+            
+            // If it's a full URL (from TinyURL), extract the data parameter
+            if (queryData.startsWith('http')) {
+              const url = new URL(queryData);
+              const dataParam = url.searchParams.get('data');
+              if (dataParam) {
+                const parsedData = JSON.parse(decodeURIComponent(dataParam));
+                setTransactionType(parsedData.TransactionType);
+                setData(parsedData);
+                setAmount(parsedData.Amount || "");
+                setPhoneNumber(parsedData.PhoneNumber || "254");
+              }
+            } else {
+              // Regular direct access
+              const parsedData = JSON.parse(decodeURIComponent(queryData));
+              setTransactionType(parsedData.TransactionType);
+              setData(parsedData);
+              setAmount(parsedData.Amount || "");
+              setPhoneNumber(parsedData.PhoneNumber || "254");
+            }
+          } catch (e) {
+            console.error("Error parsing QR data:", e);
+          }
+        }
+      };
+
+      fetchData();
+    }, [router.query]);
 
   const handlePhoneNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let value = e.target.value.replace(/\D/g, "");

@@ -261,7 +261,7 @@ function Home() {
       if (qrGenerationMethod === "mpesa") {
         setPreviewQrData(generateQRCode(formData) || "");
       } else {
-        // For Push STK, generate a simple URL without API call for preview
+        // For preview, just show the path (don't make API calls)
         const qrData = {
           TransactionType: formData.type === TRANSACTION_TYPE.SEND_MONEY ? "SendMoney" :
                         formData.type === TRANSACTION_TYPE.PAYBILL ? "PayBill" :
@@ -319,6 +319,7 @@ function Home() {
 // };
 
 // For download purposes (async with TinyURL)
+// Update the generateDownloadQrData function to always use TinyURL for push STK
 const generateDownloadQrData = async (): Promise<string> => {
   const formData = {
     type: watch("type"),
@@ -345,28 +346,33 @@ const generateDownloadQrData = async (): Promise<string> => {
         AgentId: formData.agentNumber,
         StoreNumber: formData.storeNumber,
         RecepientPhoneNumber: formData.phoneNumber,
-        PhoneNumber: "254"
+        PhoneNumber: "254" // Default phone number prefix
       };
 
       const encodedData = encodeURIComponent(JSON.stringify(qrData));
-      const originalUrl = `/QrResultsPage?data=${encodedData}`;
+      const fullUrl = `${window.location.origin}/QrResultsPage?data=${encodedData}`;
 
+      // Create TinyURL
       const response = await fetch(`https://api.tinyurl.com/create`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer QeiZ8ZP85UdMKoZxaDDo2k8xuquZNXT6vys45A1JImuP4emSxSi2Zz655QDJ',
+          'Authorization': 'Bearer YOUR_TINYURL_API_KEY', // Replace with your actual key
         },
         body: JSON.stringify({
-          url: originalUrl,
+          url: fullUrl,
           domain: "tiny.one",
         }),
       });
 
       const result = await response.json();
-      return result.data?.tiny_url || originalUrl;
+      if (result.data?.tiny_url) {
+        return result.data.tiny_url;
+      }
+      return fullUrl; // Fallback to full URL if TinyURL fails
     } catch (error) {
       console.error("Error creating TinyURL:", error);
+      // Fallback to Mpesa QR if TinyURL fails
       return generateQRCode(formData) || "";
     }
   }
