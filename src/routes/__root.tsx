@@ -1,3 +1,4 @@
+// src/routes/__root.tsx
 import { EmbedUI } from "@/components/embed";
 import Footer from "@/components/footer";
 import Header from "@/components/header";
@@ -10,12 +11,10 @@ const isEmbedDomain = () => {
 
 export const Route = createRootRoute({
   component: () => {
-    // Check if we're on the embed subdomain
     if (isEmbedDomain()) {
       return <EmbedUI />;
     }
 
-    // Regular app layout
     return (
       <>
         <div className="min-h-screen flex flex-col bg-gray-100 overflow-x-hidden relative">

@@ -27,7 +27,24 @@ const formSchema = z.object({
   selectedColor: z.string(),
   showName: z.boolean(),
   title: z.string().min(1, "Title cannot be empty"),
-  phoneNumber: z.string().min(10, "Phone number must be at least 10 digits").optional().or(z.literal('')),
+  phoneNumber: z.string().refine((value) => {
+    // Allow empty string (optional)
+    if (!value) return true;
+    
+    // Remove all characters except digits, + and spaces
+    const cleaned = value.replace(/[^\d+ ]/g, '');
+    
+    // Must contain only numbers, spaces and optional leading +
+    const isValidFormat = /^\+?[\d ]+$/.test(cleaned);
+    
+    // Must have at least 10 digits (excluding + and spaces)
+    const digitCount = cleaned.replace(/[^0-9]/g, '').length;
+    const hasMinDigits = digitCount >= 10;
+    
+    return isValidFormat && hasMinDigits;
+  }, {
+    message: ""
+  }).optional().or(z.literal('')),
   name: z.string().optional().or(z.literal('')),
   paybillNumber: z.string().optional().or(z.literal('')),
   paybillNumberLabel: z.string().optional(),
@@ -282,44 +299,8 @@ function Home() {
   
     updatePreviewQr();
   }, [qrGenerationMethod, watch("type"), watch("phoneNumber"), watch("paybillNumber"), 
-      watch("accountNumber"), watch("tillNumber"), watch("agentNumber"), watch("storeNumber")]);
-    
-    // For preview purposes (synchronous)
-// const generatePreviewQrData = () => {
-//   const formData = {
-//     type: watch("type"),
-//     phoneNumber: watch("phoneNumber"),
-//     paybillNumber: watch("paybillNumber"),
-//     accountNumber: watch("accountNumber"),
-//     tillNumber: watch("tillNumber"),
-//     agentNumber: watch("agentNumber"),
-//     storeNumber: watch("storeNumber"),
-//   };
-
-//   if (qrGenerationMethod === "mpesa") {
-//     return generateQRCode(formData) || "";
-//   } else {
-//     // For Push STK preview - generate URL without API call
-//     const qrData = {
-//       TransactionType: formData.type === TRANSACTION_TYPE.SEND_MONEY ? "SendMoney" :
-//                     formData.type === TRANSACTION_TYPE.PAYBILL ? "PayBill" :
-//                     formData.type === TRANSACTION_TYPE.TILL_NUMBER ? "BuyGoods" :
-//                     "WithdrawMoney",
-//       PaybillNumber: formData.paybillNumber,
-//       AccountNumber: formData.accountNumber,
-//       TillNumber: formData.tillNumber,
-//       AgentId: formData.agentNumber,
-//       StoreNumber: formData.storeNumber,
-//       RecepientPhoneNumber: formData.phoneNumber,
-//       PhoneNumber: "254"
-//     };
-//     const encodedData = encodeURIComponent(JSON.stringify(qrData));
-//     return `/QrResultsPage?data=${encodedData}`;
-//   }
-// };
-
-// For download purposes (async with TinyURL)
-// Update the generateDownloadQrData function to always use TinyURL for push STK
+      watch("accountNumber"), watch("tillNumber"), watch("agentNumber"), watch("storeNumber")]);    
+   
 const generateDownloadQrData = async (): Promise<string> => {
   const formData = {
     type: watch("type"),
@@ -350,7 +331,7 @@ const generateDownloadQrData = async (): Promise<string> => {
       };
 
       const encodedData = encodeURIComponent(JSON.stringify(qrData));
-      const fullUrl = `${window.location.origin}/pages/QrResultsPage?data=${encodedData}`;
+      const fullUrl = `${window.location.origin}/QrResultsPage?data=${encodedData}`;
 
       // Create TinyURL
       const response = await fetch(`https://api.tinyurl.com/create`, {
@@ -408,11 +389,11 @@ const generateDownloadQrData = async (): Promise<string> => {
   ];
 
   const formatPhoneNumber = (value: string): string => {
-    // Remove all non-digit characters except leading +
-    const cleanedValue = value.replace(/[^\d+]/g, '');
+    // Remove all non-digit characters except leading + and spaces
+    const cleanedValue = value.replace(/[^\d+ ]/g, '');
     
     // Use AsYouType formatter for real-time formatting
-    const formatter = new AsYouType('KE');
+    const formatter = new AsYouType();
     
     // Feed the input character by character to get proper formatting
     cleanedValue.split('').forEach(char => formatter.input(char));
@@ -429,30 +410,8 @@ const generateDownloadQrData = async (): Promise<string> => {
       return formattedNumber.formatInternational();
     }
     
-    // Fallback formatting for incomplete numbers
-    if (cleanedValue.startsWith('+254') || cleanedValue.startsWith('254')) {
-      // Format international-style numbers
-      const digits = cleanedValue.replace(/^\+/, '').replace(/^254/, '');
-      if (digits.length >= 9) {
-        return `+254 ${digits.substring(0, 3)} ${digits.substring(3, 6)} ${digits.substring(6)}`;
-      } else if (digits.length >= 6) {
-        return `+254 ${digits.substring(0, 3)} ${digits.substring(3)}`;
-      } else if (digits.length >= 3) {
-        return `+254 ${digits}`;
-      }
-      return `+254 ${digits}`;
-    } else {
-      // Format local-style numbers
-      const digits = cleanedValue.replace(/^0/, '');
-      if (digits.length >= 9) {
-        return `0${digits.substring(0, 3)} ${digits.substring(3, 6)} ${digits.substring(6)}`;
-      } else if (digits.length >= 6) {
-        return `0${digits.substring(0, 3)} ${digits.substring(3)}`;
-      } else if (digits.length >= 3) {
-        return `0${digits}`;
-      }
-      return cleanedValue;
-    }
+    // Fallback - return the cleaned value with preserved spaces
+    return cleanedValue;
   };
 
   const onSubmit = handleSubmit(async () => {
