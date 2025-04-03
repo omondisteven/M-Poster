@@ -279,86 +279,128 @@ function Home() {
       if (qrGenerationMethod === "mpesa") {
         setPreviewQrData(generateQRCode(formData) || "");
       } else {
-        // For preview, just show the path (don't make API calls)
-        const qrData = {
-          TransactionType: formData.type === TRANSACTION_TYPE.SEND_MONEY ? "SendMoney" :
-                        formData.type === TRANSACTION_TYPE.PAYBILL ? "PayBill" :
-                        formData.type === TRANSACTION_TYPE.TILL_NUMBER ? "BuyGoods" :
-                        "WithdrawMoney",
-          PaybillNumber: formData.paybillNumber,
-          AccountNumber: formData.accountNumber,
-          TillNumber: formData.tillNumber,
-          AgentId: formData.agentNumber,
-          StoreNumber: formData.storeNumber,
-          RecepientPhoneNumber: formData.phoneNumber,
-          PhoneNumber: "254"
-        };
+        // For preview, create the same structure but don't make API calls
+        let qrData = {};
+        switch (formData.type) {
+          case TRANSACTION_TYPE.SEND_MONEY:
+            qrData = {
+              TransactionType: "SendMoney",
+              RecepientPhoneNumber: formData.phoneNumber,
+              PhoneNumber: "254"
+            };
+            break;
+          case TRANSACTION_TYPE.PAYBILL:
+            qrData = {
+              TransactionType: "PayBill",
+              PaybillNumber: formData.paybillNumber,
+              AccountNumber: formData.accountNumber,
+              PhoneNumber: "254"
+            };
+            break;
+          case TRANSACTION_TYPE.TILL_NUMBER:
+            qrData = {
+              TransactionType: "BuyGoods",
+              TillNumber: formData.tillNumber,
+              PhoneNumber: "254"
+            };
+            break;
+          case TRANSACTION_TYPE.AGENT:
+            qrData = {
+              TransactionType: "WithdrawMoney",
+              AgentId: formData.agentNumber,
+              StoreNumber: formData.storeNumber,
+              PhoneNumber: "254"
+            };
+            break;
+        }
+        
         const encodedData = encodeURIComponent(JSON.stringify(qrData));
-        setPreviewQrData(`/QrResultsPage?data=${encodedData}`);
+        setPreviewQrData(`http://e-biz-mpesa-payment-app.vercel.app/MPosterQrResultsPage?data=${encodedData}`);
       }
     };
   
     updatePreviewQr();
   }, [qrGenerationMethod, watch("type"), watch("phoneNumber"), watch("paybillNumber"), 
-      watch("accountNumber"), watch("tillNumber"), watch("agentNumber"), watch("storeNumber")]);    
+      watch("accountNumber"), watch("tillNumber"), watch("agentNumber"), watch("storeNumber")]);     
    
-const generateDownloadQrData = async (): Promise<string> => {
-  const formData = {
-    type: watch("type"),
-    phoneNumber: watch("phoneNumber"),
-    paybillNumber: watch("paybillNumber"),
-    accountNumber: watch("accountNumber"),
-    tillNumber: watch("tillNumber"),
-    agentNumber: watch("agentNumber"),
-    storeNumber: watch("storeNumber"),
-  };
-
-  if (qrGenerationMethod === "mpesa") {
-    return generateQRCode(formData) || "";
-  } else {
-    try {
-      const qrData = {
-        TransactionType: formData.type === TRANSACTION_TYPE.SEND_MONEY ? "SendMoney" :
-                      formData.type === TRANSACTION_TYPE.PAYBILL ? "PayBill" :
-                      formData.type === TRANSACTION_TYPE.TILL_NUMBER ? "BuyGoods" :
-                      "WithdrawMoney",
-        PaybillNumber: formData.paybillNumber,
-        AccountNumber: formData.accountNumber,
-        TillNumber: formData.tillNumber,
-        AgentId: formData.agentNumber,
-        StoreNumber: formData.storeNumber,
-        RecepientPhoneNumber: formData.phoneNumber,
-        PhoneNumber: "254" // Default phone number prefix
+      const generateDownloadQrData = async (): Promise<string> => {
+        const formData = {
+          type: watch("type"),
+          phoneNumber: watch("phoneNumber"),
+          paybillNumber: watch("paybillNumber"),
+          accountNumber: watch("accountNumber"),
+          tillNumber: watch("tillNumber"),
+          agentNumber: watch("agentNumber"),
+          storeNumber: watch("storeNumber"),
+        };
+      
+        if (qrGenerationMethod === "mpesa") {
+          return generateQRCode(formData) || "";
+        } else {
+          try {
+            // Create the QR data object based on transaction type
+            let qrData = {};
+            switch (formData.type) {
+              case TRANSACTION_TYPE.SEND_MONEY:
+                qrData = {
+                  TransactionType: "SendMoney",
+                  RecepientPhoneNumber: formData.phoneNumber,
+                  PhoneNumber: "254" // Default phone number prefix
+                };
+                break;
+              case TRANSACTION_TYPE.PAYBILL:
+                qrData = {
+                  TransactionType: "PayBill",
+                  PaybillNumber: formData.paybillNumber,
+                  AccountNumber: formData.accountNumber,
+                  PhoneNumber: "254"
+                };
+                break;
+              case TRANSACTION_TYPE.TILL_NUMBER:
+                qrData = {
+                  TransactionType: "BuyGoods",
+                  TillNumber: formData.tillNumber,
+                  PhoneNumber: "254"
+                };
+                break;
+              case TRANSACTION_TYPE.AGENT:
+                qrData = {
+                  TransactionType: "WithdrawMoney",
+                  AgentId: formData.agentNumber,
+                  StoreNumber: formData.storeNumber,
+                  PhoneNumber: "254"
+                };
+                break;
+            }
+      
+            const encodedData = encodeURIComponent(JSON.stringify(qrData));
+            const originalUrl = `http://e-biz-mpesa-payment-app.vercel.app/MPosterQrResultsPage?data=${encodedData}`;
+      
+            // Create TinyURL
+            const response = await fetch(`https://api.tinyurl.com/create`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer QeiZ8ZP85UdMKoZxaDDo2k8xuquZNXT6vys45A1JImuP4emSxSi2Zz655QDJ',
+              },
+              body: JSON.stringify({
+                url: originalUrl,
+                domain: "tiny.one",
+              }),
+            });
+      
+            const result = await response.json();
+            if (result.data?.tiny_url) {
+              return result.data.tiny_url;
+            }
+            return originalUrl; // Fallback to full URL if TinyURL fails
+          } catch (error) {
+            console.error("Error creating TinyURL:", error);
+            // Fallback to Mpesa QR if TinyURL fails
+            return generateQRCode(formData) || "";
+          }
+        }
       };
-
-      const encodedData = encodeURIComponent(JSON.stringify(qrData));
-      const fullUrl = `${window.location.origin}/QrResultsPage?data=${encodedData}`;
-
-      // Create TinyURL
-      const response = await fetch(`https://api.tinyurl.com/create`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer YOUR_TINYURL_API_KEY', // Replace with your actual key
-        },
-        body: JSON.stringify({
-          url: fullUrl,
-          domain: "tiny.one",
-        }),
-      });
-
-      const result = await response.json();
-      if (result.data?.tiny_url) {
-        return result.data.tiny_url;
-      }
-      return fullUrl; // Fallback to full URL if TinyURL fails
-    } catch (error) {
-      console.error("Error creating TinyURL:", error);
-      // Fallback to Mpesa QR if TinyURL fails
-      return generateQRCode(formData) || "";
-    }
-  }
-};
 
   // Add this effect to trigger validation when title changes
   useEffect(() => {
