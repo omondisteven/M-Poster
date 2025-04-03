@@ -5,11 +5,6 @@ import { HiOutlineCreditCard } from "react-icons/hi";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import toast from "react-hot-toast";
-import { createFileRoute } from "@tanstack/react-router";
-
-export const Route = createFileRoute("/QrResultsPage")({
-  component: QrResultsPage,
-});
 
 function QrResultsPage(){
   const router = useRouter();

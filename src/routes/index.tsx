@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { type FC, useRef, useState, useEffect, } from "react";
+import { useRef, useState, useEffect, } from "react";
 import { Button } from "@/components/ui/button";
 import { CheckIcon, GithubIcon, LockIcon, ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { motion } from "framer-motion";
@@ -18,9 +18,9 @@ import QrSvg from "@wojtekmaj/react-qr-svg";
 import { generateQRCode } from "@/utils/helpers";
 import { useAppContext,  } from "@/context/AppContext";
 import { TRANSACTION_TYPE } from "@/@types/TransactionType";
+
 // import { parsePhoneNumberFromString } from 'libphonenumber-js';
 import { AsYouType } from 'libphonenumber-js';
-import  QrResultsPage  from './QrResultsPage';
 
 // Define zod schema for validation
 const formSchema = z.object({
@@ -202,12 +202,11 @@ interface FormValues {
   storeNumberLabel?: string;
 }
 
-
-export const QrResultsRoute = createFileRoute("/")({
-  component: QrResultsPage,
+export const Route = createFileRoute("/")({
+  component: Home,
 });
 
-const Home: FC = () => {
+function Home() {
   const [qrGenerationMethod, setQrGenerationMethod] = useState<"mpesa" | "push">("push");
   const [previewQrData, setPreviewQrData] = useState("");
 
@@ -1449,7 +1448,7 @@ const generateDownloadQrData = async (): Promise<string> => {
             {/* Preview text */}
             <div className="flex flex-col items-center justify-center text-center mt-3">
               <p className="font-handwriting text-xl text-gray-600">
-                Preview of your poster
+                A Preview of your poster
               </p>
             </div>
             
