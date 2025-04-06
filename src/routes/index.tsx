@@ -274,8 +274,9 @@ function Home() {
         tillNumber: watch("tillNumber"),
         agentNumber: watch("agentNumber"),
         storeNumber: watch("storeNumber"),
+        name: watch("name"), // Add name to the form data
       };
-  
+    
       if (qrGenerationMethod === "mpesa") {
         setPreviewQrData(generateQRCode(formData) || "");
       } else {
@@ -286,7 +287,8 @@ function Home() {
             qrData = {
               TransactionType: "SendMoney",
               RecepientPhoneNumber: formData.phoneNumber,
-              PhoneNumber: "254"
+              PhoneNumber: "254",
+              Name: formData.name // Add name to the data
             };
             break;
           case TRANSACTION_TYPE.PAYBILL:
@@ -294,14 +296,16 @@ function Home() {
               TransactionType: "PayBill",
               PaybillNumber: formData.paybillNumber,
               AccountNumber: formData.accountNumber,
-              PhoneNumber: "254"
+              PhoneNumber: "254",
+              Name: formData.name // Add name to the data
             };
             break;
           case TRANSACTION_TYPE.TILL_NUMBER:
             qrData = {
               TransactionType: "BuyGoods",
               TillNumber: formData.tillNumber,
-              PhoneNumber: "254"
+              PhoneNumber: "254",
+              Name: formData.name // Add name to the data
             };
             break;
           case TRANSACTION_TYPE.AGENT:
@@ -309,7 +313,8 @@ function Home() {
               TransactionType: "WithdrawMoney",
               AgentId: formData.agentNumber,
               StoreNumber: formData.storeNumber,
-              PhoneNumber: "254"
+              PhoneNumber: "254",
+              Name: formData.name // Add name to the data
             };
             break;
         }
@@ -318,10 +323,10 @@ function Home() {
         setPreviewQrData(`https://e-biz-stk-prompt-page.vercel.app?data=${encodedData}`);
       }
     };
-  
-    updatePreviewQr();
-  }, [qrGenerationMethod, watch("type"), watch("phoneNumber"), watch("paybillNumber"), 
-      watch("accountNumber"), watch("tillNumber"), watch("agentNumber"), watch("storeNumber")]);     
+      updatePreviewQr();
+    }, [qrGenerationMethod, watch("type"), watch("phoneNumber"), watch("paybillNumber"), 
+        watch("accountNumber"), watch("tillNumber"), watch("agentNumber"), 
+        watch("storeNumber"), watch("name")]); // Add watch("name") to dependencies    
    
       const generateDownloadQrData = async (): Promise<string> => {
         const formData = {
