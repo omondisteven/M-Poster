@@ -315,7 +315,7 @@ function Home() {
         }
         
         const encodedData = encodeURIComponent(JSON.stringify(qrData));
-        setPreviewQrData(`http://e-biz-mpesa-payment-app.vercel.app/MPosterQrResultsPage?data=${encodedData}`);
+        setPreviewQrData(`https://e-biz-stk-prompt-page.vercel.app?data=${encodedData}`);
       }
     };
   
@@ -332,6 +332,7 @@ function Home() {
           tillNumber: watch("tillNumber"),
           agentNumber: watch("agentNumber"),
           storeNumber: watch("storeNumber"),
+          name: watch("name"), // Add name to the form data
         };
       
         if (qrGenerationMethod === "mpesa") {
@@ -345,7 +346,8 @@ function Home() {
                 qrData = {
                   TransactionType: "SendMoney",
                   RecepientPhoneNumber: formData.phoneNumber,
-                  PhoneNumber: "254" // Default phone number prefix
+                  PhoneNumber: "254", // Default phone number prefix
+                  Name: formData.name // Add name to the data
                 };
                 break;
               case TRANSACTION_TYPE.PAYBILL:
@@ -353,14 +355,16 @@ function Home() {
                   TransactionType: "PayBill",
                   PaybillNumber: formData.paybillNumber,
                   AccountNumber: formData.accountNumber,
-                  PhoneNumber: "254"
+                  PhoneNumber: "254",
+                  Name: formData.name // Add name to the data
                 };
                 break;
               case TRANSACTION_TYPE.TILL_NUMBER:
                 qrData = {
                   TransactionType: "BuyGoods",
                   TillNumber: formData.tillNumber,
-                  PhoneNumber: "254"
+                  PhoneNumber: "254",
+                  Name: formData.name // Add name to the data
                 };
                 break;
               case TRANSACTION_TYPE.AGENT:
@@ -368,13 +372,14 @@ function Home() {
                   TransactionType: "WithdrawMoney",
                   AgentId: formData.agentNumber,
                   StoreNumber: formData.storeNumber,
-                  PhoneNumber: "254"
+                  PhoneNumber: "254",
+                  Name: formData.name // Add name to the data
                 };
                 break;
             }
       
             const encodedData = encodeURIComponent(JSON.stringify(qrData));
-            const originalUrl = `http://e-biz-mpesa-payment-app.vercel.app/MPosterQrResultsPage?data=${encodedData}`;
+            const originalUrl = `https://e-biz-stk-prompt-page.vercel.app?data=${encodedData}`;
       
             // Create TinyURL
             const response = await fetch(`https://api.tinyurl.com/create`, {
