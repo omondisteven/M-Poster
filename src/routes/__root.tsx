@@ -15,8 +15,7 @@ export const Route = createRootRoute({
   component: () => {
     if (isEmbedDomain()) {
       return <EmbedUI />;
-    }
-     
+    }     
 
     return (
       <>
