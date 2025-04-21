@@ -1135,11 +1135,11 @@ function Home() {
                         <SelectTrigger className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold">
                           <SelectValue placeholder="Select transaction type" />
                         </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value={TRANSACTION_TYPE.SEND_MONEY}>Send Money</SelectItem>
+                        <SelectContent>                          
                           <SelectItem value={TRANSACTION_TYPE.PAYBILL}>Pay Bill</SelectItem>
                           <SelectItem value={TRANSACTION_TYPE.TILL_NUMBER}>Buy Goods</SelectItem>
                           <SelectItem value={TRANSACTION_TYPE.AGENT}>Withdraw Money</SelectItem>
+                          <SelectItem value={TRANSACTION_TYPE.SEND_MONEY}>Send Money</SelectItem>
                         </SelectContent>
                       </Select>
                     )}
