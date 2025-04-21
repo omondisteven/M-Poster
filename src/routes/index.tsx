@@ -1545,7 +1545,7 @@ function Home() {
             style={{
               gridTemplateRows: getGridTemplateRows(title, showName),
               aspectRatio: `${selectedTemplate.size.width} / ${selectedTemplate.size.height}`,
-              height: '1250',
+              height: '1200',
               minHeight: calculatePosterMinHeight(title, showName)
             }}
           >
