@@ -217,10 +217,11 @@ function Home() {
   const { control, handleSubmit, watch, setValue, formState: { errors, isValid }, trigger } = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      type: TRANSACTION_TYPE.SEND_MONEY,
+      // type: TRANSACTION_TYPE.SEND_MONEY,
+      type: TRANSACTION_TYPE.PAYBILL,
       selectedColor: "#16a34a",
       showName: false,
-      title: "Send Money",
+      title: "Pay Bill",
       phoneNumber: data.phoneNumber || "",
       name: data.name || "",
       paybillNumber: data.paybillNumber || "",
