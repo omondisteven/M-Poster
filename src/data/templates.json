@@ -15,7 +15,7 @@
     "name": "Smokie Cart",
     "slug": "smokie-cart",
     "description": "Standard size for your cart",
-    "size": { "width": 1200, "height": 800, "label": "Standard Format" }
+    "size": { "width": 1200, "height": 1200, "label": "Standard Format" }
   },
   {
     "name": "Soko Stall",
