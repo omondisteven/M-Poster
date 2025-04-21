@@ -18,7 +18,7 @@ import QrSvg from "@wojtekmaj/react-qr-svg";
 import { generateQRCode } from "@/utils/helpers";
 import { useAppContext,  } from "@/context/AppContext";
 import { TRANSACTION_TYPE } from "@/@types/TransactionType";
-import { HiOutlineDownload } from "react-icons/hi";
+import { HiOutlineDownload, HiOutlineShare } from "react-icons/hi";
 
 // import { parsePhoneNumberFromString } from 'libphonenumber-js';
 import { AsYouType } from 'libphonenumber-js';
@@ -985,6 +985,70 @@ function Home() {
     return colors;
   }
 
+  const handleShare = async () => {
+    try {
+      if (!posterRef.current) return;
+  
+      // Generate the QR data
+      const qrData = await generateDownloadQrData();
+      if (!qrData) {
+        throw new Error("Invalid QR code data");
+      }
+  
+      // Create a shareable message
+      let shareMessage = `M-Pesa Payment Poster - ${title}\n`;
+      
+      switch (title) {
+        case "Send Money":
+          shareMessage += `Phone: ${phoneNumber}\n`;
+          break;
+        case "Pay Bill":
+          shareMessage += `Paybill: ${paybillNumber}\nAccount: ${accountNumber}\n`;
+          break;
+        case "Buy Goods":
+          shareMessage += `Till Number: ${tillNumber}\n`;
+          break;
+        case "Withdraw Money":
+          shareMessage += `Agent: ${agentNumber}\nStore: ${storeNumber}\n`;
+          break;
+      }
+  
+      if (showName && name) {
+        shareMessage += `Name: ${name}\n`;
+      }
+  
+      shareMessage += `Scan the QR code to make payment`;
+  
+      // Check if Web Share API is available (mobile devices)
+      if (navigator.share) {
+        await navigator.share({
+          title: `M-Pesa ${title} Poster`,
+          text: shareMessage,
+          url: qrData.includes('http') ? qrData : undefined,
+        });
+      } else {
+        // Fallback for desktop browsers
+        if (qrData.includes('http')) {
+          // For URL-based QR codes
+          window.open(qrData, '_blank');
+        } else {
+          // For raw data QR codes
+          const textArea = document.createElement('textarea');
+          textArea.value = shareMessage + `\n\nQR Code Data:\n${qrData}`;
+          document.body.appendChild(textArea);
+          textArea.select();
+          document.execCommand('copy');
+          document.body.removeChild(textArea);
+          alert('Payment details copied to clipboard!');
+        }
+      }
+    } catch (error) {
+      console.error('Error sharing:', error);
+      // Fallback if sharing fails
+      alert('Sharing failed. Please try downloading instead.');
+    }
+  };
+
   return (
     <div className="flex flex-col bg-gray-100">
       <div className="flex-1 flex flex-col md:flex-row px-4 py-4 sm:py-8 md:py-0 sm:px-6 lg:px-8 gap-8 relative z-10">
@@ -1374,6 +1438,27 @@ function Home() {
                   </div>
                 </div>
                 <div className="flex md:flex-row flex-col mt-4 w-full md:w-4/5 space-between gap-2 items-center">
+                  {/* Share Button */}
+                  <motion.div
+                    whileHover={{
+                      scale: 1.05,
+                      transition: {
+                        duration: 0.2,
+                      },
+                    }}
+                    className="w-full"
+                  >
+                    <Button
+                      type="button"
+                      onClick={handleShare}
+                      className="w-full bg-blue-600 text-white text-xl font-bold py-8 rounded-lg shadow-lg hover:bg-blue-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                      disabled={!isValid}
+                    >
+                      <HiOutlineShare className="size-8" />
+                      <span className="py-4">Share</span>
+                    </Button>
+                  </motion.div>
+                  
                   {/* Download Button */}
                   <motion.div
                     whileHover={{
@@ -1381,7 +1466,9 @@ function Home() {
                       transition: {
                         duration: 0.2,
                       },
-                    }}>
+                    }}
+                    className="w-full"
+                  >
                     <Button
                       type="submit"
                       className="w-full bg-gray-800 text-white text-xl font-bold py-8 rounded-lg shadow-lg hover:bg-gray-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -1390,7 +1477,7 @@ function Home() {
                       <HiOutlineDownload className="size-8" />
                       <span className="py-4">Download</span>
                     </Button>
-                </motion.div>                
+                  </motion.div>                
                 </div>                
               </form>
             </CardContent>
