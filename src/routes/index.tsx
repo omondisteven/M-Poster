@@ -1176,8 +1176,8 @@ function Home() {
                     </div>
                     <p className="text-sm text-green-500 mt-2">
                       {qrGenerationMethod === "push" 
-                        ? "Scanning will initiate an M-Pesa payment directly"
-                        : "Scanning will open the M-Pesa app"}
+                        ? "Qr Code will initiate an M-Pesa payment directly"
+                        : "Qr Code will open the M-Pesa app"}
                     </p>
                   </div>
                 {/* Send Money Fields */}

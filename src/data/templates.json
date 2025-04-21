@@ -3,7 +3,7 @@
     "name": "Generic Display",
     "slug": "generic",
     "description": "Perfect for helmet display",
-    "size": { "width": 1200, "height": 800, "label": "Standard Format" }
+    "size": { "width": 800, "height": 1200, "label": "Standard Format" }
   },
   {
     "name": "Boda boda",
