@@ -9,7 +9,7 @@
     "name": "Boda boda",
     "slug": "boda-boda",
     "description": "Perfect for helmet display",
-    "size": { "width": 1200, "height": 800, "label": "Tall Format" }
+    "size": { "width": 800, "height": 1000, "label": "Tall Format" }
   },
   {
     "name": "Smokie Cart",
