@@ -1571,7 +1571,7 @@ function Home() {
                 style={{
                   backgroundColor: getSectionColors(title, showName)[getSectionCount(title, showName) - 1],
                   minHeight: "80px",
-                  padding: "0.3rem 0",
+                  padding: "0.5rem 0",
                   borderTop: "8px solid #1a2335"
                 }}
               >
