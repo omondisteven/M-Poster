@@ -837,8 +837,7 @@ function Home() {
   // Helper functions for the preview
   function getGridTemplateRows(title: string, showName: boolean): string {
     const sectionCount = getSectionCount(title, showName);
-    // Use fr units for equal distribution
-    return `repeat(${sectionCount}, 1fr)`;
+    return `repeat(${sectionCount}, minmax(80px, 1fr))`; // Each section gets equal space, minimum 80px
   }
 
   // Helper function to calculate poster height based on visible sections
@@ -865,32 +864,34 @@ function Home() {
   function renderMiddleSections(title: string, _color: string, showName: boolean) {
     const sections = [];
     const sectionColors = getSectionColors(title, showName);
-    // Get the total section count
-    const totalSections = getSectionCount(title, showName);
-    
-    // We start from 1 because 0 is the title section
-    for (let i = 1; i < totalSections - (showName ? 1 : 0); i++) {
-      const isWhite = sectionColors[i] === "#ffffff";
+    let sectionCount = showName 
+      ? (title === "Pay Bill" || title === "Withdraw Money" ? 2 : 1) 
+      : (title === "Pay Bill" || title === "Withdraw Money" ? 2 : 1);
+
+    for (let i = 0; i < sectionCount; i++) {
+      const sectionIndex = i + 1; // +1 because title is section 0
+      const isWhite = sectionColors[sectionIndex] === "#ffffff";
       
       sections.push(
         <div
           key={i}
-          className="flex flex-col justify-center items-center"
+          className="flex flex-col justify-center"
           style={{
-            backgroundColor: sectionColors[i],
+            backgroundColor: sectionColors[sectionIndex],
+            minHeight: "80px",
+            padding: "0.5rem 0",
             borderTop: "8px solid #1a2335",
-            width: "100%",
-            height: "100%", // Take full height of grid cell
-            padding: "0.5rem 0"
+            borderBottom: i === sectionCount - 1 && !showName ? "none" : "none"
           }}
         >
-          {renderSectionContent(title, i - 1, isWhite)}
+          {renderSectionContent(title, i, isWhite)}
         </div>
       );
     }
-  
+
     return sections;
   }
+
   function renderSectionContent(title: string, sectionIndex: number, isWhite: boolean) {
     const textColor = isWhite ? "#000000" : "#ffffff";
     
@@ -1548,17 +1549,22 @@ function Home() {
               minHeight: calculatePosterMinHeight(title, showName)
             }}
           >
-            {/* Title Section (always first) */}
+            {/* Title Section */}
             <div 
-              className="flex items-center justify-center" 
+              className="flex items-center justify-center"
               style={{ 
                 backgroundColor: selectedColor,
-                width: "100%",
-                height: "100%", // Take full height of grid cell
-                padding: "0.5rem 0"
+                height: "80px", // fixed height
+                padding: "0.5rem 0",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center"
               }}
             >
-              <h2 className="text-2xl sm:text-3xl font-bold text-white text-center px-2">
+              <h2 
+                className="font-bold text-white text-center px-2"
+                style={{ fontSize: "clamp(1.25rem, 2.5vw, 1.75rem)", lineHeight: "1.2" }}
+              >
                 {title.toUpperCase()}
               </h2>
             </div>
@@ -1566,21 +1572,25 @@ function Home() {
             {/* Middle Sections */}
             {renderMiddleSections(title, selectedColor, showName)}
 
-            {/* Name Section (when showName is true) */}
+            {/* Name Section (if showName is true) */}
             {showName && (
               <div
                 className="flex items-center justify-center"
                 style={{
                   backgroundColor: getSectionColors(title, showName)[getSectionCount(title, showName) - 1],
-                  width: "100%",
-                  height: "100%", // Take full height of grid cell
+                  height: "80px",
                   padding: "0.5rem 0",
-                  borderTop: "8px solid #1a2335"
+                  borderTop: "8px solid #1a2335",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center"
                 }}
               >
-                <div 
-                  className="text-2xl sm:text-3xl font-bold text-center px-2"
+                <div
+                  className="font-bold text-center px-2"
                   style={{ 
+                    fontSize: "clamp(1.25rem, 2.5vw, 1.75rem)",
+                    lineHeight: "1.2",
                     color: getSectionColors(title, showName)[getSectionCount(title, showName) - 1] === selectedColor ? "#ffffff" : "#000000"
                   }}
                 >
@@ -1589,6 +1599,7 @@ function Home() {
               </div>
             )}
           </div>
+
             {/* Preview text */}
             <div className="flex flex-col items-center justify-center text-center mt-3">
               <p className="font-handwriting text-xl text-gray-600">
