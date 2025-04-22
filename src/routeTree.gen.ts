@@ -11,13 +11,33 @@
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
+import { Route as LayoutImport } from './routes/_layout'
 import { Route as IndexImport } from './routes/index'
+import { Route as PosterIndexImport } from './routes/poster/index'
+import { Route as BusinessProfileIndexImport } from './routes/business-profile/index'
 
 // Create/Update Routes
+
+const LayoutRoute = LayoutImport.update({
+  id: '/_layout',
+  getParentRoute: () => rootRoute,
+} as any)
 
 const IndexRoute = IndexImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const PosterIndexRoute = PosterIndexImport.update({
+  id: '/poster/',
+  path: '/poster/',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const BusinessProfileIndexRoute = BusinessProfileIndexImport.update({
+  id: '/business-profile/',
+  path: '/business-profile/',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -32,6 +52,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexImport
       parentRoute: typeof rootRoute
     }
+    '/_layout': {
+      id: '/_layout'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof LayoutImport
+      parentRoute: typeof rootRoute
+    }
+    '/business-profile/': {
+      id: '/business-profile/'
+      path: '/business-profile'
+      fullPath: '/business-profile'
+      preLoaderRoute: typeof BusinessProfileIndexImport
+      parentRoute: typeof rootRoute
+    }
+    '/poster/': {
+      id: '/poster/'
+      path: '/poster'
+      fullPath: '/poster'
+      preLoaderRoute: typeof PosterIndexImport
+      parentRoute: typeof rootRoute
+    }
   }
 }
 
@@ -39,32 +80,47 @@ declare module '@tanstack/react-router' {
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '': typeof LayoutRoute
+  '/business-profile': typeof BusinessProfileIndexRoute
+  '/poster': typeof PosterIndexRoute
 }
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '': typeof LayoutRoute
+  '/business-profile': typeof BusinessProfileIndexRoute
+  '/poster': typeof PosterIndexRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
+  '/_layout': typeof LayoutRoute
+  '/business-profile/': typeof BusinessProfileIndexRoute
+  '/poster/': typeof PosterIndexRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '' | '/business-profile' | '/poster'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '' | '/business-profile' | '/poster'
+  id: '__root__' | '/' | '/_layout' | '/business-profile/' | '/poster/'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  LayoutRoute: typeof LayoutRoute
+  BusinessProfileIndexRoute: typeof BusinessProfileIndexRoute
+  PosterIndexRoute: typeof PosterIndexRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  LayoutRoute: LayoutRoute,
+  BusinessProfileIndexRoute: BusinessProfileIndexRoute,
+  PosterIndexRoute: PosterIndexRoute,
 }
 
 export const routeTree = rootRoute
@@ -77,11 +133,23 @@ export const routeTree = rootRoute
     "__root__": {
       "filePath": "__root.tsx",
       "children": [
-        "/"
+        "/",
+        "/_layout",
+        "/business-profile/",
+        "/poster/"
       ]
     },
     "/": {
       "filePath": "index.tsx"
+    },
+    "/_layout": {
+      "filePath": "_layout.tsx"
+    },
+    "/business-profile/": {
+      "filePath": "business-profile/index.tsx"
+    },
+    "/poster/": {
+      "filePath": "poster/index.tsx"
     }
   }
 }
