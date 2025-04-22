@@ -1545,53 +1545,40 @@ function Home() {
             style={{
               gridTemplateRows: getGridTemplateRows(title, showName),
               aspectRatio: `${selectedTemplate.size.width} / ${selectedTemplate.size.height}`,
-              height: 'auto',
+              height: '1200',
               minHeight: calculatePosterMinHeight(title, showName)
             }}
           >
-            {/* Title Section */}
+            {/* Title Section (always first) */}
             <div 
-              className="flex items-center justify-center"
+              className="flex items-center justify-center" 
               style={{ 
                 backgroundColor: selectedColor,
-                height: "80px", // fixed height
-                padding: "0.5rem 0",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center"
+                minHeight: "80px",
+                padding: "0.5rem 0"
               }}
             >
-              <h2 
-                className="font-bold text-white text-center px-2"
-                style={{ fontSize: "clamp(1.25rem, 2.5vw, 1.75rem)", lineHeight: "1.2" }}
-              >
-                {title.toUpperCase()}
-              </h2>
+              <h2 className="text-2xl sm:text-3xl font-bold text-white text-center px-2">{title.toUpperCase()}</h2>
             </div>
 
             {/* Middle Sections */}
             {renderMiddleSections(title, selectedColor, showName)}
 
-            {/* Name Section (if showName is true) */}
+            {/* Name Section (when showName is true) */}
             {showName && (
               <div
                 className="flex items-center justify-center"
                 style={{
                   backgroundColor: getSectionColors(title, showName)[getSectionCount(title, showName) - 1],
-                  height: "80px",
+                  minHeight: "80px",
                   padding: "0.5rem 0",
-                  borderTop: "8px solid #1a2335",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center"
+                  borderTop: "8px solid #1a2335"
                 }}
               >
-                <div
-                  className="font-bold text-center px-2"
+                <div className="text-2xl sm:text-3xl font-bold text-center px-2"
                   style={{ 
-                    fontSize: "clamp(1.25rem, 2.5vw, 1.75rem)",
-                    lineHeight: "1.2",
-                    color: getSectionColors(title, showName)[getSectionCount(title, showName) - 1] === selectedColor ? "#ffffff" : "#000000"
+                    color: getSectionColors(title, showName)[getSectionCount(title, showName) - 1] === selectedColor ? "#ffffff" : "#000000",
+                    lineHeight: "80px"
                   }}
                 >
                   {name || "NELSON ANANGWE"}
@@ -1599,7 +1586,6 @@ function Home() {
               </div>
             )}
           </div>
-
             {/* Preview text */}
             <div className="flex flex-col items-center justify-center text-center mt-3">
               <p className="font-handwriting text-xl text-gray-600">
