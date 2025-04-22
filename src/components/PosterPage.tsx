@@ -1055,15 +1055,15 @@ function PosterPage() {
       <div className="flex-1 flex flex-col md:flex-row px-4 py-4 sm:py-8 md:py-0 sm:px-6 lg:px-8 gap-8 relative z-10">
         {/* Left Column - App Info */}
         <div className="w-full md:w-1/2 flex flex-col md:py-12 md:px-8">
-            {/* Header for medium screens and up - now in left column */}
-            <div className="hidden md:block mb-8">
-                <h1 className="text-4xl font-display font-bold text-green-600">
-                M-poster
-                </h1>
-                <h3 className="text-lg font-display text-gray-800 mt-2 max-w-md">
-                Your M-Pesa 🤝 Payment Poster
-                </h3>
-            </div>
+        {/* Header for medium screens and up - now in left column */}
+        <div className="hidden md:block mb-8">
+            <h1 className="text-4xl font-display font-bold text-green-600">
+            M-poster
+            </h1>
+            <h3 className="text-lg font-display text-gray-800 mt-2 max-w-md">
+            Your M-Pesa 🤝 Payment Poster
+            </h3>
+        </div>
 
           {/* App features */}
           <div className="flex flex-row gap-4 mb-6">
@@ -1551,40 +1551,49 @@ function PosterPage() {
           >
             {/* Title Section (always first) */}
             <div 
-              className="flex items-center justify-center" 
-              style={{ 
-                backgroundColor: selectedColor,
-                minHeight: "80px",
-                padding: "0.5rem 0"
-              }}
-            >
-              <h2 className="text-2xl sm:text-3xl font-bold text-white text-center px-2">{title.toUpperCase()}</h2>
-            </div>
-
+                className="flex flex-col items-center justify-center" 
+                style={{ 
+                    backgroundColor: selectedColor,
+                    minHeight: "80px",
+                    padding: "0.5rem 0"
+                }}
+                >
+                <div className="text-lg font-bold w-full py-1 px-0 text-center text-white">
+                    Transaction
+                </div>
+                <h2 className="text-2xl sm:text-3xl font-bold text-white text-center px-2">
+                    {title.toUpperCase()}
+                </h2>
+                </div>
             {/* Middle Sections */}
             {renderMiddleSections(title, selectedColor, showName)}
 
             {/* Name Section (when showName is true) */}
             {showName && (
-              <div
-                className="flex items-center justify-center"
+            <div
+                className="flex flex-col items-center justify-center"
                 style={{
-                  backgroundColor: getSectionColors(title, showName)[getSectionCount(title, showName) - 1],
-                  minHeight: "80px",
-                  padding: "0.5rem 0",
-                  borderTop: "8px solid #1a2335"
+                backgroundColor: getSectionColors(title, showName)[getSectionCount(title, showName) - 1],
+                minHeight: "80px",
+                padding: "0.5rem 0",
+                borderTop: "8px solid #1a2335"
                 }}>
-                <div className="text-2xl sm:text-3xl font-bold text-center px-2"
-                  style={{ 
+                <div className="text-lg font-bold w-full py-1 px-0 text-center"
+                style={{ 
                     color: getSectionColors(title, showName)[getSectionCount(title, showName) - 1] === selectedColor ? "#ffffff" : "#000000",
-                    lineHeight: "80px"
-                  }}
+                }}
                 >
-                  {name || "NELSON ANANGWE"}
+                Business Name
                 </div>
-              </div>
-            )}
-          </div>
+                <div className="text-2xl sm:text-3xl font-bold text-center px-2"
+                style={{ 
+                    color: getSectionColors(title, showName)[getSectionCount(title, showName) - 1] === selectedColor ? "#ffffff" : "#000000",
+                }}
+                >
+                {name || "NELSON ANANGWE"}
+                </div>
+            </div>
+            )}          </div>
             {/* Preview text */}
             <div className="flex flex-col items-center justify-center text-center mt-3">
               <p className="font-handwriting text-xl text-gray-600">
