@@ -8,7 +8,7 @@ const Header = () => {
           M-Poster
           </h1>
           <h3 className="text-md  font-display text-gray-800 mt-2 max-w-md">
-            Your Phone Number 🤝 Payment Poster
+            Your M-Pesa Payment Poster
           </h3>
         </div>
       </header>

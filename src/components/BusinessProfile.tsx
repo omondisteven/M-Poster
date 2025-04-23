@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import QRCode from "react-qr-code";
 import { Button } from "@/components/ui/button";
 import { toPng } from "html-to-image";
@@ -33,6 +33,9 @@ export default function BusinessProfile() {
   const [activeFields, setActiveFields] = useState<typeof defaultFields>([{ ...defaultFields[0] }]);
   const [formData, setFormData] = useState<QCard | null>(null);
   const inputRefs = useRef<Record<string, HTMLInputElement | HTMLTextAreaElement | null>>({});
+  const qrSectionRef = useRef<HTMLDivElement>(null);
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
 
   const isActive = (fieldId: string) => activeFields.some(f => f.id === fieldId);
 
@@ -62,6 +65,13 @@ export default function BusinessProfile() {
     }
     setFormData(data as QCard);
   };
+
+  useEffect(() => {
+    if (formData && isMobile && qrSectionRef.current) {
+      // Scroll to the QR code section with smooth behavior
+      qrSectionRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [formData, isMobile]);
 
   const qrRef = useRef<HTMLDivElement | null>(null);
 
@@ -179,7 +189,7 @@ export default function BusinessProfile() {
       </div>      
 
       {/* Right side - Qr/Contact - Always visible */}
-      <div className="lg:w-[30%]" ref={qrRef}>
+      <div className="lg:w-[30%]" ref={qrSectionRef}>
         <div className="bg-white p-4 rounded-lg border-4 border-[#2f363d] shadow-md w-full">
           {formData ? (
             <>

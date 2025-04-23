@@ -34,7 +34,7 @@ function MainLayout() {
                 : 'text-gray-600 hover:bg-gray-200'
             }`}
           >
-            Business Profile
+            Contact
           </TabsTrigger>
         </TabsList>
       </Tabs>
