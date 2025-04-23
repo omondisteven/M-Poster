@@ -1,6 +1,11 @@
 import { useState, useRef } from "react";
 import QRCode from "react-qr-code";
 import { Button } from "@/components/ui/button";
+import { toPng } from "html-to-image";
+import { saveAs } from "file-saver";
+import {
+  Mail, Phone, Globe, MapPin, MessageSquare, Share2, Download, Copy, Edit
+} from "lucide-react";
 
 interface QCard {
   name: string;
@@ -25,46 +30,105 @@ const defaultFields = [
 ];
 
 export default function BusinessProfile() {
-  const [fields, setFields] = useState<typeof defaultFields>([...defaultFields]);
-  const [activeFields, setActiveFields] = useState<typeof defaultFields>([]);
+  const [activeFields, setActiveFields] = useState<typeof defaultFields>([{ ...defaultFields[0] }]);
   const [formData, setFormData] = useState<QCard | null>(null);
   const inputRefs = useRef<Record<string, HTMLInputElement | HTMLTextAreaElement | null>>({});
 
-  const activateField = (fieldId: string) => {
-    const field = fields.find(f => f.id === fieldId);
-    if (field) {
+  const isActive = (fieldId: string) => activeFields.some(f => f.id === fieldId);
+
+  const toggleField = (fieldId: string) => {
+    const field = defaultFields.find(f => f.id === fieldId);
+    if (!field) return;
+    if (isActive(fieldId)) {
+      setActiveFields(activeFields.filter(f => f.id !== fieldId));
+    } else {
       setActiveFields([...activeFields, field]);
-      setFields(fields.filter(f => f.id !== fieldId));
       setTimeout(() => inputRefs.current[fieldId]?.focus(), 0);
     }
   };
-  
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-  
     const data: Partial<QCard> = {};
-  
     activeFields.forEach(field => {
       const val = inputRefs.current[field.id]?.value;
       if (val) {
         data[field.id as keyof QCard] = val;
       }
     });
-  
-    // Validate that 'name' is present (required field)
     if (!data.name || data.name.trim() === "") {
       alert("Name is required.");
       return;
     }
-  
     setFormData(data as QCard);
   };
-  
+
+  const qrRef = useRef<HTMLDivElement | null>(null);
+
+  const downloadQR = () => {
+    if (qrRef.current && formData) {
+      toPng(qrRef.current).then(dataUrl => {
+        saveAs(dataUrl, `${formData?.name ?? "qr"}.png`);
+      });
+    }
+  };
+
+  const copyLink = () => {
+    const link = window.location.href;
+    navigator.clipboard.writeText(link)
+      .then(() => alert("Link copied to clipboard!"))
+      .catch(() => alert("Failed to copy link"));
+  };
+
+  const shareQR = async () => {
+    if ('share' in navigator && typeof navigator.share === 'function') {
+      try {
+        await navigator.share({
+          title: `${formData?.name}'s Contact Card`,
+          text: `Here's ${formData?.name}'s contact information`,
+          url: window.location.href,
+        });
+      } catch (err) {
+        console.log('Error sharing', err);
+      }
+    } else {
+      copyLink();
+    }
+  };
+
+  const downloadVCard = () => {
+    if (!formData) return;
+    
+    let vcard = "BEGIN:VCARD\nVERSION:3.0\n";
+    vcard += `FN:${formData.name}\n`;
+    if (formData.title) vcard += `TITLE:${formData.title}\n`;
+    if (formData.email) vcard += `EMAIL:${formData.email}\n`;
+    if (formData.phone) vcard += `TEL:${formData.phone}\n`;
+    if (formData.address) vcard += `ADR:${formData.address}\n`;
+    if (formData.website) vcard += `URL:${formData.website}\n`;
+    if (formData.comment) vcard += `NOTE:${formData.comment}\n`;
+    vcard += "END:VCARD";
+    
+    const blob = new Blob([vcard], { type: "text/vcard" });
+    saveAs(blob, `${formData.name}.vcf`);
+  };
+
+  const handleWhatsAppClick = (phoneNumber: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    
+    if (isMobile) {
+      window.location.href = `whatsapp://send?phone=${phoneNumber}`;
+    } else {
+      window.open(`https://web.whatsapp.com/send?phone=${phoneNumber}`, '_blank');
+    }
+  };
 
   return (
-    <div className="p-4">
-      {!formData ? (
-        <form onSubmit={handleSubmit} className="space-y-4">
+    <div className="p-4 flex flex-col lg:flex-row gap-8">
+      {/* Left: Entry Form */}
+      <div className="w-full lg:w-[70%]">
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid gap-4">
             {activeFields.map(field => (
               <div key={field.id} className="flex flex-col">
@@ -74,9 +138,7 @@ export default function BusinessProfile() {
                 {field.id === "comment" ? (
                   <textarea
                     id={field.id}
-                    ref={el => {
-                      inputRefs.current[field.id] = el;
-                    }}
+                    ref={el => { inputRefs.current[field.id] = el }}
                     placeholder={field.placeholder}
                     className="p-2 border rounded"
                     required={field.required}
@@ -84,9 +146,7 @@ export default function BusinessProfile() {
                 ) : (
                   <input
                     id={field.id}
-                    ref={el => {
-                      inputRefs.current[field.id] = el;
-                    }}
+                    ref={el => { inputRefs.current[field.id] = el }}
                     type="text"
                     placeholder={field.placeholder}
                     className="p-2 border rounded"
@@ -97,40 +157,253 @@ export default function BusinessProfile() {
             ))}
           </div>
 
+          {/* Field toggles */}
           <div className="flex flex-wrap gap-2">
-            {fields.map(field => (
+            {defaultFields.map(field => (
               <button
                 type="button"
                 key={field.id}
-                onClick={() => activateField(field.id)}
-                className="text-sm border px-2 py-1 rounded hover:border-red-500"
+                onClick={() => toggleField(field.id)}
+                className={`text-sm border px-2 py-1 rounded flex items-center gap-1 ${
+                  isActive(field.id) ? "bg-red-100 hover:bg-red-200" : "hover:border-blue-500"
+                }`}
               >
-                + {field.label}
+                {isActive(field.id) ? "−" : "+"}
+                {field.label}
               </button>
             ))}
           </div>
 
-          <Button type="submit" className="mt-4">Create</Button>
+          <Button type="submit">Create Contact Card</Button>
         </form>
-      ) : (
-        <div className="space-y-4 p-4 border border-gray-300 rounded">
-          <QRCode value={JSON.stringify(formData)} size={128} />
-          <h1 className="text-2xl font-bold">{formData.name}</h1>
-          {formData.title && <h2 className="text-lg text-gray-600">{formData.title}</h2>}
-          <div className="grid gap-2 text-sm">
-            {formData.phone && <div><strong>Phone:</strong> {formData.phone}</div>}
-            {formData.email && <div><strong>Email:</strong> {formData.email}</div>}
-            {formData.website && <div><strong>Website:</strong> {formData.website}</div>}
-            {formData.address && <div><strong>Address:</strong> {formData.address}</div>}
-            {formData.whatsappnumber && <div><strong>WhatsApp:</strong> {formData.whatsappnumber}</div>}
-            {formData.comment && <div><strong>Comment:</strong> {formData.comment}</div>}
-          </div>
-          <div className="flex gap-2">
-            <Button onClick={() => navigator.clipboard.writeText(JSON.stringify(formData))}>Copy</Button>
-            <Button onClick={() => setFormData(null)} variant="outline">Edit</Button>
-          </div>
+      </div>      
+
+      {/* Right side - Qr/Contact - Always visible */}
+      <div className="lg:w-[30%]" ref={qrRef}>
+        <div className="bg-white p-4 rounded-lg border-4 border-[#2f363d] shadow-md w-full">
+          {formData ? (
+            <>
+              <div className="flex justify-center mb-4 w-full p-4">
+                <a href={window.location.href} className="w-full">
+                  <QRCode 
+                    value={JSON.stringify(formData)} 
+                    size={256}
+                    style={{ height: "auto", maxWidth: "100%", width: "100%" }}
+                    bgColor="transparent"
+                  />
+                </a>
+              </div>
+
+              <hr className="border-t border-gray-300 my-2" />
+
+              <div className="space-y-2">
+                <div className="text-center mb-4">
+                  <h1 className="text-2xl font-bold text-[#2f363d] hover:text-[#170370] transition-colors">
+                    {formData.name}
+                  </h1>
+                  {formData.title && (
+                    <h2 className="text-lg text-gray-700 hover:text-[#170370] transition-colors">
+                      {formData.title}
+                    </h2>
+                  )}
+                </div>
+
+                {/* Phone */}
+                {formData.phone && (
+                  <>
+                    <div className="h-[1px] bg-gray-200 mx-2 my-1"></div>
+                    <div className="group pl-2 border-l-4 border-gray-500 hover:border-l-8 hover:border-[#170370] hover:bg-[rgba(23,3,112,0.05)] transition-all">
+                      <div className="text-xs uppercase font-bold text-gray-500 group-hover:text-[#170370] transition-colors pl-2">
+                        Telephone
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <p className="group-hover:text-[#170370] transition-colors pl-2 py-1">
+                          {formData.phone}
+                        </p>
+                        <a href={`tel:${formData.phone}`} className="p-2 hover:scale-125 transition-transform">
+                          <Phone className="w-5 h-5" />
+                        </a>
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {/* Email */}
+                {formData.email && (
+                  <>
+                    <div className="h-[1px] bg-gray-200 mx-2 my-1 group-hover:bg-[rgba(23,3,112,0.2)]"></div>
+                    <div className="group pl-2 border-l-4 border-gray-500 hover:border-l-8 hover:border-[#170370] hover:bg-[rgba(23,3,112,0.05)] transition-all">
+                      <div className="text-xs uppercase font-bold text-gray-500 group-hover:text-[#170370] transition-colors pl-2">
+                        Email
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <p className="group-hover:text-[#170370] transition-colors pl-2 py-1">
+                          {formData.email}
+                        </p>
+                        <a href={`mailto:${formData.email}`} className="p-2 hover:scale-125 transition-transform">
+                          <Mail className="w-5 h-5" />
+                        </a>
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {/* Address */}
+                {formData.address && (
+                  <>
+                    <div className="h-[1px] bg-gray-200 mx-2 my-1"></div>
+                    <div className="group pl-2 border-l-4 border-gray-500 hover:border-l-8 hover:border-[#170370] hover:bg-[rgba(23,3,112,0.05)] transition-all">
+                      <div className="text-xs uppercase font-bold text-gray-500 group-hover:text-[#170370] transition-colors pl-2">
+                        Address
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <p className="group-hover:text-[#170370] transition-colors pl-2 py-1">
+                          {formData.address}
+                        </p>
+                        <a 
+                          href={`https://www.openstreetmap.org/search?query=${encodeURIComponent(formData.address)}`} 
+                          target="_blank" 
+                          className="p-2 hover:scale-125 transition-transform"
+                        >
+                          <MapPin className="w-5 h-5" />
+                        </a>
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {/* Website */}
+                {formData.website && (
+                  <>
+                    <div className="h-[1px] bg-gray-200 mx-2 my-1"></div>
+                    <div className="group pl-2 border-l-4 border-gray-500 hover:border-l-8 hover:border-[#170370] hover:bg-[rgba(23,3,112,0.05)] transition-all">
+                      <div className="text-xs uppercase font-bold text-gray-500 group-hover:text-[#170370] transition-colors pl-2">
+                        Website
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <p className="group-hover:text-[#170370] transition-colors pl-2 py-1">
+                          {formData.website}
+                        </p>
+                        <a href={formData.website} target="_blank" className="p-2 hover:scale-125 transition-transform">
+                          <Globe className="w-5 h-5" />
+                        </a>
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {/* WhatsApp */}
+                {formData.whatsappnumber && (
+                  <>
+                    <div className="h-[1px] bg-gray-200 mx-2 my-1"></div>
+                    <div className="group pl-2 border-l-4 border-gray-500 hover:border-l-8 hover:border-[#170370] hover:bg-[rgba(23,3,112,0.05)] transition-all">
+                      <div className="text-xs uppercase font-bold text-gray-500 group-hover:text-[#170370] transition-colors pl-2">
+                        WhatsApp
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <p className="group-hover:text-[#170370] transition-colors pl-2 py-1">
+                          {formData.whatsappnumber}
+                        </p>
+                        <a 
+                          href="#" 
+                          onClick={(e) => handleWhatsAppClick(formData.whatsappnumber!, e)}
+                          className="p-2 hover:scale-125 transition-transform"
+                        >
+                          <MessageSquare className="w-5 h-5 text-green-500" />
+                        </a>
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {/* Comment */}
+                {formData.comment && (
+                  <>
+                    <div className="h-[1px] bg-gray-200 mx-2 my-1"></div>
+                    <div className="group pl-2 border-l-4 border-gray-500 hover:border-l-8 hover:border-[#170370] hover:bg-[rgba(23,3,112,0.05)] transition-all">
+                      <div className="text-xs uppercase font-bold text-gray-500 group-hover:text-[#170370] transition-colors pl-2">
+                        Comment
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <p className="group-hover:text-[#170370] transition-colors pl-2 py-1">
+                          {formData.comment}
+                        </p>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+
+              <hr className="border-t border-gray-300 my-4" />
+
+              <div className="flex justify-end gap-2">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="mr-auto p-2 hover:bg-gray-100"
+                >
+                  <Edit className="w-4 h-4" />
+                </Button>
+                
+                {'share' in navigator && typeof navigator.share === 'function' ? (
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={shareQR}
+                    className="p-2 hover:bg-gray-100"
+                  >
+                    <Share2 className="w-4 h-4" />
+                  </Button>
+                ) : (
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={copyLink}
+                    className="p-2 hover:bg-gray-100"
+                  >
+                    <Copy className="w-4 h-4" />
+                  </Button>
+                )}
+                
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={downloadVCard}
+                  className="p-2 bg-red-500 text-white hover:bg-red-600"
+                >
+                  <Download className="w-4 h-4" />
+                </Button>
+              </div>
+            </>
+          ) : (
+            <div className="flex flex-col items-center justify-center p-8 text-center text-gray-500">
+              <div className="mb-4 w-full p-4">
+                <QRCode 
+                  value="placeholder" 
+                  size={256}
+                  style={{ height: "auto", maxWidth: "100%", width: "100%" }}
+                  bgColor="transparent"
+                  fgColor="#e5e7eb"
+                />
+              </div>
+              <p className="text-lg font-medium">
+                Your Contact Card and QR code will appear here...
+              </p>
+              <p className="text-sm mt-2">
+                Fill out the form and click "Create Contact Card" to generate your personalized QR code.
+              </p>
+            </div>
+          )}
         </div>
-      )}
+
+        {/* Download/Share Buttons */}
+        {formData && (
+          <div className="flex gap-2 justify-center mt-4">
+            <Button onClick={downloadQR}><Download className="w-4 h-4 mr-1" />Download QR</Button>
+            <Button onClick={shareQR} variant="outline"><Share2 className="w-4 h-4 mr-1" />Share</Button>
+          </div>
+        )}
+      </div>      
     </div>
   );
 }
