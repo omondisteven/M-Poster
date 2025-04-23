@@ -1,3 +1,4 @@
+//..src/route/index.tsx
 import { createFileRoute, redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/")({

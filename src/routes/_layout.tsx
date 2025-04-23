@@ -1,3 +1,4 @@
+//..src/route/_layout.tsx
 import { createFileRoute, useRouter, useRouterState } from '@tanstack/react-router';
 import { Outlet } from '@tanstack/react-router';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
