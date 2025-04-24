@@ -26,7 +26,15 @@ const defaultData: FormData = {
   storeNumber: "",
   phoneNumber: "",
 
-  // contact fields
+  // BusinessProfile fields
+  businessName: "",
+  businessTitle: "",
+  businessEmail: "",
+  businessPhone: "",
+  businessWebsite: "",
+  businessComment: "",
+  businessAddress: "",
+  businessWhatsapp: "",
   color: colors.green[600],
   hideAmount: false,
   type: TRANSACTION_TYPE.SEND_MONEY,

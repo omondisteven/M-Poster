@@ -1,3 +1,4 @@
+//src/components/BusinessProfile.tsx
 import { useState, useRef, useEffect } from "react";
 import QRCode from "react-qr-code";
 import { Button } from "@/components/ui/button";
@@ -13,7 +14,7 @@ interface QCard {
   name: string;
   title?: string;
   email?: string;
-  businessPhone?: string;
+  phone?: string;
   website?: string;
   comment?: string;
   address?: string;
@@ -24,45 +25,51 @@ const defaultFields = [
   { id: "name", label: "Name", placeholder: "Jaskier", required: true },
   { id: "title", label: "Title", placeholder: "Singer, Poet, Lute Player" },
   { id: "email", label: "Email", placeholder: "info@balladsfromjaskier.com" },
-  { id: "businessPhone", label: "Phone", placeholder: "+000 000" },
+  { id: "phone", label: "Phone", placeholder: "+000 000" },
   { id: "website", label: "Website", placeholder: "https://thelute.com" },
   { id: "comment", label: "Comment", placeholder: "Your comment..." },
   { id: "address", label: "Address", placeholder: "10 Lute Street, 012" },
   { id: "whatsappnumber", label: "WhatsApp No.", placeholder: "Start with country code" },
 ];
 
+const LOCAL_STORAGE_KEY = 'businessProfileData';
 export default function BusinessProfile() {
-  const [activeFields, setActiveFields] = useState<typeof defaultFields>([{ ...defaultFields[0] }]);
-  const [formData, setFormData] = useState<QCard | null>(null);
+  const [activeFields, setActiveFields] = useState<typeof defaultFields>(() => {
+    // Load active fields from localStorage if available
+    const savedData = localStorage.getItem(LOCAL_STORAGE_KEY);
+    return savedData ? JSON.parse(savedData).activeFields || [{ ...defaultFields[0] }] : [{ ...defaultFields[0] }];
+  });
+  const [formData, setFormData] = useState<QCard | null>(() => {
+    // Load form data from localStorage if available
+    const savedData = localStorage.getItem(LOCAL_STORAGE_KEY);
+    return savedData ? JSON.parse(savedData).formData || null : null;
+  });
   const inputRefs = useRef<Record<string, HTMLInputElement | HTMLTextAreaElement | null>>({});
   const qrSectionRef = useRef<HTMLDivElement>(null);
   const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-  const { setContactCard, contactCard } = useAppContext();
+  const { setData } = useAppContext();
+
+  const isActive = (fieldId: string) => activeFields.some(f => f.id === fieldId);
 
   useEffect(() => {
-    if (contactCard && !formData) {
-      setFormData(contactCard);
-  
-      // Auto-enable fields that exist in the saved contact card
-      const restoredFields = defaultFields.filter(field =>
-        contactCard[field.id as keyof QCard] !== undefined
-      );
-      if (restoredFields.length > 0) {
-        setActiveFields(restoredFields);
-        // Optionally populate inputs if refs exist (optional, in case of input defaulting)
-        setTimeout(() => {
-          restoredFields.forEach(field => {
-            const ref = inputRefs.current[field.id];
-            if (ref && contactCard[field.id as keyof QCard]) {
-              ref.value = contactCard[field.id as keyof QCard] as string;
-            }
-          });
-        }, 0);
-      }
+    if (formData || activeFields) {
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify({
+        formData,
+        activeFields
+      }));
     }
-  }, [contactCard, formData]);
-  
-  const isActive = (fieldId: string) => activeFields.some(f => f.id === fieldId);
+  }, [formData, activeFields]);
+
+  // Add this function to reset the form
+  const resetForm = () => {
+    setFormData(null);
+    setActiveFields([{ ...defaultFields[0] }]);
+    // Clear input values
+    Object.values(inputRefs.current).forEach(ref => {
+      if (ref) ref.value = '';
+    });
+    localStorage.removeItem(LOCAL_STORAGE_KEY);
+  };
 
   const toggleField = (fieldId: string) => {
     const field = defaultFields.find(f => f.id === fieldId);
@@ -82,6 +89,7 @@ export default function BusinessProfile() {
       const val = inputRefs.current[field.id]?.value;
       if (val) {
         data[field.id as keyof QCard] = val;
+        
       }
     });
     if (!data.name || data.name.trim() === "") {
@@ -89,7 +97,18 @@ export default function BusinessProfile() {
       return;
     }
     setFormData(data as QCard);
-    setContactCard?.(data as QCard);
+    
+    // Update the context with business profile data
+    setData({
+      businessName: data.name || "",
+      businessTitle: data.title || "",
+      businessEmail: data.email || "",
+      businessPhone: data.phone || "",
+      businessWebsite: data.website || "",
+      businessComment: data.comment || "",
+      businessAddress: data.address || "",
+      businessWhatsapp: data.whatsappnumber || "",
+    });
   };
 
   useEffect(() => {
@@ -139,7 +158,7 @@ export default function BusinessProfile() {
     vcard += `FN:${formData.name}\n`;
     if (formData.title) vcard += `TITLE:${formData.title}\n`;
     if (formData.email) vcard += `EMAIL:${formData.email}\n`;
-    if (formData.businessPhone) vcard += `TEL:${formData.businessPhone}\n`;
+    if (formData.phone) vcard += `TEL:${formData.phone}\n`;
     if (formData.address) vcard += `ADR:${formData.address}\n`;
     if (formData.website) vcard += `URL:${formData.website}\n`;
     if (formData.comment) vcard += `NOTE:${formData.comment}\n`;
@@ -154,9 +173,9 @@ export default function BusinessProfile() {
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     
     if (isMobile) {
-      window.location.href = `whatsapp://send?businessPhone=${phoneNumber}`;
+      window.location.href = `whatsapp://send?phone=${phoneNumber}`;
     } else {
-      window.open(`https://web.whatsapp.com/send?businessPhone=${phoneNumber}`, '_blank');
+      window.open(`https://web.whatsapp.com/send?phone=${phoneNumber}`, '_blank');
     }
   };
 
@@ -164,6 +183,16 @@ export default function BusinessProfile() {
     <div className="p-4 flex flex-col lg:flex-row gap-8">
       {/* Left: Entry Form */}
       <div className="w-full lg:w-[70%]">
+      <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-bold">E-Business Card</h2>
+          <Button 
+            onClick={resetForm}
+            variant="outline"
+            className="bg-white hover:bg-gray-100"
+          >
+            Create New
+          </Button>
+        </div>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid gap-4">
             {activeFields.map(field => (
@@ -245,7 +274,7 @@ export default function BusinessProfile() {
                 </div>
 
                 {/* Phone */}
-                {formData.businessPhone && (
+                {formData.phone && (
                   <>
                     <div className="h-[1px] bg-gray-200 mx-2 my-1"></div>
                     <div className="group pl-2 border-l-4 border-gray-500 hover:border-l-8 hover:border-[#170370] hover:bg-[rgba(23,3,112,0.05)] transition-all">
@@ -254,9 +283,9 @@ export default function BusinessProfile() {
                       </div>
                       <div className="flex justify-between items-center">
                         <p className="group-hover:text-[#170370] transition-colors pl-2 py-1">
-                          {formData.businessPhone}
+                          {formData.phone}
                         </p>
-                        <a href={`tel:${formData.businessPhone}`} className="p-2 hover:scale-125 transition-transform">
+                        <a href={`tel:${formData.phone}`} className="p-2 hover:scale-125 transition-transform">
                           <Phone className="w-5 h-5" />
                         </a>
                       </div>
@@ -443,3 +472,4 @@ export default function BusinessProfile() {
     </div>
   );
 }
+

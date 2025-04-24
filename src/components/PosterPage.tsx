@@ -1,3 +1,4 @@
+//src/components/PosterPage.tsx
 import { createFileRoute } from "@tanstack/react-router";
 import { useRef, useState, useEffect, } from "react";
 import { Button } from "@/components/ui/button";
@@ -47,7 +48,7 @@ const formSchema = z.object({
   }, {
     message: ""
   }).optional().or(z.literal('')),
-  name: z.string().optional().or(z.literal('')),
+  businessName: z.string().optional().or(z.literal('')),
   paybillNumber: z.string().optional().or(z.literal('')),
   paybillNumberLabel: z.string().optional(),
   accountNumber: z.string().optional().or(z.literal('')),
@@ -61,11 +62,11 @@ const formSchema = z.object({
 })
   .superRefine((data, ctx) => {
     // Name is only required when showName is true
-    if (data.showName && !data.name?.trim()) {
+    if (data.showName && !data.businessName?.trim()) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: "",
-        path: ["name"],
+        path: ["businessName"],
       });
     }
 
@@ -190,7 +191,7 @@ interface FormValues {
   showName: boolean;
   title: string;
   phoneNumber?: string;
-  name?: string;
+  businessName?: string;
   paybillNumber?: string;
   paybillNumberLabel?: string;
   accountNumber?: string;
@@ -211,7 +212,7 @@ function PosterPage() {
   const [qrGenerationMethod, setQrGenerationMethod] = useState<"mpesa" | "push">("push");
   const [previewQrData, setPreviewQrData] = useState("");
 
-  const { data, contactCard } = useAppContext();
+  const { data } = useAppContext();
   const posterRef = useRef<HTMLDivElement>(null);
   const [selectedTemplate, setSelectedTemplate] = useState(templates[0]);
   const { control, handleSubmit, watch, setValue, formState: { errors, isValid }, trigger } = useForm<FormValues>({
@@ -223,7 +224,7 @@ function PosterPage() {
       showName: false,
       title: "Pay Bill",
       phoneNumber: data.phoneNumber || "",
-      name: contactCard?.name?.toUpperCase() || "",
+      businessName: data.businessName || "",
       paybillNumber: data.paybillNumber || "",
       paybillNumberLabel: "Business Number",
       accountNumber: data.accountNumber || "",
@@ -239,7 +240,7 @@ function PosterPage() {
   });
   
   const phoneNumber = watch("phoneNumber");
-  const name = watch("name");
+  const businessName = watch("businessName");
   const selectedColor = watch("selectedColor");
   const showName = watch("showName");
   const title = watch("title");
@@ -264,13 +265,6 @@ function PosterPage() {
     setValue("phoneNumber", data.phoneNumber);
   }, [data, setValue]);
 
-  useEffect(() => {
-    if (showName && contactCard?.name) {
-      setValue("name", contactCard.name.toUpperCase(), { shouldValidate: true });
-    }
-  }, [showName, contactCard?.name, setValue]);
-  
-
   // Add this useEffect to update the preview QR data
   useEffect(() => {
     const updatePreviewQr = async () => {
@@ -282,8 +276,16 @@ function PosterPage() {
         tillNumber: watch("tillNumber"),
         agentNumber: watch("agentNumber"),
         storeNumber: watch("storeNumber"),
-        name: watch("name"), // Add name to the form data
-        ...contactCard, // Merges contact card data into QR payload
+        businessName: watch("businessName"), // Add name to the form data
+        // Include business profile data
+        // businessName: data.businessName,
+        businessTitle: data.businessTitle,
+        businessEmail: data.businessEmail,
+        businessPhone: data.businessPhone,
+        businessWebsite: data.businessWebsite,
+        businessComment: data.businessComment,
+        businessAddress: data.businessAddress,
+        businessWhatsapp: data.businessWhatsapp
       };
     
       if (qrGenerationMethod === "mpesa") {
@@ -297,7 +299,15 @@ function PosterPage() {
               TransactionType: "SendMoney",
               RecepientPhoneNumber: formData.phoneNumber,
               PhoneNumber: "254",
-              Name: formData.name // Add name to the data
+              // businessName: formData.businessName, // Add name to the data
+              // Business data
+              BusinessName: formData.businessName,
+              BusinessTitle: formData.businessTitle,
+              BusinessEmail: formData.businessEmail,
+              BusinessPhone: formData.businessPhone,
+              BusinessWebsite: formData.businessWebsite,
+              BusinessAddress: formData.businessAddress,
+              BusinessWhatsapp: formData.businessWhatsapp,
             };
             break;
           case TRANSACTION_TYPE.PAYBILL:
@@ -306,7 +316,15 @@ function PosterPage() {
               PaybillNumber: formData.paybillNumber,
               AccountNumber: formData.accountNumber,
               PhoneNumber: "254",
-              Name: formData.name // Add name to the data
+              // Name: formData.name, // Add name to the data
+              // Business data
+              BusinessName: formData.businessName,
+              BusinessTitle: formData.businessTitle,
+              BusinessEmail: formData.businessEmail,
+              BusinessPhone: formData.businessPhone,
+              BusinessWebsite: formData.businessWebsite,
+              BusinessAddress: formData.businessAddress,
+              BusinessWhatsapp: formData.businessWhatsapp,
             };
             break;
           case TRANSACTION_TYPE.TILL_NUMBER:
@@ -314,7 +332,16 @@ function PosterPage() {
               TransactionType: "BuyGoods",
               TillNumber: formData.tillNumber,
               PhoneNumber: "254",
-              Name: formData.name // Add name to the data
+              businessName: formData.businessName, // Add name to the data
+              // Include business profile data
+              // businessName: data.businessName,
+              businessTitle: data.businessTitle,
+              businessEmail: data.businessEmail,
+              businessPhone: data.businessPhone,
+              businessWebsite: data.businessWebsite,
+              businessComment: data.businessComment,
+              businessAddress: data.businessAddress,
+              businessWhatsapp: data.businessWhatsapp,
             };
             break;
           case TRANSACTION_TYPE.AGENT:
@@ -323,7 +350,15 @@ function PosterPage() {
               AgentId: formData.agentNumber,
               StoreNumber: formData.storeNumber,
               PhoneNumber: "254",
-              Name: formData.name // Add name to the data
+              // Name: formData.name, // Add name to the data
+              // Business data
+              BusinessName: formData.businessName,
+              BusinessTitle: formData.businessTitle,
+              BusinessEmail: formData.businessEmail,
+              BusinessPhone: formData.businessPhone,
+              BusinessWebsite: formData.businessWebsite,
+              BusinessAddress: formData.businessAddress,
+              BusinessWhatsapp: formData.businessWhatsapp,
             };
             break;
         }
@@ -335,7 +370,7 @@ function PosterPage() {
       updatePreviewQr();
     }, [qrGenerationMethod, watch("type"), watch("phoneNumber"), watch("paybillNumber"), 
         watch("accountNumber"), watch("tillNumber"), watch("agentNumber"), 
-        watch("storeNumber"), watch("name")]); // Add watch("name") to dependencies    
+        watch("storeNumber"), watch("businessName")]); // Add watch("name") to dependencies    
    
       const generateDownloadQrData = async (): Promise<string> => {
         const formData = {
@@ -346,8 +381,16 @@ function PosterPage() {
           tillNumber: watch("tillNumber"),
           agentNumber: watch("agentNumber"),
           storeNumber: watch("storeNumber"),
-          name: watch("name"), // Add name to the form data
-          ...contactCard, // Merges contact card data into QR payload
+          businessName: watch("businessName"), // Add name to the form data
+          // Include business profile data
+          // businessName: data.businessName,
+          businessTitle: data.businessTitle,
+          businessEmail: data.businessEmail,
+          businessPhone: data.businessPhone,
+          businessWebsite: data.businessWebsite,
+          businessComment: data.businessComment,
+          businessAddress: data.businessAddress,
+          businessWhatsapp: data.businessWhatsapp,
         };
       
         if (qrGenerationMethod === "mpesa") {
@@ -362,7 +405,7 @@ function PosterPage() {
                   TransactionType: "SendMoney",
                   RecepientPhoneNumber: formData.phoneNumber,
                   PhoneNumber: "254", // Default phone number prefix
-                  Name: formData.name // Add name to the data
+                  businessName: formData.businessName // Add name to the data
                 };
                 break;
               case TRANSACTION_TYPE.PAYBILL:
@@ -371,7 +414,15 @@ function PosterPage() {
                   PaybillNumber: formData.paybillNumber,
                   AccountNumber: formData.accountNumber,
                   PhoneNumber: "254",
-                  Name: formData.name // Add name to the data
+                  businessName: formData.businessName, // Add name to the data
+                  // businessName: data.businessName,
+                  businessTitle: data.businessTitle,
+                  businessEmail: data.businessEmail,
+                  businessPhone: data.businessPhone,
+                  businessWebsite: data.businessWebsite,
+                  businessComment: data.businessComment,
+                  businessAddress: data.businessAddress,
+                  businessWhatsapp: data.businessWhatsapp,
                 };
                 break;
               case TRANSACTION_TYPE.TILL_NUMBER:
@@ -379,7 +430,7 @@ function PosterPage() {
                   TransactionType: "BuyGoods",
                   TillNumber: formData.tillNumber,
                   PhoneNumber: "254",
-                  Name: formData.name // Add name to the data
+                  businessName: formData.businessName // Add name to the data
                 };
                 break;
               case TRANSACTION_TYPE.AGENT:
@@ -388,7 +439,15 @@ function PosterPage() {
                   AgentId: formData.agentNumber,
                   StoreNumber: formData.storeNumber,
                   PhoneNumber: "254",
-                  Name: formData.name // Add name to the data
+                  businessName: formData.businessName, // Add name to the data
+                  // businessName: data.businessName,
+                  businessTitle: data.businessTitle,
+                  businessEmail: data.businessEmail,
+                  businessPhone: data.businessPhone,
+                  businessWebsite: data.businessWebsite,
+                  businessComment: data.businessComment,
+                  businessAddress: data.businessAddress,
+                  businessWhatsapp: data.businessWhatsapp,
                 };
                 break;
             }
@@ -763,7 +822,7 @@ function PosterPage() {
         ctx.fillStyle = nameTextColor;
         ctx.font = `bold ${nameFontSize}px Inter, sans-serif`;
         ctx.fillText(
-          name?.toUpperCase() || "NELSON ANANGWE", 
+          businessName?.toUpperCase() || "NELSON ANANGWE", 
           width / 2, 
           nameYPos
         );
@@ -1023,8 +1082,8 @@ function PosterPage() {
           break;
       }
   
-      if (showName && name) {
-        shareMessage += `Name: ${name}\n`;
+      if (showName && businessName) {
+        shareMessage += `Name: ${businessName}\n`;
       }
   
       shareMessage += `Scan the QR code to make payment`;
@@ -1387,7 +1446,7 @@ function PosterPage() {
                       Your Name
                     </label>
                     <Controller
-                      name="name"
+                      name="businessName"
                       control={control}
                       render={({ field }) => (
                         <Input
@@ -1402,8 +1461,8 @@ function PosterPage() {
                         />
                       )}
                     />
-                    {errors.name && (
-                      <p className="mt-1 text-sm text-red-500">{errors.name.message}</p>
+                    {errors.businessName && (
+                      <p className="mt-1 text-sm text-red-500">{errors.businessName.message}</p>
                     )}
                   </div>
                 )}
@@ -1599,7 +1658,7 @@ function PosterPage() {
                     color: getSectionColors(title, showName)[getSectionCount(title, showName) - 1] === selectedColor ? "#ffffff" : "#000000",
                 }}
                 >
-                {name || "NELSON ANANGWE"}
+                {businessName || "NELSON ANANGWE"}
                 </div>
             </div>
             )}          </div>

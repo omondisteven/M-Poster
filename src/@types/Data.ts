@@ -16,6 +16,16 @@ export interface Data {
   color: string;
   phoneNumber:string;
   hideAmount:boolean;
+
+  // Business profile fields
+  businessName: string;
+  businessTitle: string;
+  businessEmail: string;
+  businessPhone: string;
+  businessWebsite: string;
+  businessComment: string;
+  businessAddress: string;
+  businessWhatsapp: string;
 }
 
 export type FormData = Partial<Data>;
