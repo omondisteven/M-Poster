@@ -211,7 +211,7 @@ function PosterPage() {
   const [qrGenerationMethod, setQrGenerationMethod] = useState<"mpesa" | "push">("push");
   const [previewQrData, setPreviewQrData] = useState("");
 
-  const { data } = useAppContext();
+  const { data, contactCard } = useAppContext();
   const posterRef = useRef<HTMLDivElement>(null);
   const [selectedTemplate, setSelectedTemplate] = useState(templates[0]);
   const { control, handleSubmit, watch, setValue, formState: { errors, isValid }, trigger } = useForm<FormValues>({
@@ -223,7 +223,7 @@ function PosterPage() {
       showName: false,
       title: "Pay Bill",
       phoneNumber: data.phoneNumber || "",
-      name: data.name || "",
+      name: contactCard?.name?.toUpperCase() || "",
       paybillNumber: data.paybillNumber || "",
       paybillNumberLabel: "Business Number",
       accountNumber: data.accountNumber || "",
@@ -264,6 +264,13 @@ function PosterPage() {
     setValue("phoneNumber", data.phoneNumber);
   }, [data, setValue]);
 
+  useEffect(() => {
+    if (showName && contactCard?.name) {
+      setValue("name", contactCard.name.toUpperCase(), { shouldValidate: true });
+    }
+  }, [showName, contactCard?.name, setValue]);
+  
+
   // Add this useEffect to update the preview QR data
   useEffect(() => {
     const updatePreviewQr = async () => {
@@ -276,6 +283,7 @@ function PosterPage() {
         agentNumber: watch("agentNumber"),
         storeNumber: watch("storeNumber"),
         name: watch("name"), // Add name to the form data
+        ...contactCard, // Merges contact card data into QR payload
       };
     
       if (qrGenerationMethod === "mpesa") {
@@ -339,6 +347,7 @@ function PosterPage() {
           agentNumber: watch("agentNumber"),
           storeNumber: watch("storeNumber"),
           name: watch("name"), // Add name to the form data
+          ...contactCard, // Merges contact card data into QR payload
         };
       
         if (qrGenerationMethod === "mpesa") {

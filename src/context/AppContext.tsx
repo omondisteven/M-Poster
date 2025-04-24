@@ -5,6 +5,18 @@ import { PESAQR_DB } from "@/utils/constants";
 import { createContext, useContext, useEffect, useState } from "react";
 import colors from "tailwindcss/colors";
 
+// Contact card type (should match the one used in BusinessProfile)
+interface QCard {
+  name: string;
+  title?: string;
+  email?: string;
+  phone?: string;
+  website?: string;
+  comment?: string;
+  address?: string;
+  whatsappnumber?: string;
+}
+
 // Define the default data structure
 const defaultData: FormData = {
   paybillNumber: "",
@@ -13,16 +25,19 @@ const defaultData: FormData = {
   agentNumber: "",
   storeNumber: "",
   phoneNumber: "",
+
+  // contact fields
   color: colors.green[600],
   hideAmount: false,
   type: TRANSACTION_TYPE.SEND_MONEY,
   bannerText: "SCAN WITH M-PESA APP",
-
 };
 
 export interface AppContextType {
   data: FormData;
   setData: (data: Partial<FormData>) => void;
+  contactCard?: QCard;
+  setContactCard?: (card: QCard) => void;
 }
 
 export const AppContext = createContext<AppContextType | null>(null);
@@ -30,6 +45,7 @@ export const AppContext = createContext<AppContextType | null>(null);
 export const AppProvider = ({ children }: { children: React.ReactNode }) => {
   const [db, saveDb] = useLocalStorage<FormData>(PESAQR_DB, defaultData);
   const [data, setData] = useState<FormData>({ ...defaultData, ...db });
+  const [contactCard, setContactCard] = useState<QCard | undefined>(undefined);
 
   // Load Data from DB
   useEffect(() => {
@@ -49,7 +65,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <AppContext.Provider value={{ data, setData: updateData }}>
+    <AppContext.Provider value={{ data, setData: updateData, contactCard, setContactCard }}>
       {children}
     </AppContext.Provider>
   );

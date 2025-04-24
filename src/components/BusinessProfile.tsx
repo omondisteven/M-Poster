@@ -7,6 +7,7 @@ import {
   Mail, Phone, Globe, MapPin, Share2, Download, Copy, Edit
 } from "lucide-react";
 import { FaWhatsapp } from "react-icons/fa"; // Font Awesome WhatsApp icon
+import { useAppContext } from "@/context/AppContext";
 
 interface QCard {
   name: string;
@@ -36,8 +37,31 @@ export default function BusinessProfile() {
   const inputRefs = useRef<Record<string, HTMLInputElement | HTMLTextAreaElement | null>>({});
   const qrSectionRef = useRef<HTMLDivElement>(null);
   const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  const { setContactCard, contactCard } = useAppContext();
 
-
+  useEffect(() => {
+    if (contactCard && !formData) {
+      setFormData(contactCard);
+  
+      // Auto-enable fields that exist in the saved contact card
+      const restoredFields = defaultFields.filter(field =>
+        contactCard[field.id as keyof QCard] !== undefined
+      );
+      if (restoredFields.length > 0) {
+        setActiveFields(restoredFields);
+        // Optionally populate inputs if refs exist (optional, in case of input defaulting)
+        setTimeout(() => {
+          restoredFields.forEach(field => {
+            const ref = inputRefs.current[field.id];
+            if (ref && contactCard[field.id as keyof QCard]) {
+              ref.value = contactCard[field.id as keyof QCard] as string;
+            }
+          });
+        }, 0);
+      }
+    }
+  }, [contactCard, formData]);
+  
   const isActive = (fieldId: string) => activeFields.some(f => f.id === fieldId);
 
   const toggleField = (fieldId: string) => {
@@ -65,6 +89,7 @@ export default function BusinessProfile() {
       return;
     }
     setFormData(data as QCard);
+    setContactCard?.(data as QCard);
   };
 
   useEffect(() => {
