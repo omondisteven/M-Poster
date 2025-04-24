@@ -4,8 +4,9 @@ import { Button } from "@/components/ui/button";
 import { toPng } from "html-to-image";
 import { saveAs } from "file-saver";
 import {
-  Mail, Phone, Globe, MapPin, MessageSquare, Share2, Download, Copy, Edit
+  Mail, Phone, Globe, MapPin, Share2, Download, Copy, Edit
 } from "lucide-react";
+import { FaWhatsapp } from "react-icons/fa"; // Font Awesome WhatsApp icon
 
 interface QCard {
   name: string;
@@ -319,7 +320,7 @@ export default function BusinessProfile() {
                           onClick={(e) => handleWhatsAppClick(formData.whatsappnumber!, e)}
                           className="p-2 hover:scale-125 transition-transform"
                         >
-                          <MessageSquare className="w-5 h-5 text-green-500" />
+                          <FaWhatsapp className="w-4 h-4 mr-1 text-green-500" />,
                         </a>
                       </div>
                     </div>
