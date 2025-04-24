@@ -10,7 +10,7 @@ interface QCard {
   name: string;
   title?: string;
   email?: string;
-  phone?: string;
+  businessPhone?: string;
   website?: string;
   comment?: string;
   address?: string;

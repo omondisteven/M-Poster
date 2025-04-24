@@ -13,7 +13,7 @@ interface QCard {
   name: string;
   title?: string;
   email?: string;
-  phone?: string;
+  businessPhone?: string;
   website?: string;
   comment?: string;
   address?: string;
@@ -24,7 +24,7 @@ const defaultFields = [
   { id: "name", label: "Name", placeholder: "Jaskier", required: true },
   { id: "title", label: "Title", placeholder: "Singer, Poet, Lute Player" },
   { id: "email", label: "Email", placeholder: "info@balladsfromjaskier.com" },
-  { id: "phone", label: "Phone", placeholder: "+000 000" },
+  { id: "businessPhone", label: "Phone", placeholder: "+000 000" },
   { id: "website", label: "Website", placeholder: "https://thelute.com" },
   { id: "comment", label: "Comment", placeholder: "Your comment..." },
   { id: "address", label: "Address", placeholder: "10 Lute Street, 012" },
@@ -139,7 +139,7 @@ export default function BusinessProfile() {
     vcard += `FN:${formData.name}\n`;
     if (formData.title) vcard += `TITLE:${formData.title}\n`;
     if (formData.email) vcard += `EMAIL:${formData.email}\n`;
-    if (formData.phone) vcard += `TEL:${formData.phone}\n`;
+    if (formData.businessPhone) vcard += `TEL:${formData.businessPhone}\n`;
     if (formData.address) vcard += `ADR:${formData.address}\n`;
     if (formData.website) vcard += `URL:${formData.website}\n`;
     if (formData.comment) vcard += `NOTE:${formData.comment}\n`;
@@ -154,9 +154,9 @@ export default function BusinessProfile() {
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     
     if (isMobile) {
-      window.location.href = `whatsapp://send?phone=${phoneNumber}`;
+      window.location.href = `whatsapp://send?businessPhone=${phoneNumber}`;
     } else {
-      window.open(`https://web.whatsapp.com/send?phone=${phoneNumber}`, '_blank');
+      window.open(`https://web.whatsapp.com/send?businessPhone=${phoneNumber}`, '_blank');
     }
   };
 
@@ -245,7 +245,7 @@ export default function BusinessProfile() {
                 </div>
 
                 {/* Phone */}
-                {formData.phone && (
+                {formData.businessPhone && (
                   <>
                     <div className="h-[1px] bg-gray-200 mx-2 my-1"></div>
                     <div className="group pl-2 border-l-4 border-gray-500 hover:border-l-8 hover:border-[#170370] hover:bg-[rgba(23,3,112,0.05)] transition-all">
@@ -254,9 +254,9 @@ export default function BusinessProfile() {
                       </div>
                       <div className="flex justify-between items-center">
                         <p className="group-hover:text-[#170370] transition-colors pl-2 py-1">
-                          {formData.phone}
+                          {formData.businessPhone}
                         </p>
-                        <a href={`tel:${formData.phone}`} className="p-2 hover:scale-125 transition-transform">
+                        <a href={`tel:${formData.businessPhone}`} className="p-2 hover:scale-125 transition-transform">
                           <Phone className="w-5 h-5" />
                         </a>
                       </div>
