@@ -2,7 +2,7 @@
 import { EmbedUI } from "@/components/embed";
 import Footer from "@/components/footer";
 import Header from "@/components/header";
-import { Outlet, Link } from "@tanstack/react-router";
+import { Outlet, Link, useRouterState } from "@tanstack/react-router";
 import { createRootRoute } from "@tanstack/react-router";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TanStackRouterDevtools } from "@tanstack/router-devtools";
@@ -18,9 +18,10 @@ export const Route = createRootRoute({
       return <EmbedUI />;
     }
 
-    const pathname = window.location.pathname;
-    const activeTab =
-      pathname.startsWith("/business-profile") ? "business-profile" : "poster";
+    const router = useRouterState();
+    const activeTab = router.location.pathname.startsWith("/business-profile") 
+      ? "business-profile" 
+      : "poster";
 
     return (
       <div className="min-h-screen flex flex-col bg-gray-100 overflow-x-hidden relative">
@@ -39,16 +40,30 @@ export const Route = createRootRoute({
         <Header />
 
         {/* Tabs navigation */}
-        <Tabs value={activeTab} className="px-4 pt-4">
-          <TabsList>
-            <Link to="/poster">
-              <TabsTrigger value="poster">Poster</TabsTrigger>
-            </Link>
-            <Link to="/business-profile">
-              <TabsTrigger value="business-profile">Business Profile</TabsTrigger>
-            </Link>
-          </TabsList>
-        </Tabs>
+        <div className="px-4 pt-4">
+          <Tabs value={activeTab}>
+            <TabsList className="bg-gray-200 p-1.5 rounded-lg">
+              <TabsTrigger 
+                value="poster" 
+                asChild
+                className="px-3 py-1 text-sm data-[state=active]:bg-blue-500 data-[state=active]:text-white
+                           hover:bg-gray-300 transition-colors duration-200 rounded-md
+                           data-[state=active]:hover:bg-blue-600"
+              >
+                <Link to="/poster">Poster</Link>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="business-profile"
+                asChild
+                className="px-3 py-1 text-sm data-[state=active]:bg-blue-500 data-[state=active]:text-white
+                           hover:bg-gray-300 transition-colors duration-200 rounded-md
+                           data-[state=active]:hover:bg-blue-600"
+              >
+                <Link to="/business-profile">E-Business Card</Link>
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
 
         {/* Tab content */}
         <main className="flex flex-col px-4 pb-10">
