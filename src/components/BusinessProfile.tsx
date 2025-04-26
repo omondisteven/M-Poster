@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { toPng } from "html-to-image";
 import { saveAs } from "file-saver";
 import {
-  Mail, Phone, Globe, MapPin, Share2, Download, Copy, Edit
+  Mail, Phone, Globe, MapPin, Share2, Download, Copy, 
 } from "lucide-react";
 import { FaWhatsapp } from "react-icons/fa"; // Font Awesome WhatsApp icon
 import { useAppContext } from "@/context/AppContext";
@@ -25,11 +25,11 @@ const defaultFields = [
   { id: "name", label: "Name", placeholder: "Jaskier", required: true },
   { id: "title", label: "Title", placeholder: "Singer, Poet, Lute Player" },
   { id: "email", label: "Email", placeholder: "info@balladsfromjaskier.com" },
-  { id: "phone", label: "Phone", placeholder: "+000 000" },
+  { id: "phone", label: "Phone", placeholder: "0722123456" },
   { id: "website", label: "Website", placeholder: "https://thelute.com" },
   { id: "comment", label: "Comment", placeholder: "Your comment..." },
   { id: "address", label: "Address", placeholder: "10 Lute Street, 012" },
-  { id: "whatsappnumber", label: "WhatsApp No.", placeholder: "Start with country code" },
+  { id: "whatsappnumber", label: "WhatsApp No.", placeholder: "0722123456" },
 ];
 
 const LOCAL_STORAGE_KEY = 'businessProfileData';
@@ -63,7 +63,7 @@ export default function BusinessProfile() {
   // Add this function to reset the form
   const resetForm = () => {
     setFormData(null);
-    setActiveFields([{ ...defaultFields[0] }]);
+    setActiveFields([{ ...defaultFields[0] }]); // Always reset to just the name field
     // Clear input values
     Object.values(inputRefs.current).forEach(ref => {
       if (ref) ref.value = '';
@@ -74,6 +74,10 @@ export default function BusinessProfile() {
   const toggleField = (fieldId: string) => {
     const field = defaultFields.find(f => f.id === fieldId);
     if (!field) return;
+    
+    // Prevent removing the 'name' field
+    if (fieldId === 'name') return;
+    
     if (isActive(fieldId)) {
       setActiveFields(activeFields.filter(f => f.id !== fieldId));
     } else {
@@ -121,11 +125,27 @@ export default function BusinessProfile() {
   const qrRef = useRef<HTMLDivElement | null>(null);
 
   const downloadQR = () => {
-    if (qrRef.current && formData) {
-      toPng(qrRef.current).then(dataUrl => {
-        saveAs(dataUrl, `${formData?.name ?? "qr"}.png`);
-      });
+    if (!qrRef.current) {
+      console.error("QR ref not found");
+      return;
     }
+    if (!formData) {
+      console.error("No form data");
+      return;
+    }
+  
+    toPng(qrRef.current, {
+      quality: 1,
+      backgroundColor: '#ffffff',
+      cacheBust: true
+    })
+      .then((dataUrl) => {
+        saveAs(dataUrl, `${formData.name || "qr"}.png`);
+      })
+      .catch((err) => {
+        console.error("Error generating QR image:", err);
+        alert("Failed to download QR code. Please try again.");
+      });
   };
 
   const copyLink = () => {
@@ -190,7 +210,7 @@ export default function BusinessProfile() {
             variant="outline"
             className="bg-white hover:bg-gray-100"
           >
-            Create New
+            Reset
           </Button>
         </div>
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -224,19 +244,21 @@ export default function BusinessProfile() {
 
           {/* Field toggles */}
           <div className="flex flex-wrap gap-2">
-            {defaultFields.map(field => (
-              <button
-                type="button"
-                key={field.id}
-                onClick={() => toggleField(field.id)}
-                className={`text-sm border px-2 py-1 rounded flex items-center gap-1 ${
-                  isActive(field.id) ? "bg-red-100 hover:bg-red-200" : "hover:border-blue-500"
-                }`}
-              >
-                {isActive(field.id) ? "−" : "+"}
-                {field.label}
-              </button>
-            ))}
+          {defaultFields.map(field => (
+          field.id !== 'name' && ( // Only render toggle button if it's not the 'name' field
+            <button
+              type="button"
+              key={field.id}
+              onClick={() => toggleField(field.id)}
+              className={`text-sm border px-2 py-1 rounded flex items-center gap-1 ${
+                isActive(field.id) ? "bg-red-100 hover:bg-red-200" : "hover:border-blue-500"
+              }`}
+            >
+              {isActive(field.id) ? "−" : "+"}
+              {field.label}
+            </button>
+          )
+        ))}
           </div>
 
           <Button type="submit">Create Contact Card</Button>
@@ -248,7 +270,10 @@ export default function BusinessProfile() {
         <div className="bg-white p-4 rounded-lg border-4 border-[#2f363d] shadow-md w-full">
           {formData ? (
             <>
-              <div className="flex justify-center mb-4 w-full p-4">
+              <div 
+                ref={qrRef} 
+                className="flex justify-center mb-4 w-full p-4 bg-white" // Added bg-white for better PNG export
+              >
                 <a href={window.location.href} className="w-full">
                   <QRCode 
                     value={JSON.stringify(formData)} 
@@ -401,14 +426,7 @@ export default function BusinessProfile() {
 
               <hr className="border-t border-gray-300 my-4" />
 
-              <div className="flex justify-end gap-2">
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="mr-auto p-2 hover:bg-gray-100"
-                >
-                  <Edit className="w-4 h-4" />
-                </Button>
+              <div className="flex justify-end gap-2">                
                 
                 {'share' in navigator && typeof navigator.share === 'function' ? (
                   <Button 
@@ -464,8 +482,14 @@ export default function BusinessProfile() {
         {/* Download/Share Buttons */}
         {formData && (
           <div className="flex gap-2 justify-center mt-4">
-            <Button onClick={downloadQR}><Download className="w-4 h-4 mr-1" />Download QR</Button>
-            <Button onClick={shareQR} variant="outline"><Share2 className="w-4 h-4 mr-1" />Share</Button>
+            <Button 
+            onClick={downloadQR}
+            disabled={!formData}
+          >
+            <Download className="w-4 h-4 mr-1" />
+            Download QR
+          </Button>
+            <Button onClick={shareQR} variant="outline"><Share2 className="w-4 h-4 mr-1" />Share Qr</Button>
           </div>
         )}
       </div>      
