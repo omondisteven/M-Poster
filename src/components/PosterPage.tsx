@@ -20,6 +20,8 @@ import { generateQRCode } from "@/utils/helpers";
 import { useAppContext,  } from "@/context/AppContext";
 import { TRANSACTION_TYPE } from "@/@types/TransactionType";
 import { HiOutlineDownload, HiOutlineShare } from "react-icons/hi";
+// import { saveAs } from 'file-saver'; // optional but makes saving files easier
+// import jsPDF from 'jspdf'; // for pdf generation
 
 // import { parsePhoneNumberFromString } from 'libphonenumber-js';
 import { AsYouType } from 'libphonenumber-js';
@@ -546,6 +548,91 @@ function PosterPage() {
     try {
       await document.fonts.load("bold 120px Inter");
   
+      // Create a modal/dialog with dropdown for format selection
+      const modal = document.createElement('div');
+      modal.style.position = 'fixed';
+      modal.style.top = '0';
+      modal.style.left = '0';
+      modal.style.width = '100%';
+      modal.style.height = '100%';
+      modal.style.backgroundColor = 'rgba(0,0,0,0.5)';
+      modal.style.display = 'flex';
+      modal.style.justifyContent = 'center';
+      modal.style.alignItems = 'center';
+      modal.style.zIndex = '1000';
+  
+      const dialog = document.createElement('div');
+      dialog.style.backgroundColor = 'white';
+      dialog.style.padding = '20px';
+      dialog.style.borderRadius = '8px';
+      dialog.style.width = '300px';
+  
+      const label = document.createElement('label');
+      label.textContent = 'Select Download Format:';
+      label.style.display = 'block';
+      label.style.marginBottom = '10px';
+      label.style.fontWeight = 'bold';
+  
+      const select = document.createElement('select');
+      select.style.width = '100%';
+      select.style.padding = '8px';
+      select.style.borderRadius = '4px';
+      select.style.marginBottom = '15px';
+  
+      const options = ['png', 'jpg', 'pdf'];
+      options.forEach(option => {
+        const optElement = document.createElement('option');
+        optElement.value = option;
+        optElement.textContent = option.toUpperCase();
+        select.appendChild(optElement);
+      });
+  
+      const buttonContainer = document.createElement('div');
+      buttonContainer.style.display = 'flex';
+      buttonContainer.style.justifyContent = 'flex-end';
+      buttonContainer.style.gap = '10px';
+  
+      const cancelButton = document.createElement('button');
+      cancelButton.textContent = 'Cancel';
+      cancelButton.style.padding = '8px 16px';
+      cancelButton.style.border = 'none';
+      cancelButton.style.borderRadius = '4px';
+      cancelButton.style.cursor = 'pointer';
+  
+      const downloadButton = document.createElement('button');
+      downloadButton.textContent = 'Download';
+      downloadButton.style.padding = '8px 16px';
+      downloadButton.style.backgroundColor = '#4CAF50';
+      downloadButton.style.color = 'white';
+      downloadButton.style.border = 'none';
+      downloadButton.style.borderRadius = '4px';
+      downloadButton.style.cursor = 'pointer';
+  
+      buttonContainer.appendChild(cancelButton);
+      buttonContainer.appendChild(downloadButton);
+      dialog.appendChild(label);
+      dialog.appendChild(select);
+      dialog.appendChild(buttonContainer);
+      modal.appendChild(dialog);
+      document.body.appendChild(modal);
+  
+      // Wait for user selection
+      const format = await new Promise<string | null>((resolve) => {
+        cancelButton.onclick = () => {
+          document.body.removeChild(modal);
+          resolve(null);
+        };
+  
+        downloadButton.onclick = () => {
+          document.body.removeChild(modal);
+          resolve(select.value);
+        };
+      });
+  
+      if (!format) {
+        return; // User cancelled
+      }
+  
       const canvas = document.createElement('canvas');
       const width = selectedTemplate.size.width;
       const posterHeight = selectedTemplate.size.height;
@@ -589,10 +676,10 @@ function PosterPage() {
       // Draw outer border for the entire canvas
       ctx.fillStyle = borderColor;
       ctx.fillRect(0, 0, width, totalHeight);    
-
+  
       // QR Code Section - NOW AT THE TOP
       const qrSectionY = 0;
-
+  
       // Draw white background for QR code section
       ctx.fillStyle = whiteColor;
       ctx.fillRect(
@@ -601,7 +688,7 @@ function PosterPage() {
         width - 2 * borderSize,
         qrSectionHeight - borderSize
       );
-
+  
       // Create scan section with same height as other sections
       const scanSectionY = qrSectionY + borderSize;
       
@@ -622,7 +709,7 @@ function PosterPage() {
         width - 2 * borderSize,
         borderSize
       );
-
+  
       // Add bottom border to QR code section
       ctx.fillStyle = borderColor;
       ctx.fillRect(
@@ -631,10 +718,10 @@ function PosterPage() {
         width - 2 * borderSize,
         borderSize
       );
-
+  
       // Add "SCAN TO PAY!" text in the scan section (changed text color to white)
       const scanText = "SCAN TO PAY!";
-      ctx.fillStyle = whiteColor; // Changed from textColor to whiteColor
+      ctx.fillStyle = whiteColor;
       ctx.font = `bold ${scanTextFontSize}px Inter, sans-serif`;
       ctx.textAlign = "center";
       ctx.fillText(
@@ -642,30 +729,26 @@ function PosterPage() {
         width / 2, 
         scanSectionY + (scanSectionHeight / 2)
       );
-
+  
       // Position QR code below the scan section
       const qrCodeY = scanSectionY + scanSectionHeight + borderSize + 30;
-
+  
       // Draw sections with proper colors and borders (shifted down by qrSectionHeight)
       for (let i = 0; i < sectionCount; i++) {
         const yPos = i * sectionHeight + qrSectionHeight + borderSize;
         let currentSectionHeight = sectionHeight;
         
-        // Adjust for top border on first section
         if (i === 0) {
           currentSectionHeight = sectionHeight - borderSize;
         }
-        // Adjust for bottom border on last section
         else if (i === sectionCount - 1) {
           currentSectionHeight = sectionHeight - borderSize;
         }
         
-        // Determine section color
         let sectionColor;
         if (i === 0) {
-          sectionColor = mainColor; // First section is always main color
+          sectionColor = mainColor;
         } else {
-          // Alternate between white and main color
           sectionColor = i % 2 === 0 ? mainColor : whiteColor;
         }
         
@@ -677,7 +760,6 @@ function PosterPage() {
           currentSectionHeight
         );
         
-        // Draw top border for all sections except the first one
         if (i > 0) {
           ctx.fillStyle = borderColor;
           ctx.fillRect(
@@ -709,7 +791,6 @@ function PosterPage() {
       // Draw content based on transaction type
       switch (title) {
         case "Send Money":
-          // Phone number in second section
           ctx.fillStyle = textColor;
           ctx.font = `bold ${valueFontSize}px Inter, sans-serif`;
           ctx.fillText(
@@ -720,7 +801,6 @@ function PosterPage() {
           break;
         
         case "Pay Bill":
-          // Business Number (second section)
           ctx.fillStyle = textColor;
           ctx.font = `bold ${labelFontSize}px Inter, sans-serif`;
           ctx.fillText(
@@ -737,7 +817,6 @@ function PosterPage() {
             titleSectionY + sectionHeight + (sectionHeight * 0.5)
           );
           
-          // Account Number (third section)
           const accountNumberYPos = titleSectionY + (2 * sectionHeight) + (sectionHeight * 0.15);
           ctx.fillStyle = whiteColor;
           ctx.font = `bold ${labelFontSize}px Inter, sans-serif`;
@@ -757,7 +836,6 @@ function PosterPage() {
           break;
         
         case "Buy Goods":
-          // Till Number (second section)
           ctx.fillStyle = textColor;
           ctx.font = `bold ${labelFontSize}px Inter, sans-serif`;
           ctx.fillText(
@@ -776,7 +854,6 @@ function PosterPage() {
           break;
         
         case "Withdraw Money":
-          // Agent Number (second section)
           ctx.fillStyle = textColor;
           ctx.font = `bold ${labelFontSize}px Inter, sans-serif`;
           ctx.fillText(
@@ -793,7 +870,6 @@ function PosterPage() {
             titleSectionY + sectionHeight + (sectionHeight * 0.5)
           );
           
-          // Store Number (third section)
           const storeNumberYPos = titleSectionY + (2 * sectionHeight) + (sectionHeight * 0.15);
           ctx.fillStyle = whiteColor;
           ctx.font = `bold ${labelFontSize}px Inter, sans-serif`;
@@ -827,79 +903,101 @@ function PosterPage() {
           nameYPos
         );
       }
-
-       // Generate QR code data - await the result
-       const qrData = await generateDownloadQrData();
-       if (!qrData) {
-         throw new Error("Invalid QR code data");
-       }
-
+  
+      // Generate QR code data
+      const qrData = await generateDownloadQrData();
+      if (!qrData) {
+        throw new Error("Invalid QR code data");
+      }
+  
       // Create a temporary container for the QR code
       const tempDiv = document.createElement('div');
       tempDiv.style.position = 'absolute';
       tempDiv.style.left = '-9999px';
       document.body.appendChild(tempDiv);
-
+  
       // Create a root and render the QR code
       const root = createRoot(tempDiv);
-        root.render(
-          <QrSvg
-            value={qrData} // Now this is definitely a string
-            className="qr-code-svg"
-            fgColor="#000000"
-            style={{ width: qrCodeWidth, height: qrCodeWidth }}
-          />
-        );
+      root.render(
+        <QrSvg
+          value={qrData}
+          className="qr-code-svg"
+          fgColor="#000000"
+          style={{ width: qrCodeWidth, height: qrCodeWidth }}
+        />
+      );
+      
       // Wait briefly for React to render
       await new Promise(resolve => setTimeout(resolve, 50));
-
+  
       // Get the SVG element
       const svgElement = tempDiv.querySelector('.qr-code-svg') as SVGSVGElement;
       if (!svgElement) {
         throw new Error("Could not generate QR code");
       }
-
+  
       // Serialize the SVG
       const svgData = new XMLSerializer().serializeToString(svgElement);
       const img = new Image();
-
+  
       await new Promise((resolve, reject) => {
         img.onload = resolve;
         img.onerror = reject;
         img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgData);
       });
-
+  
       // Draw the QR code to the main canvas
       ctx.drawImage(img, qrCodePadding, qrCodeY, qrCodeWidth, qrCodeWidth);
-
+  
       // Clean up
       root.unmount();
       document.body.removeChild(tempDiv);
       
-      // Generate download link
-      const dataUrl = canvas.toDataURL("image/png", 1.0);
-      const link = document.createElement("a");
-      switch (title){
+      // Generate download link based on selected format
+      let fileName = "";
+      
+      // Set filename based on transaction type
+      switch (title) {
         case "Send Money":
-          link.download = `${phoneNumber}-${title.toLowerCase().replace(/\s/g, "-")}.png`;
+          fileName = `${phoneNumber}-${title.toLowerCase().replace(/\s/g, "-")}`;
           break;
         case "Pay Bill":
-          link.download = `${paybillNumber}-${title.toLowerCase().replace(/\s/g, "-")}.png`;
+          fileName = `${paybillNumber}-${title.toLowerCase().replace(/\s/g, "-")}`;
           break;
         case "Buy Goods":
-          link.download = `${tillNumber}-${title.toLowerCase().replace(/\s/g, "-")}.png`;
+          fileName = `${tillNumber}-${title.toLowerCase().replace(/\s/g, "-")}`;
           break;
         case "Withdraw Money":
-          link.download = `${agentNumber}-${title.toLowerCase().replace(/\s/g, "-")}.png`;
+          fileName = `${agentNumber}-${title.toLowerCase().replace(/\s/g, "-")}`;
           break;
+        default:
+          fileName = `mpesa-poster-${Date.now()}`;
       }
       
-      link.href = dataUrl;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      if (format === "pdf") {
+        // Create PDF
+        const { jsPDF } = await import("jspdf");
+        const pdf = new jsPDF({
+          orientation: width > totalHeight ? "landscape" : "portrait",
+          unit: "px",
+          format: [width, totalHeight]
+        });
+        
+        pdf.addImage(canvas, "PNG", 0, 0, width, totalHeight);
+        pdf.save(`${fileName}.pdf`);
+      } else {
+        // For image formats (png/jpg)
+        const dataUrl = canvas.toDataURL(`image/${format}`, 1.0);
+        const link = document.createElement("a");
+        link.download = `${fileName}.${format}`;
+        link.href = dataUrl;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
     } catch (error) {
       console.error("Error generating image:", error);
+      alert("An error occurred while generating the download. Please try again.");
     }
   };
   // Helper functions for the preview
