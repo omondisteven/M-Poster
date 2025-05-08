@@ -1195,14 +1195,14 @@ function PosterPage() {
       }
   
       // Create a shareable message - different behavior for Push STK vs M-Pesa App
-      let shareMessage;
+      let shareMessage = `M-Pesa Payment Poster - ${title}\n`;
       let shareUrl = qrData;
   
       if (qrGenerationMethod === "push") {
         // For Push STK, we only share the URL
         if (qrData.includes('http')) {
           shareUrl = qrData;
-          shareMessage = `Scan or visit this link to make an M-Pesa payment: ${qrData}`;
+          shareMessage = `Scan or visit this link to make an M-Pesa payment:`;
         } else {
           // Fallback if we don't have a URL (shouldn't happen with Push STK)
           shareUrl = qrData;
@@ -1210,28 +1210,26 @@ function PosterPage() {
         }
       } else {
         // For M-Pesa App QR codes, include all the details
-        shareMessage = `M-Pesa Payment Poster - ${title}\n`;
-        
         switch (title) {
           case "Send Money":
-            shareMessage += `Phone: ${phoneNumber}`;
+            shareMessage += `Phone: ${phoneNumber}\n`;
             break;
           case "Pay Bill":
-            shareMessage += `Paybill: ${paybillNumber}\nAccount: ${accountNumber}`;
+            shareMessage += `Paybill: ${paybillNumber}\nAccount: ${accountNumber}\n`;
             break;
           case "Buy Goods":
-            shareMessage += `Till Number: ${tillNumber}`;
+            shareMessage += `Till Number: ${tillNumber}\n`;
             break;
           case "Withdraw Money":
-            shareMessage += `Agent: ${agentNumber}\nStore: ${storeNumber}`;
+            shareMessage += `Agent: ${agentNumber}\nStore: ${storeNumber}\n`;
             break;
         }
   
         if (showName && businessName) {
-          shareMessage += `\nName: ${businessName}`;
+          shareMessage += `Name: ${businessName}\n`;
         }
   
-        shareMessage += `\nScan the QR code to make payment`;
+        shareMessage += `Scan the QR code to make payment`;
       }
   
       // Check if Web Share API is available (mobile devices)
@@ -1257,7 +1255,7 @@ function PosterPage() {
         } else {
           // For raw data QR codes (M-Pesa App)
           const textArea = document.createElement('textarea');
-          textArea.value = shareMessage;
+          textArea.value = shareMessage + `\n\nQR Code Data:\n${qrData}`;
           document.body.appendChild(textArea);
           textArea.select();
           document.execCommand('copy');
