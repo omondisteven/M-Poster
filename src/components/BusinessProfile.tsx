@@ -247,7 +247,7 @@ export default function BusinessProfile() {
                   <input
                     id={field.id}
                     ref={el => { inputRefs.current[field.id] = el; }}
-                    type="tel"
+                    type="text"
                     inputMode={["phone", "whatsappnumber"].includes(field.id) ? "numeric" : "text"}
                     pattern={["phone", "whatsappnumber"].includes(field.id) ? "[0-9\\- ]*" : undefined}
                     onInput={(e) => {
@@ -261,6 +261,7 @@ export default function BusinessProfile() {
                     className="p-2 border rounded"
                     required={field.required}
                   />
+
 
                       <datalist id={`recent-${field.id}`}>
                         {getRecentEntries(field.id).map((entry, idx) => (
