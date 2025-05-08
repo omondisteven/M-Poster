@@ -245,14 +245,23 @@ export default function BusinessProfile() {
                 ) : (
                   <>
                   <input
-                      id={field.id}
-                      ref={el => { inputRefs.current[field.id] = el; } }
-                      type="text"
-                      list={`recent-${field.id}`} // Associate with datalist
-                      placeholder={field.placeholder}
-                      className="p-2 border rounded"
-                      required={field.required} 
-                      />
+                    id={field.id}
+                    ref={el => { inputRefs.current[field.id] = el; }}
+                    type="tel"
+                    inputMode={["phone", "whatsappnumber"].includes(field.id) ? "numeric" : "text"}
+                    pattern={["phone", "whatsappnumber"].includes(field.id) ? "[0-9\\- ]*" : undefined}
+                    onInput={(e) => {
+                      if (["phone", "whatsappnumber"].includes(field.id)) {
+                        const value = (e.target as HTMLInputElement).value;
+                        (e.target as HTMLInputElement).value = value.replace(/[^\d\- ]/g, '');
+                      }
+                    }}
+                    list={`recent-${field.id}`}
+                    placeholder={field.placeholder}
+                    className="p-2 border rounded"
+                    required={field.required}
+                  />
+
                       <datalist id={`recent-${field.id}`}>
                         {getRecentEntries(field.id).map((entry, idx) => (
                           <option key={idx} value={entry} />
