@@ -27,10 +27,24 @@ const defaultFields = [
   { id: "email", label: "Email", placeholder: "info@balladsfromjaskier.com" },
   { id: "phone", label: "Phone", placeholder: "0722123456" },
   { id: "website", label: "Website", placeholder: "https://thelute.com" },
-  { id: "comment", label: "Comment", placeholder: "Your comment..." },
+  { id: "comment", label: "Description", placeholder: "Description of the Business Card..." },
   { id: "address", label: "Address", placeholder: "10 Lute Street, 012" },
   { id: "whatsappnumber", label: "WhatsApp No.", placeholder: "0722123456" },
 ];
+
+const MAX_SUGGESTIONS = 5;
+
+function getRecentEntries(fieldId: string): string[] {
+  const raw = localStorage.getItem(`recent_${fieldId}`);
+  return raw ? JSON.parse(raw) : [];
+}
+
+function saveRecentEntry(fieldId: string, value: string) {
+  if (!value.trim()) return;
+  const existing = getRecentEntries(fieldId);
+  const updated = [value, ...existing.filter(v => v !== value)].slice(0, MAX_SUGGESTIONS);
+  localStorage.setItem(`recent_${fieldId}`, JSON.stringify(updated));
+}
 
 const LOCAL_STORAGE_KEY = 'businessProfileData';
 export default function BusinessProfile() {
@@ -93,7 +107,7 @@ export default function BusinessProfile() {
       const val = inputRefs.current[field.id]?.value;
       if (val) {
         data[field.id as keyof QCard] = val;
-        
+        saveRecentEntry(field.id, val);        
       }
     });
     if (!data.name || data.name.trim() === "") {
@@ -229,14 +243,21 @@ export default function BusinessProfile() {
                     required={field.required}
                   />
                 ) : (
+                  <>
                   <input
-                    id={field.id}
-                    ref={el => { inputRefs.current[field.id] = el }}
-                    type="text"
-                    placeholder={field.placeholder}
-                    className="p-2 border rounded"
-                    required={field.required}
-                  />
+                      id={field.id}
+                      ref={el => { inputRefs.current[field.id] = el; } }
+                      type="text"
+                      list={`recent-${field.id}`} // Associate with datalist
+                      placeholder={field.placeholder}
+                      className="p-2 border rounded"
+                      required={field.required} 
+                      />
+                      <datalist id={`recent-${field.id}`}>
+                        {getRecentEntries(field.id).map((entry, idx) => (
+                          <option key={idx} value={entry} />
+                        ))}
+                      </datalist></>
                 )}
               </div>
             ))}
@@ -412,7 +433,7 @@ export default function BusinessProfile() {
                     <div className="h-[1px] bg-gray-200 mx-2 my-1"></div>
                     <div className="group pl-2 border-l-4 border-gray-500 hover:border-l-8 hover:border-[#170370] hover:bg-[rgba(23,3,112,0.05)] transition-all">
                       <div className="text-xs uppercase font-bold text-gray-500 group-hover:text-[#170370] transition-colors pl-2">
-                        Comment
+                        Description
                       </div>
                       <div className="flex justify-between items-center">
                         <p className="group-hover:text-[#170370] transition-colors pl-2 py-1">

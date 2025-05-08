@@ -209,6 +209,37 @@ interface FormValues {
 export const Route = createFileRoute("/poster/")({
   component: PosterPage,
 });
+// Add this utility function at the top of the file (after imports)
+const useInputHistory = (key: string) => {
+  const [history, setHistory] = useState<string[]>([]);
+
+  // Load history from localStorage on mount
+  useEffect(() => {
+    const savedHistory = localStorage.getItem(`inputHistory-${key}`);
+    if (savedHistory) {
+      setHistory(JSON.parse(savedHistory));
+    }
+  }, [key]);
+
+  // Add a new entry to history
+  const addToHistory = (value: string) => {
+    if (!value.trim()) return;
+    
+    setHistory(prev => {
+      // Remove if already exists
+      const filtered = prev.filter(item => item !== value);
+      // Add to beginning
+      const newHistory = [value, ...filtered];
+      // Keep only last 5 entries
+      const truncated = newHistory.slice(0, 5);
+      // Save to localStorage
+      localStorage.setItem(`inputHistory-${key}`, JSON.stringify(truncated));
+      return truncated;
+    });
+  };
+
+  return { history, addToHistory };
+};
 
 function PosterPage() {
   const [qrGenerationMethod, setQrGenerationMethod] = useState<"mpesa" | "push">("push");
@@ -217,6 +248,7 @@ function PosterPage() {
   const { data } = useAppContext();
   const posterRef = useRef<HTMLDivElement>(null);
   const [selectedTemplate, setSelectedTemplate] = useState(templates[0]);
+  
   const { control, handleSubmit, watch, setValue, formState: { errors, isValid }, trigger } = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -1162,44 +1194,66 @@ function PosterPage() {
         throw new Error("Invalid QR code data");
       }
   
-      // Create a shareable message
+      // Create a shareable message - different behavior for Push STK vs M-Pesa App
       let shareMessage = `M-Pesa Payment Poster - ${title}\n`;
-      
-      switch (title) {
-        case "Send Money":
-          shareMessage += `Phone: ${phoneNumber}\n`;
-          break;
-        case "Pay Bill":
-          shareMessage += `Paybill: ${paybillNumber}\nAccount: ${accountNumber}\n`;
-          break;
-        case "Buy Goods":
-          shareMessage += `Till Number: ${tillNumber}\n`;
-          break;
-        case "Withdraw Money":
-          shareMessage += `Agent: ${agentNumber}\nStore: ${storeNumber}\n`;
-          break;
-      }
+      let shareUrl = qrData;
   
-      if (showName && businessName) {
-        shareMessage += `Name: ${businessName}\n`;
-      }
+      if (qrGenerationMethod === "push") {
+        // For Push STK, we only share the URL
+        if (qrData.includes('http')) {
+          shareUrl = qrData;
+          shareMessage = `Scan or visit this link to make an M-Pesa payment: ${qrData}`;
+        } else {
+          // Fallback if we don't have a URL (shouldn't happen with Push STK)
+          shareUrl = qrData;
+          shareMessage = `Scan this QR code to make an M-Pesa payment`;
+        }
+      } else {
+        // For M-Pesa App QR codes, include all the details
+        switch (title) {
+          case "Send Money":
+            shareMessage += `Phone: ${phoneNumber}\n`;
+            break;
+          case "Pay Bill":
+            shareMessage += `Paybill: ${paybillNumber}\nAccount: ${accountNumber}\n`;
+            break;
+          case "Buy Goods":
+            shareMessage += `Till Number: ${tillNumber}\n`;
+            break;
+          case "Withdraw Money":
+            shareMessage += `Agent: ${agentNumber}\nStore: ${storeNumber}\n`;
+            break;
+        }
   
-      shareMessage += `Scan the QR code to make payment`;
+        if (showName && businessName) {
+          shareMessage += `Name: ${businessName}\n`;
+        }
+  
+        shareMessage += `Scan the QR code to make payment`;
+      }
   
       // Check if Web Share API is available (mobile devices)
       if (navigator.share) {
         await navigator.share({
           title: `M-Pesa ${title} Poster`,
           text: shareMessage,
-          url: qrData.includes('http') ? qrData : undefined,
+          url: shareUrl.includes('http') ? shareUrl : undefined,
         });
       } else {
         // Fallback for desktop browsers
-        if (qrData.includes('http')) {
-          // For URL-based QR codes
-          window.open(qrData, '_blank');
+        if (shareUrl.includes('http')) {
+          // For URL-based QR codes (always the case with Push STK)
+          if (qrGenerationMethod === "push") {
+            // Just copy the URL to clipboard for Push STK
+            navigator.clipboard.writeText(shareUrl)
+              .then(() => alert('Payment link copied to clipboard!'))
+              .catch(() => alert('Failed to copy link'));
+          } else {
+            // Open in new tab for M-Pesa App
+            window.open(shareUrl, '_blank');
+          }
         } else {
-          // For raw data QR codes
+          // For raw data QR codes (M-Pesa App)
           const textArea = document.createElement('textarea');
           textArea.value = shareMessage + `\n\nQR Code Data:\n${qrData}`;
           document.body.appendChild(textArea);
@@ -1355,21 +1409,38 @@ function PosterPage() {
                     <Controller
                       name="phoneNumber"
                       control={control}
-                      render={({ field }) => (
-                        <Input
-                          id="phone"
-                          type="tel"
-                          value={field.value || ""}
-                          onChange={(e) => {
-                            // Get the formatted phone number
-                            const formatted = formatPhoneNumber(e.target.value);
-                            // Update the field value
-                            field.onChange(formatted);
-                          }}
-                          className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold"
-                          placeholder="0722 256 123"
-                        />
-                      )}
+                      render={({ field }) => {
+                        const phoneHistory = useInputHistory('phoneNumber');
+                        
+                        return (
+                          <div className="relative">
+                            <Input
+                              id="phone"
+                              type="tel"
+                              value={field.value || ""}
+                              onChange={(e) => {
+                                const formatted = formatPhoneNumber(e.target.value);
+                                field.onChange(formatted);
+                              }}
+                              onBlur={() => {
+                                if (field.value) {
+                                  phoneHistory.addToHistory(field.value);
+                                }
+                              }}
+                              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold"
+                              placeholder="0722 256 123"
+                              list={`phoneNumber-history`}
+                            />
+                            {phoneHistory.history.length > 0 && (
+                              <datalist id={`phoneNumber-history`}>
+                                {phoneHistory.history.map((item, index) => (
+                                  <option key={index} value={item} />
+                                ))}
+                              </datalist>
+                            )}
+                          </div>
+                        );
+                      }}
                     />
                     {errors.phoneNumber && (
                       <p className="mt-1 text-sm text-red-500">{errors.phoneNumber.message}</p>
@@ -1387,20 +1458,39 @@ function PosterPage() {
                       <Controller
                         name="paybillNumber"
                         control={control}
-                        render={({ field }) => (
-                          <Input
-                            id="paybillNumber"
-                            type="text"
-                            inputMode="numeric"
-                            value={field.value || ""}
-                            onChange={(e) => {
-                              const value = e.target.value.replace(/\D/g, "");
-                              field.onChange(value);
-                            }}
-                            className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold"
-                            placeholder="123456"
-                          />
-                        )}
+                        render={({ field }) => {
+                          const paybillHistory = useInputHistory('paybillNumber');
+                          
+                          return (
+                            <div className="relative">
+                              <Input
+                                id="paybillNumber"
+                                type="text"
+                                inputMode="numeric"
+                                value={field.value || ""}
+                                onChange={(e) => {
+                                  const value = e.target.value.replace(/\D/g, "");
+                                  field.onChange(value);
+                                }}
+                                onBlur={() => {
+                                  if (field.value) {
+                                    paybillHistory.addToHistory(field.value);
+                                  }
+                                }}
+                                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold"
+                                placeholder="123456"
+                                list={`paybillNumber-history`}
+                              />
+                              {paybillHistory.history.length > 0 && (
+                                <datalist id={`paybillNumber-history`}>
+                                  {paybillHistory.history.map((item, index) => (
+                                    <option key={index} value={item} />
+                                  ))}
+                                </datalist>
+                              )}
+                            </div>
+                          );
+                        }}
                       />
                       {errors.paybillNumber && (
                         <p className="mt-1 text-sm text-red-500">{errors.paybillNumber.message}</p>
@@ -1413,16 +1503,35 @@ function PosterPage() {
                       <Controller
                         name="accountNumber"
                         control={control}
-                        render={({ field }) => (
-                          <Input
-                            id="accountNumber"
-                            type="text"
-                            value={field.value || ""}
-                            onChange={field.onChange}
-                            className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold"
-                            placeholder="Account number"
-                          />
-                        )}
+                        render={({ field }) => {
+                          const accountHistory = useInputHistory('accountNumber');
+                          
+                          return (
+                            <div className="relative">
+                              <Input
+                                id="accountNumber"
+                                type="text"
+                                value={field.value || ""}
+                                onChange={field.onChange}
+                                onBlur={() => {
+                                  if (field.value) {
+                                    accountHistory.addToHistory(field.value);
+                                  }
+                                }}
+                                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold"
+                                placeholder="Account number"
+                                list={`accountNumber-history`}
+                              />
+                              {accountHistory.history.length > 0 && (
+                                <datalist id={`accountNumber-history`}>
+                                  {accountHistory.history.map((item, index) => (
+                                    <option key={index} value={item} />
+                                  ))}
+                                </datalist>
+                              )}
+                            </div>
+                          );
+                        }}
                       />
                       {errors.accountNumber && (
                         <p className="mt-1 text-sm text-red-500">{errors.accountNumber.message}</p>
@@ -1440,20 +1549,39 @@ function PosterPage() {
                     <Controller
                       name="tillNumber"
                       control={control}
-                      render={({ field }) => (
-                        <Input
-                          id="tillNumber"
-                          type="text"
-                          inputMode="numeric"
-                          value={field.value || ""}
-                          onChange={(e) => {
-                            const value = e.target.value.replace(/\D/g, "");
-                            field.onChange(value);
-                          }}
-                          className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold"
-                          placeholder="123456"
-                        />
-                      )}
+                      render={({ field }) => {
+                        const tillHistory = useInputHistory('tillNumber');
+                        
+                        return (
+                          <div className="relative">
+                            <Input
+                              id="tillNumber"
+                              type="text"
+                              inputMode="numeric"
+                              value={field.value || ""}
+                              onChange={(e) => {
+                                const value = e.target.value.replace(/\D/g, "");
+                                field.onChange(value);
+                              }}
+                              onBlur={() => {
+                                if (field.value) {
+                                  tillHistory.addToHistory(field.value);
+                                }
+                              }}
+                              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold"
+                              placeholder="123456"
+                              list={`tillNumber-history`}
+                            />
+                            {tillHistory.history.length > 0 && (
+                              <datalist id={`tillNumber-history`}>
+                                {tillHistory.history.map((item, index) => (
+                                  <option key={index} value={item} />
+                                ))}
+                              </datalist>
+                            )}
+                          </div>
+                        );
+                      }}
                     />
                     {errors.tillNumber && (
                       <p className="mt-1 text-sm text-red-500">{errors.tillNumber.message}</p>
@@ -1471,20 +1599,39 @@ function PosterPage() {
                       <Controller
                         name="agentNumber"
                         control={control}
-                        render={({ field }) => (
-                          <Input
-                            id="agentNumber"
-                            type="text"
-                            inputMode="numeric"
-                            value={field.value || ""}
-                            onChange={(e) => {
-                              const value = e.target.value.replace(/\D/g, "");
-                              field.onChange(value);
-                            }}
-                            className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold"
-                            placeholder="Agent number"
-                          />
-                        )}
+                        render={({ field }) => {
+                          const agentHistory = useInputHistory('agentNumber');
+                          
+                          return (
+                            <div className="relative">
+                              <Input
+                                id="agentNumber"
+                                type="text"
+                                inputMode="numeric"
+                                value={field.value || ""}
+                                onChange={(e) => {
+                                  const value = e.target.value.replace(/\D/g, "");
+                                  field.onChange(value);
+                                }}
+                                onBlur={() => {
+                                  if (field.value) {
+                                    agentHistory.addToHistory(field.value);
+                                  }
+                                }}
+                                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold"
+                                placeholder="Agent number"
+                                list={`agentNumber-history`}
+                              />
+                              {agentHistory.history.length > 0 && (
+                                <datalist id={`agentNumber-history`}>
+                                  {agentHistory.history.map((item, index) => (
+                                    <option key={index} value={item} />
+                                  ))}
+                                </datalist>
+                              )}
+                            </div>
+                          );
+                        }}
                       />
                       {errors.agentNumber && (
                         <p className="mt-1 text-sm text-red-500">{errors.agentNumber.message}</p>
@@ -1497,16 +1644,35 @@ function PosterPage() {
                       <Controller
                         name="storeNumber"
                         control={control}
-                        render={({ field }) => (
-                          <Input
-                            id="storeNumber"
-                            type="text"
-                            value={field.value || ""}
-                            onChange={field.onChange}
-                            className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold"
-                            placeholder="Store number"
-                          />
-                        )}
+                        render={({ field }) => {
+                          const storeHistory = useInputHistory('storeNumber');
+                          
+                          return (
+                            <div className="relative">
+                              <Input
+                                id="storeNumber"
+                                type="text"
+                                value={field.value || ""}
+                                onChange={field.onChange}
+                                onBlur={() => {
+                                  if (field.value) {
+                                    storeHistory.addToHistory(field.value);
+                                  }
+                                }}
+                                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold"
+                                placeholder="Store number"
+                                list={`storeNumber-history`}
+                              />
+                              {storeHistory.history.length > 0 && (
+                                <datalist id={`storeNumber-history`}>
+                                  {storeHistory.history.map((item, index) => (
+                                    <option key={index} value={item} />
+                                  ))}
+                                </datalist>
+                              )}
+                            </div>
+                          );
+                        }}
                       />
                       {errors.storeNumber && (
                         <p className="mt-1 text-sm text-red-500">{errors.storeNumber.message}</p>
@@ -1541,23 +1707,42 @@ function PosterPage() {
                 {watch("showName") && (
                   <div>
                     <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-                      Your Name
+                      Merchant Name
                     </label>
                     <Controller
                       name="businessName"
                       control={control}
-                      render={({ field }) => (
-                        <Input
-                          id="name"
-                          type="text"
-                          value={field.value || ""}
-                          onChange={(e) => {
-                            field.onChange(e.target.value.toUpperCase());
-                          }}
-                          className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold"
-                          placeholder="NELSON ANANGWE"
-                        />
-                      )}
+                      render={({ field }) => {
+                        const businessHistory = useInputHistory('businessName');
+                        
+                        return (
+                          <div className="relative">
+                            <Input
+                              id="name"
+                              type="text"
+                              value={field.value || ""}
+                              onChange={(e) => {
+                                field.onChange(e.target.value.toUpperCase());
+                              }}
+                              onBlur={() => {
+                                if (field.value) {
+                                  businessHistory.addToHistory(field.value);
+                                }
+                              }}
+                              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold"
+                              placeholder="NELSON ANANGWE"
+                              list={`businessName-history`}
+                            />
+                            {businessHistory.history.length > 0 && (
+                              <datalist id={`businessName-history`}>
+                                {businessHistory.history.map((item, index) => (
+                                  <option key={index} value={item} />
+                                ))}
+                              </datalist>
+                            )}
+                          </div>
+                        );
+                      }}
                     />
                     {errors.businessName && (
                       <p className="mt-1 text-sm text-red-500">{errors.businessName.message}</p>
