@@ -1195,21 +1195,16 @@ function PosterPage() {
       }
   
       // Create a shareable message - different behavior for Push STK vs M-Pesa App
-      let shareMessage = `M-Pesa Payment Poster - ${title}\n`;
+      let shareMessage = '';
       let shareUrl = qrData;
-  
+
       if (qrGenerationMethod === "push") {
-        // For Push STK, we only share the URL
-        if (qrData.includes('http')) {
-          shareUrl = qrData;
-          shareMessage = `Scan or visit this link to make an M-Pesa payment: ${qrData}`;
-        } else {
-          // Fallback if we don't have a URL (shouldn't happen with Push STK)
-          shareUrl = qrData;
-          shareMessage = `Scan this QR code to make an M-Pesa payment`;
-        }
+        shareMessage = qrData.includes('http')
+          ? `Scan or visit this link to make an M-Pesa payment: ${qrData}`
+          : `Scan this QR code to make an M-Pesa payment`;
       } else {
-        // For M-Pesa App QR codes, include all the details
+        shareMessage = `M-Pesa Payment Poster - ${title}\n`;
+
         switch (title) {
           case "Send Money":
             shareMessage += `Phone: ${phoneNumber}\n`;
@@ -1224,13 +1219,14 @@ function PosterPage() {
             shareMessage += `Agent: ${agentNumber}\nStore: ${storeNumber}\n`;
             break;
         }
-  
+
         if (showName && businessName) {
           shareMessage += `Name: ${businessName}\n`;
         }
-  
+
         shareMessage += `Scan the QR code to make payment`;
       }
+
   
       // Check if Web Share API is available (mobile devices)
       if (navigator.share) {
