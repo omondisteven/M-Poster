@@ -1195,38 +1195,44 @@ function PosterPage() {
       }
   
       // Create a shareable message - different behavior for Push STK vs M-Pesa App
-      let shareMessage = '';
+      let shareMessage;
       let shareUrl = qrData;
-
+  
       if (qrGenerationMethod === "push") {
-        shareMessage = qrData.includes('http')
-          ? `Scan or visit this link to make an M-Pesa payment: ${qrData}`
-          : `Scan this QR code to make an M-Pesa payment`;
+        // For Push STK, we only share the URL
+        if (qrData.includes('http')) {
+          shareUrl = qrData;
+          shareMessage = `Scan or visit this link to make an M-Pesa payment: ${qrData}`;
+        } else {
+          // Fallback if we don't have a URL (shouldn't happen with Push STK)
+          shareUrl = qrData;
+          shareMessage = `Scan this QR code to make an M-Pesa payment`;
+        }
       } else {
+        // For M-Pesa App QR codes, include all the details
         shareMessage = `M-Pesa Payment Poster - ${title}\n`;
-
+        
         switch (title) {
           case "Send Money":
-            shareMessage += `Phone: ${phoneNumber}\n`;
+            shareMessage += `Phone: ${phoneNumber}`;
             break;
           case "Pay Bill":
-            shareMessage += `Paybill: ${paybillNumber}\nAccount: ${accountNumber}\n`;
+            shareMessage += `Paybill: ${paybillNumber}\nAccount: ${accountNumber}`;
             break;
           case "Buy Goods":
-            shareMessage += `Till Number: ${tillNumber}\n`;
+            shareMessage += `Till Number: ${tillNumber}`;
             break;
           case "Withdraw Money":
-            shareMessage += `Agent: ${agentNumber}\nStore: ${storeNumber}\n`;
+            shareMessage += `Agent: ${agentNumber}\nStore: ${storeNumber}`;
             break;
         }
-
+  
         if (showName && businessName) {
-          shareMessage += `Name: ${businessName}\n`;
+          shareMessage += `\nName: ${businessName}`;
         }
-
-        shareMessage += `Scan the QR code to make payment`;
+  
+        shareMessage += `\nScan the QR code to make payment`;
       }
-
   
       // Check if Web Share API is available (mobile devices)
       if (navigator.share) {
@@ -1251,7 +1257,7 @@ function PosterPage() {
         } else {
           // For raw data QR codes (M-Pesa App)
           const textArea = document.createElement('textarea');
-          textArea.value = shareMessage + `\n\nQR Code Data:\n${qrData}`;
+          textArea.value = shareMessage;
           document.body.appendChild(textArea);
           textArea.select();
           document.execCommand('copy');
