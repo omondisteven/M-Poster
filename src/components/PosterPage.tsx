@@ -20,10 +20,6 @@ import { generateQRCode } from "@/utils/helpers";
 import { useAppContext,  } from "@/context/AppContext";
 import { TRANSACTION_TYPE } from "@/@types/TransactionType";
 import { HiOutlineDownload, HiOutlineShare } from "react-icons/hi";
-// import { saveAs } from 'file-saver'; // optional but makes saving files easier
-// import jsPDF from 'jspdf'; // for pdf generation
-
-// import { parsePhoneNumberFromString } from 'libphonenumber-js';
 import { AsYouType } from 'libphonenumber-js';
 
 // Define zod schema for validation
@@ -1007,16 +1003,40 @@ function PosterPage() {
       }
       
       if (format === "pdf") {
-        // Create PDF
-        const { jsPDF } = await import("jspdf");
-        const pdf = new jsPDF({
-          orientation: width > totalHeight ? "landscape" : "portrait",
-          unit: "px",
-          format: [width, totalHeight]
+        // Use pdf-lib for PDF generation
+        const { PDFDocument } = await import('pdf-lib');
+        
+        // Create a new PDF document
+        const pdfDoc = await PDFDocument.create();
+        
+        // Add a page matching the canvas dimensions
+        const page = pdfDoc.addPage([width, totalHeight]);
+        
+        // Convert canvas to PNG image
+        const pngImage = await pdfDoc.embedPng(canvas.toDataURL('image/png'));
+        
+        // Draw the image on the PDF page
+        page.drawImage(pngImage, {
+          x: 0,
+          y: 0,
+          width: width,
+          height: totalHeight,
         });
         
-        pdf.addImage(canvas, "PNG", 0, 0, width, totalHeight);
-        pdf.save(`${fileName}.pdf`);
+        // Save the PDF
+        const pdfBytes = await pdfDoc.save();
+        
+        // Create download link
+        const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `${fileName}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        // Clean up
+        URL.revokeObjectURL(link.href);
       } else {
         // For image formats (png/jpg)
         const dataUrl = canvas.toDataURL(`image/${format}`, 1.0);
