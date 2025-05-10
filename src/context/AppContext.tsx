@@ -15,6 +15,8 @@ interface QCard {
   comment?: string;
   address?: string;
   whatsappnumber?: string;
+  promo1?: string;
+  promo2?: string;
 }
 
 // Define the default data structure
@@ -35,6 +37,9 @@ const defaultData: FormData = {
   businessComment: "",
   businessAddress: "",
   businessWhatsapp: "",
+  businessPromo1: "",
+  businessPromo2: "",
+
   color: colors.green[600],
   hideAmount: false,
   type: TRANSACTION_TYPE.SEND_MONEY,

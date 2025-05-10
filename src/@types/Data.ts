@@ -26,6 +26,8 @@ export interface Data {
   businessComment: string;
   businessAddress: string;
   businessWhatsapp: string;
+  businessPromo1: string;
+  businessPromo2: string;
 }
 
 export type FormData = Partial<Data>;

@@ -19,6 +19,8 @@ interface QCard {
   comment?: string;
   address?: string;
   whatsappnumber?: string;
+  promo1?: string;
+  promo2?: string;
 }
 
 const defaultFields = [
@@ -30,6 +32,8 @@ const defaultFields = [
   { id: "comment", label: "Description", placeholder: "Description of the Business Card..." },
   { id: "address", label: "Address", placeholder: "10 Lute Street, 012" },
   { id: "whatsappnumber", label: "WhatsApp No.", placeholder: "0722123456" },
+  { id: "promo1", label: "Promotion text 1", placeholder: "Promotion or Offer Details..." },
+  { id: "promo2", label: "Promotion text 2", placeholder: "Additional Promotion Info..." },
 ];
 
 const MAX_SUGGESTIONS = 5;
@@ -126,6 +130,9 @@ export default function BusinessProfile() {
       businessComment: data.comment || "",
       businessAddress: data.address || "",
       businessWhatsapp: data.whatsappnumber || "",
+      businessPromo1: data.promo1 || "",
+      businessPromo2: data.promo2 || "",
+
     });
   };
 
@@ -234,7 +241,7 @@ export default function BusinessProfile() {
                 <label htmlFor={field.id} className={`font-medium ${field.required ? "text-red-600" : ""}`}>
                   {field.label}{field.required && " *"}
                 </label>
-                {field.id === "comment" ? (
+                {["comment", "promo1", "promo2"].includes(field.id) ? (
                   <textarea
                     id={field.id}
                     ref={el => { inputRefs.current[field.id] = el }}

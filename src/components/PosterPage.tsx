@@ -200,6 +200,8 @@ interface FormValues {
   agentNumberLabel?: string;
   storeNumber?: string;
   storeNumberLabel?: string;
+  promo1?: string;
+  promo2?: string;
 }
 
 export const Route = createFileRoute("/poster/")({
@@ -315,7 +317,10 @@ function PosterPage() {
         businessWebsite: data.businessWebsite,
         businessComment: data.businessComment,
         businessAddress: data.businessAddress,
-        businessWhatsapp: data.businessWhatsapp
+        businessWhatsapp: data.businessWhatsapp,
+        businessPromo1: data.businessPromo1,
+        businessPromo2: data.businessPromo2,
+
       };
     
       if (qrGenerationMethod === "mpesa") {
@@ -338,6 +343,8 @@ function PosterPage() {
               BusinessWebsite: formData.businessWebsite,
               BusinessAddress: formData.businessAddress,
               BusinessWhatsapp: formData.businessWhatsapp,
+              BusinessPromo1: formData.businessPromo1,
+              BusinessPromo2: formData.businessPromo2,
             };
             break;
           case TRANSACTION_TYPE.PAYBILL:
@@ -355,6 +362,8 @@ function PosterPage() {
               BusinessWebsite: formData.businessWebsite,
               BusinessAddress: formData.businessAddress,
               BusinessWhatsapp: formData.businessWhatsapp,
+              BusinessPromo1: formData.businessPromo1,
+              BusinessPromo2: formData.businessPromo2,
             };
             break;
           case TRANSACTION_TYPE.TILL_NUMBER:
@@ -372,6 +381,8 @@ function PosterPage() {
               businessComment: data.businessComment,
               businessAddress: data.businessAddress,
               businessWhatsapp: data.businessWhatsapp,
+              businessPromo1: data.businessPromo1,
+              businessPromo2: data.businessPromo2,
             };
             break;
           case TRANSACTION_TYPE.AGENT:
@@ -389,6 +400,8 @@ function PosterPage() {
               BusinessWebsite: formData.businessWebsite,
               BusinessAddress: formData.businessAddress,
               BusinessWhatsapp: formData.businessWhatsapp,
+              BusinessPromo1: formData.businessPromo1,
+              BusinessPromo2: formData.businessPromo2,
             };
             break;
         }
@@ -421,6 +434,8 @@ function PosterPage() {
           businessComment: data.businessComment,
           businessAddress: data.businessAddress,
           businessWhatsapp: data.businessWhatsapp,
+          businessPromo1: data.businessPromo1,
+          businessPromo2: data.businessPromo2,
         };
       
         if (qrGenerationMethod === "mpesa") {
@@ -453,6 +468,8 @@ function PosterPage() {
                   businessComment: data.businessComment,
                   businessAddress: data.businessAddress,
                   businessWhatsapp: data.businessWhatsapp,
+                  businessPromo1: data.businessPromo1,
+                  businessPromo2: data.businessPromo2,
                 };
                 break;
               case TRANSACTION_TYPE.TILL_NUMBER:
@@ -478,6 +495,8 @@ function PosterPage() {
                   businessComment: data.businessComment,
                   businessAddress: data.businessAddress,
                   businessWhatsapp: data.businessWhatsapp,
+                  businessPromo1: data.businessPromo1,
+                  businessPromo2: data.businessPromo2,
                 };
                 break;
             }
