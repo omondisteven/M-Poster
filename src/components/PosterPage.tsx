@@ -420,90 +420,136 @@ function PosterPage() {
         watch("accountNumber"), watch("tillNumber"), watch("agentNumber"), 
         watch("storeNumber"), watch("businessName")]); // Add watch("name") to dependencies    
    
-      const generateDownloadQrData = async (): Promise<string> => {
-  const formData = {
-    type: watch("type"),
-    phoneNumber: watch("phoneNumber"),
-    paybillNumber: watch("paybillNumber"),
-    accountNumber: watch("accountNumber"),
-    tillNumber: watch("tillNumber"),
-    agentNumber: watch("agentNumber"),
-    storeNumber: watch("storeNumber"),
-    businessName: watch("businessName"),
-    businessTitle: data.businessTitle,
-    businessEmail: data.businessEmail,
-    businessPhone: data.businessPhone,
-    businessWebsite: data.businessWebsite,
-    businessComment: data.businessComment,
-    businessAddress: data.businessAddress,
-    businessWhatsapp: data.businessWhatsapp,
-    businessPromo1: data.businessPromo1,
-    businessPromo2: data.businessPromo2,
+  const generateDownloadQrData = async (): Promise<string> => {
+    const formData = {
+      type: watch("type"),
+      phoneNumber: watch("phoneNumber"),
+      paybillNumber: watch("paybillNumber"),
+      accountNumber: watch("accountNumber"),
+      tillNumber: watch("tillNumber"),
+      agentNumber: watch("agentNumber"),
+      storeNumber: watch("storeNumber"),
+      businessName: watch("businessName"),
+      businessTitle: data.businessTitle,
+      businessEmail: data.businessEmail,
+      businessPhone: data.businessPhone,
+      businessWebsite: data.businessWebsite,
+      businessComment: data.businessComment,
+      businessAddress: data.businessAddress,
+      businessWhatsapp: data.businessWhatsapp,
+      businessPromo1: data.businessPromo1,
+      businessPromo2: data.businessPromo2,
+    };
+
+    let qrData = {};
+
+    switch (formData.type) {
+      case TRANSACTION_TYPE.SEND_MONEY:
+        qrData = {
+          TransactionType: "SendMoney",
+          RecepientPhoneNumber: formData.phoneNumber,
+          PhoneNumber: "254",
+          businessName: formData.businessName,
+          businessTitle: formData.businessTitle,
+          businessEmail: formData.businessEmail,
+          businessPhone: formData.businessPhone,
+          businessWebsite: formData.businessWebsite,
+          businessAddress: formData.businessAddress,
+          businessWhatsapp: formData.businessWhatsapp,
+          businessPromo1: formData.businessPromo1,
+          businessPromo2: formData.businessPromo2,
+        };
+        break;
+      case TRANSACTION_TYPE.PAYBILL:
+        qrData = {
+          TransactionType: "PayBill",
+          PaybillNumber: formData.paybillNumber,
+          AccountNumber: formData.accountNumber,
+          PhoneNumber: "254",
+          businessName: formData.businessName,
+          businessTitle: formData.businessTitle,
+          businessEmail: formData.businessEmail,
+          businessPhone: formData.businessPhone,
+          businessWebsite: formData.businessWebsite,
+          businessAddress: formData.businessAddress,
+          businessWhatsapp: formData.businessWhatsapp,
+          businessPromo1: formData.businessPromo1,
+          businessPromo2: formData.businessPromo2,
+        };
+        break;
+      case TRANSACTION_TYPE.TILL_NUMBER:
+        qrData = {
+          TransactionType: "BuyGoods",
+          TillNumber: formData.tillNumber,
+          PhoneNumber: "254",
+          businessName: formData.businessName,
+          businessTitle: formData.businessTitle,
+          businessEmail: formData.businessEmail,
+          businessPhone: formData.businessPhone,
+          businessWebsite: formData.businessWebsite,
+          businessAddress: formData.businessAddress,
+          businessWhatsapp: formData.businessWhatsapp,
+          businessPromo1: formData.businessPromo1,
+          businessPromo2: formData.businessPromo2,
+        };
+        break;
+      case TRANSACTION_TYPE.AGENT:
+        qrData = {
+          TransactionType: "WithdrawMoney",
+          AgentId: formData.agentNumber,
+          StoreNumber: formData.storeNumber,
+          PhoneNumber: "254",
+          businessName: formData.businessName,
+          businessTitle: formData.businessTitle,
+          businessEmail: formData.businessEmail,
+          businessPhone: formData.businessPhone,
+          businessWebsite: formData.businessWebsite,
+          businessAddress: formData.businessAddress,
+          businessWhatsapp: formData.businessWhatsapp,
+          businessPromo1: formData.businessPromo1,
+          businessPromo2: formData.businessPromo2,
+        };
+        break;
+    }
+
+    try {
+      // 1. Stringify the data
+      const json = JSON.stringify(qrData);
+      console.log("Original JSON:", json); // Debug log
+      
+      // 2. URI encode to handle special characters
+      const uriEncoded = encodeURIComponent(json);
+      console.log("URI Encoded:", uriEncoded); // Debug log
+      
+      // 3. Convert to Base64 for URL safety
+      const base64Encoded = btoa(unescape(uriEncoded));
+      console.log("Base64 Encoded:", base64Encoded); // Debug log
+      
+      // 4. Create the URL
+      const originalUrl = `https://e-biz-stk-prompt-page.vercel.app?data=${base64Encoded}`;
+      console.log("Generated URL:", originalUrl); // Debug log
+
+      // Create TinyURL
+      const response = await fetch(`https://api.tinyurl.com/create`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer QeiZ8ZP85UdMKoZxaDDo2k8xuquZNXT6vys45A1JImuP4emSxSi2Zz655QDJ',
+        },
+        body: JSON.stringify({
+          url: originalUrl,
+          domain: "tiny.one",
+        }),
+      });
+
+      const result = await response.json();
+      return result.data?.tiny_url || originalUrl;
+    } catch (error) {
+      console.error("Error creating QR data:", error);
+      // Fallback to standard QR code generation
+      return generateQRCode(formData) || "";
+    }
   };
-
-  let qrData = {};
-
-  switch (formData.type) {
-    case TRANSACTION_TYPE.SEND_MONEY:
-      qrData = {
-        TransactionType: "SendMoney",
-        RecepientPhoneNumber: formData.phoneNumber,
-        PhoneNumber: "254",
-        businessName: formData.businessName
-      };
-      break;
-    case TRANSACTION_TYPE.PAYBILL:
-      qrData = {
-        TransactionType: "PayBill",
-        PaybillNumber: formData.paybillNumber,
-        AccountNumber: formData.accountNumber,
-        PhoneNumber: "254",
-        ...formData
-      };
-      break;
-    case TRANSACTION_TYPE.TILL_NUMBER:
-      qrData = {
-        TransactionType: "BuyGoods",
-        TillNumber: formData.tillNumber,
-        PhoneNumber: "254",
-        businessName: formData.businessName
-      };
-      break;
-    case TRANSACTION_TYPE.AGENT:
-      qrData = {
-        TransactionType: "WithdrawMoney",
-        AgentId: formData.agentNumber,
-        StoreNumber: formData.storeNumber,
-        PhoneNumber: "254",
-        ...formData
-      };
-      break;
-  }
-
-  try {
-    const json = JSON.stringify(qrData);
-    const encoded = encodeURIComponent(encodeURIComponent(json)); // Double encode
-    const originalUrl = `https://e-biz-stk-prompt-page.vercel.app?data=${encoded}`;
-
-    const response = await fetch(`https://api.tinyurl.com/create`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer QeiZ8ZP85UdMKoZxaDDo2k8xuquZNXT6vys45A1JImuP4emSxSi2Zz655QDJ',
-      },
-      body: JSON.stringify({
-        url: originalUrl,
-        domain: "tiny.one",
-      }),
-    });
-
-    const result = await response.json();
-    return result.data?.tiny_url || originalUrl;
-  } catch (error) {
-    console.error("Error creating TinyURL:", error);
-    return generateQRCode(formData) || "";
-  }
-};
 
   // Add this effect to trigger validation when title changes
   useEffect(() => {
