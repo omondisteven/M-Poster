@@ -33,7 +33,7 @@ const defaultFields = [
   { id: "address", label: "Address", placeholder: "10 Lute Street, 012" },
   { id: "whatsappnumber", label: "WhatsApp No.", placeholder: "0722123456" },
   { id: "promo1", label: "Promotion text 1", placeholder: "Promotion or Offer Details..." },
-  { id: "promo2", label: "Promotion text 2", placeholder: "Additional Promotion Info..." },
+  { id: "promo2", label: "Promotion Button text", placeholder: "Additional Promotion Info..." },
 ];
 
 const MAX_SUGGESTIONS = 5;
