@@ -499,6 +499,7 @@ function PosterPage() {
           businessWhatsapp: formData.businessWhatsapp,
           businessPromo1: formData.businessPromo1,
           businessPromo2: formData.businessPromo2,
+          businessComment: data.businessComment,
         };
         break;
       case TRANSACTION_TYPE.PAYBILL:
@@ -516,6 +517,7 @@ function PosterPage() {
           businessWhatsapp: formData.businessWhatsapp,
           businessPromo1: formData.businessPromo1,
           businessPromo2: formData.businessPromo2,
+          businessComment: data.businessComment,
         };
         break;
       case TRANSACTION_TYPE.TILL_NUMBER:
@@ -532,6 +534,7 @@ function PosterPage() {
           businessWhatsapp: formData.businessWhatsapp,
           businessPromo1: formData.businessPromo1,
           businessPromo2: formData.businessPromo2,
+          businessComment: data.businessComment,
         };
         break;
       case TRANSACTION_TYPE.AGENT:
@@ -549,6 +552,7 @@ function PosterPage() {
           businessWhatsapp: formData.businessWhatsapp,
           businessPromo1: formData.businessPromo1,
           businessPromo2: formData.businessPromo2,
+          businessComment: data.businessComment,
         };
         break;
     }
