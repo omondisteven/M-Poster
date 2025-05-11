@@ -239,6 +239,47 @@ const useInputHistory = (key: string) => {
   return { history, addToHistory };
 };
 
+function calculateFitFontSize(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  maxWidth: number,
+  maxHeight: number,
+  baseFont: string = "bold",
+  fontFamily: string = "Inter"
+): number {
+  let fontSize = maxHeight;
+  while (fontSize > 10) {
+    ctx.font = `${baseFont} ${fontSize}px ${fontFamily}`;
+    const metrics = ctx.measureText(text);
+    if (metrics.width <= maxWidth && fontSize <= maxHeight) {
+      break;
+    }
+    fontSize -= 1;
+  }
+  return fontSize;
+}
+
+function drawFittedText(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  x: number,
+  yTop: number,
+  maxWidth: number,
+  maxHeight: number,
+  color: string,
+  baseFont: string = "bold",
+  fontFamily: string = "Inter",
+  textAlign: CanvasTextAlign = "center"
+): void {
+  const fontSize = calculateFitFontSize(ctx, text, maxWidth, maxHeight, baseFont, fontFamily);
+  ctx.font = `${baseFont} ${fontSize}px ${fontFamily}`;
+  ctx.fillStyle = color;
+  ctx.textAlign = textAlign;
+  ctx.textBaseline = "middle";
+  ctx.fillText(text, x, yTop + maxHeight / 2); // Center vertically
+}
+
+
 function PosterPage() {
   const [qrGenerationMethod, setQrGenerationMethod] = useState<"mpesa" | "push">("push");
   const [previewQrData, setPreviewQrData] = useState("");
@@ -612,473 +653,255 @@ function PosterPage() {
 
   const handleDownload = async () => {
     if (!posterRef.current) return;
-  
+
     try {
-      await document.fonts.load("bold 120px Inter");
-  
-      // Create a modal/dialog with dropdown for format selection
-      const modal = document.createElement('div');
-      modal.style.position = 'fixed';
-      modal.style.top = '0';
-      modal.style.left = '0';
-      modal.style.width = '100%';
-      modal.style.height = '100%';
-      modal.style.backgroundColor = 'rgba(0,0,0,0.5)';
-      modal.style.display = 'flex';
-      modal.style.justifyContent = 'center';
-      modal.style.alignItems = 'center';
-      modal.style.zIndex = '1000';
-  
-      const dialog = document.createElement('div');
-      dialog.style.backgroundColor = 'white';
-      dialog.style.padding = '20px';
-      dialog.style.borderRadius = '8px';
-      dialog.style.width = '300px';
-  
-      const label = document.createElement('label');
-      label.textContent = 'Select Download Format:';
-      label.style.display = 'block';
-      label.style.marginBottom = '10px';
-      label.style.fontWeight = 'bold';
-  
-      const select = document.createElement('select');
-      select.style.width = '100%';
-      select.style.padding = '8px';
-      select.style.borderRadius = '4px';
-      select.style.marginBottom = '15px';
-  
-      const options = ['png', 'jpg', 'pdf'];
-      options.forEach(option => {
-        const optElement = document.createElement('option');
-        optElement.value = option;
-        optElement.textContent = option.toUpperCase();
-        select.appendChild(optElement);
-      });
-  
-      const buttonContainer = document.createElement('div');
-      buttonContainer.style.display = 'flex';
-      buttonContainer.style.justifyContent = 'flex-end';
-      buttonContainer.style.gap = '10px';
-  
-      const cancelButton = document.createElement('button');
-      cancelButton.textContent = 'Cancel';
-      cancelButton.style.padding = '8px 16px';
-      cancelButton.style.border = 'none';
-      cancelButton.style.borderRadius = '4px';
-      cancelButton.style.cursor = 'pointer';
-  
-      const downloadButton = document.createElement('button');
-      downloadButton.textContent = 'Download';
-      downloadButton.style.padding = '8px 16px';
-      downloadButton.style.backgroundColor = '#4CAF50';
-      downloadButton.style.color = 'white';
-      downloadButton.style.border = 'none';
-      downloadButton.style.borderRadius = '4px';
-      downloadButton.style.cursor = 'pointer';
-  
-      buttonContainer.appendChild(cancelButton);
-      buttonContainer.appendChild(downloadButton);
-      dialog.appendChild(label);
-      dialog.appendChild(select);
-      dialog.appendChild(buttonContainer);
-      modal.appendChild(dialog);
-      document.body.appendChild(modal);
-  
-      // Wait for user selection
-      const format = await new Promise<string | null>((resolve) => {
+      await document.fonts.ready;
+      await document.fonts.load("bold 20px Inter");
+
+      const format = await new Promise<"png" | "jpg" | "pdf" | null>((resolve) => {
+        const modal = document.createElement('div');
+        modal.style.position = 'fixed';
+        modal.style.top = '0';
+        modal.style.left = '0';
+        modal.style.width = '100%';
+        modal.style.height = '100%';
+        modal.style.backgroundColor = 'rgba(0,0,0,0.5)';
+        modal.style.display = 'flex';
+        modal.style.justifyContent = 'center';
+        modal.style.alignItems = 'center';
+        modal.style.zIndex = '1000';
+
+        const dialog = document.createElement('div');
+        dialog.style.backgroundColor = 'white';
+        dialog.style.padding = '20px';
+        dialog.style.borderRadius = '8px';
+        dialog.style.width = '300px';
+
+        const label = document.createElement('label');
+        label.textContent = 'Select Download Format:';
+        label.style.fontWeight = 'bold';
+        label.style.display = 'block';
+        label.style.marginBottom = '10px';
+
+        const select = document.createElement('select');
+        select.style.width = '100%';
+        select.style.padding = '8px';
+        select.style.borderRadius = '4px';
+        select.style.marginBottom = '15px';
+
+        ["png", "jpg", "pdf"].forEach(opt => {
+          const option = document.createElement('option');
+          option.value = opt;
+          option.textContent = opt.toUpperCase();
+          select.appendChild(option);
+        });
+
+        const buttonContainer = document.createElement('div');
+        buttonContainer.style.display = 'flex';
+        buttonContainer.style.justifyContent = 'flex-end';
+        buttonContainer.style.gap = '10px';
+
+        const cancelButton = document.createElement('button');
+        cancelButton.textContent = 'Cancel';
+        const downloadButton = document.createElement('button');
+        downloadButton.textContent = 'Download';
+        downloadButton.style.backgroundColor = '#4CAF50';
+        downloadButton.style.color = 'white';
+        downloadButton.style.padding = '8px 16px';
+        downloadButton.style.border = 'none';
+        downloadButton.style.borderRadius = '4px';
+        downloadButton.style.cursor = 'pointer';
+
+        buttonContainer.appendChild(cancelButton);
+        buttonContainer.appendChild(downloadButton);
+        dialog.appendChild(label);
+        dialog.appendChild(select);
+        dialog.appendChild(buttonContainer);
+        modal.appendChild(dialog);
+        document.body.appendChild(modal);
+
         cancelButton.onclick = () => {
           document.body.removeChild(modal);
           resolve(null);
         };
-  
         downloadButton.onclick = () => {
           document.body.removeChild(modal);
-          resolve(select.value);
+          resolve(select.value as "png" | "jpg" | "pdf");
         };
       });
-  
-      if (!format) {
-        return; // User cancelled
-      }
-  
-      const canvas = document.createElement('canvas');
+
+      if (!format) return;
+
+      const canvas = document.createElement("canvas");
       const width = selectedTemplate.size.width;
-      const posterHeight = selectedTemplate.size.height;
+      const basePosterHeight = selectedTemplate.size.height;
+      const borderSize = 8;
       const qrCodePadding = 40;
-      const qrCodeWidth = width - (qrCodePadding * 2);
+      const qrCodeWidth = width - 2 * qrCodePadding;
+
+      // Determine which sections have content
+      const hasSecondaryInfo = title === "Pay Bill" || title === "Withdraw Money";
+      const hasBusinessName = showName && businessName;
       
-      // Calculate section count based on title and showName
-      let sectionCount = 2; // Default to 2 sections
-      if (title === "Pay Bill" || title === "Withdraw Money") {
-        sectionCount = 3; // Title + 2 fields
-      }
-      if (showName) {
-        sectionCount += 1; // Add name section
-      }
-      
-      const sectionHeight = posterHeight / sectionCount;
-      
-      // QR code section height (scan section + QR code + padding)
-      const scanTextFontSize = Math.round(qrCodeWidth * 0.06);
+      // Calculate visible sections
+      const visibleSections = [
+        { type: "title", hasContent: true },
+        { type: "primary", hasContent: true },
+        { type: "secondary", hasContent: hasSecondaryInfo },
+        { type: "business", hasContent: hasBusinessName }
+      ].filter(section => section.hasContent);
+
+      const sectionCount = visibleSections.length;
+      const sectionHeight = basePosterHeight / 4; // Maintain original section height ratio
       const scanSectionHeight = sectionHeight;
       const qrSectionHeight = qrCodeWidth + scanSectionHeight + 70;
-      
-      const borderSize = 8;
-      const totalHeight = posterHeight + qrSectionHeight + borderSize;
-      
+      const totalHeight = (sectionHeight * sectionCount) + qrSectionHeight + borderSize;
+
       canvas.width = width;
       canvas.height = totalHeight;
-  
+
       const ctx = canvas.getContext("2d");
-      if (!ctx) {
-        console.error("Unable to get canvas context");
-        return;
-      }
-  
-      // Colors
+      if (!ctx) throw new Error("Canvas context missing");
+
       const mainColor = selectedColor;
       const borderColor = "#1a2335";
       const whiteColor = "#ffffff";
-      const textColor = "#000000";
-  
-      // Draw outer border for the entire canvas
+      const blackColor = "#000000";
+
+      // Draw border background
       ctx.fillStyle = borderColor;
-      ctx.fillRect(0, 0, width, totalHeight);    
-  
-      // QR Code Section - NOW AT THE TOP
-      const qrSectionY = 0;
-  
-      // Draw white background for QR code section
+      ctx.fillRect(0, 0, width, totalHeight);
+
+      // QR + Scan section
+      const scanSectionY = borderSize;
       ctx.fillStyle = whiteColor;
-      ctx.fillRect(
-        borderSize,
-        qrSectionY + borderSize,
-        width - 2 * borderSize,
-        qrSectionHeight - borderSize
-      );
-  
-      // Create scan section with same height as other sections
-      const scanSectionY = qrSectionY + borderSize;
-      
-      // Draw main color background for scan section (changed from gray to mainColor)
+      ctx.fillRect(borderSize, scanSectionY, width - 2 * borderSize, qrSectionHeight - borderSize);
+
       ctx.fillStyle = mainColor;
-      ctx.fillRect(
-        borderSize,
-        scanSectionY,
-        width - 2 * borderSize,
-        scanSectionHeight
-      );
-      
-      // Add border between scan section and QR code
+      ctx.fillRect(borderSize, scanSectionY, width - 2 * borderSize, scanSectionHeight);
+
+      drawFittedText(ctx, "SCAN TO PAY!", width / 2, scanSectionY, width - 40, scanSectionHeight, whiteColor);
+
       ctx.fillStyle = borderColor;
-      ctx.fillRect(
-        borderSize,
-        scanSectionY + scanSectionHeight,
-        width - 2 * borderSize,
-        borderSize
-      );
-  
-      // Add bottom border to QR code section
-      ctx.fillStyle = borderColor;
-      ctx.fillRect(
-        borderSize,
-        scanSectionY + qrSectionHeight - borderSize,
-        width - 2 * borderSize,
-        borderSize
-      );
-  
-      // Add "SCAN TO PAY!" text in the scan section (changed text color to white)
-      const scanText = "SCAN TO PAY!";
-      ctx.fillStyle = whiteColor;
-      ctx.font = `bold ${scanTextFontSize}px Inter, sans-serif`;
-      ctx.textAlign = "center";
-      ctx.fillText(
-        scanText, 
-        width / 2, 
-        scanSectionY + (scanSectionHeight / 2)
-      );
-  
-      // Position QR code below the scan section
+      ctx.fillRect(borderSize, scanSectionY + scanSectionHeight, width - 2 * borderSize, borderSize);
+      ctx.fillRect(borderSize, scanSectionY + qrSectionHeight - borderSize, width - 2 * borderSize, borderSize);
+
       const qrCodeY = scanSectionY + scanSectionHeight + borderSize + 30;
-  
-      // Draw sections with proper colors and borders (shifted down by qrSectionHeight)
-      for (let i = 0; i < sectionCount; i++) {
-        const yPos = i * sectionHeight + qrSectionHeight + borderSize;
-        let currentSectionHeight = sectionHeight;
-        
-        if (i === 0) {
-          currentSectionHeight = sectionHeight - borderSize;
-        }
-        else if (i === sectionCount - 1) {
-          currentSectionHeight = sectionHeight - borderSize;
-        }
-        
-        let sectionColor;
-        if (i === 0) {
-          sectionColor = mainColor;
-        } else {
-          sectionColor = i % 2 === 0 ? mainColor : whiteColor;
-        }
-        
-        ctx.fillStyle = sectionColor;
-        ctx.fillRect(
-          borderSize,
-          yPos,
-          width - 2 * borderSize,
-          currentSectionHeight
-        );
-        
-        if (i > 0) {
+
+      // Draw visible sections with proper alternating colors
+      let currentY = qrSectionHeight + borderSize;
+      visibleSections.forEach((section, index) => {
+        const isDarkSection = index % 2 === 0; // Alternate based on visible section index
+        ctx.fillStyle = isDarkSection ? mainColor : whiteColor;
+        ctx.fillRect(borderSize, currentY, width - 2 * borderSize, sectionHeight - borderSize);
+
+        if (index > 0) {
           ctx.fillStyle = borderColor;
-          ctx.fillRect(
-            borderSize,
-            yPos - borderSize,
-            width - 2 * borderSize,
-            borderSize
-          );
+          ctx.fillRect(borderSize, currentY - borderSize, width - 2 * borderSize, borderSize);
         }
-      }
-  
-      // Set text properties
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-  
-      // Font sizes
-      const titleFontSize = Math.round(Math.min(width, posterHeight) * 0.1);
-      const labelFontSize = Math.round(Math.min(width, posterHeight) * 0.06);
-      const valueFontSize = Math.round(Math.min(width, posterHeight) * 0.15);
-      const tillValueFontSize = Math.round(Math.min(width, posterHeight) * 0.2);
-      const nameFontSize = Math.round(Math.min(width, posterHeight) * 0.1);
-  
-      // Draw Title text (always in first section)
-      const titleSectionY = qrSectionHeight + borderSize;
-      ctx.fillStyle = whiteColor;
-      ctx.font = `bold ${titleFontSize}px Inter, sans-serif`;
-      ctx.fillText(title.toUpperCase(), width / 2, titleSectionY + (sectionHeight / 2));
-  
-      // Draw content based on transaction type
-      switch (title) {
-        case "Send Money":
-          ctx.fillStyle = textColor;
-          ctx.font = `bold ${valueFontSize}px Inter, sans-serif`;
-          ctx.fillText(
-            phoneNumber || "0722 256 123",
-            width / 2,
-            titleSectionY + sectionHeight + (sectionHeight / 2)
-          );
-          break;
-        
-        case "Pay Bill":
-          ctx.fillStyle = textColor;
-          ctx.font = `bold ${labelFontSize}px Inter, sans-serif`;
-          ctx.fillText(
-            paybillNumberLabel || "BUSINESS NUMBER", 
-            width / 2, 
-            titleSectionY + sectionHeight + (sectionHeight * 0.15)
-          );
-          
-          ctx.fillStyle = textColor;
-          ctx.font = `bold ${valueFontSize}px Inter, sans-serif`;
-          ctx.fillText(
-            paybillNumber || "12345", 
-            width / 2, 
-            titleSectionY + sectionHeight + (sectionHeight * 0.5)
-          );
-          
-          const accountNumberYPos = titleSectionY + (2 * sectionHeight) + (sectionHeight * 0.15);
-          ctx.fillStyle = whiteColor;
-          ctx.font = `bold ${labelFontSize}px Inter, sans-serif`;
-          ctx.fillText(
-            accountNumberLabel || "ACCOUNT NUMBER", 
-            width / 2, 
-            accountNumberYPos
-          );
-          
-          ctx.fillStyle = whiteColor;
-          ctx.font = `bold ${valueFontSize}px Inter, sans-serif`;
-          ctx.fillText(
-            accountNumber || "12345", 
-            width / 2, 
-            accountNumberYPos + (sectionHeight * 0.35)
-          );
-          break;
-        
-        case "Buy Goods":
-          ctx.fillStyle = textColor;
-          ctx.font = `bold ${labelFontSize}px Inter, sans-serif`;
-          ctx.fillText(
-            tillNumberLabel || "TILL NUMBER", 
-            width / 2, 
-            titleSectionY + sectionHeight + (sectionHeight * 0.15)
-          );
-          
-          ctx.fillStyle = textColor;
-          ctx.font = `bold ${tillValueFontSize}px Inter, sans-serif`;
-          ctx.fillText(
-            tillNumber || "12345", 
-            width / 2, 
-            titleSectionY + sectionHeight + (sectionHeight * 0.5)
-          );
-          break;
-        
-        case "Withdraw Money":
-          ctx.fillStyle = textColor;
-          ctx.font = `bold ${labelFontSize}px Inter, sans-serif`;
-          ctx.fillText(
-            agentNumberLabel || "AGENT NUMBER", 
-            width / 2, 
-            titleSectionY + sectionHeight + (sectionHeight * 0.15)
-          );
-          
-          ctx.fillStyle = textColor;
-          ctx.font = `bold ${valueFontSize}px Inter, sans-serif`;
-          ctx.fillText(
-            agentNumber || "12345", 
-            width / 2, 
-            titleSectionY + sectionHeight + (sectionHeight * 0.5)
-          );
-          
-          const storeNumberYPos = titleSectionY + (2 * sectionHeight) + (sectionHeight * 0.15);
-          ctx.fillStyle = whiteColor;
-          ctx.font = `bold ${labelFontSize}px Inter, sans-serif`;
-          ctx.fillText(
-            storeNumberLabel || "STORE NUMBER", 
-            width / 2, 
-            storeNumberYPos
-          );
-          
-          ctx.fillStyle = whiteColor;
-          ctx.font = `bold ${valueFontSize}px Inter, sans-serif`;
-          ctx.fillText(
-            storeNumber || "12345", 
-            width / 2, 
-            storeNumberYPos + (sectionHeight * 0.35)
-          );
-          break;
-      }
-  
-      // Draw name when showName is true (last section)
-      if (showName) {
-        const nameSectionIndex = sectionCount - 1;
-        const nameYPos = qrSectionHeight + (nameSectionIndex * sectionHeight) + (sectionHeight / 2);
-        const nameTextColor = nameSectionIndex % 2 === 0 ? whiteColor : textColor;
-        
-        ctx.fillStyle = nameTextColor;
-        ctx.font = `bold ${nameFontSize}px Inter, sans-serif`;
-        ctx.fillText(
-          businessName?.toUpperCase() || "NELSON ANANGWE", 
-          width / 2, 
-          nameYPos
-        );
-      }
-  
-      // Generate QR code data
+
+        const textColor = isDarkSection ? whiteColor : blackColor;
+
+        switch (section.type) {
+          case "title":
+            drawFittedText(ctx, title.toUpperCase(), width / 2, currentY, width - 40, sectionHeight, textColor);
+            break;
+            
+          case "primary":
+            switch (title) {
+              case "Send Money":
+                drawFittedText(ctx, phoneNumber || "0722 256 123", width / 2, currentY, width - 40, sectionHeight, textColor);
+                break;
+              case "Pay Bill":
+                drawFittedText(ctx, paybillNumberLabel || "BUSINESS NUMBER", width / 2, currentY, width - 40, sectionHeight * 0.3, textColor);
+                drawFittedText(ctx, paybillNumber || "12345", width / 2, currentY + sectionHeight * 0.4, width - 40, sectionHeight * 0.5, textColor);
+                break;
+              case "Buy Goods":
+                drawFittedText(ctx, tillNumberLabel || "TILL NUMBER", width / 2, currentY, width - 40, sectionHeight * 0.3, textColor);
+                drawFittedText(ctx, tillNumber || "54321", width / 2, currentY + sectionHeight * 0.4, width - 40, sectionHeight * 0.5, textColor);
+                break;
+              case "Withdraw Money":
+                drawFittedText(ctx, agentNumberLabel || "AGENT NUMBER", width / 2, currentY, width - 40, sectionHeight * 0.3, textColor);
+                drawFittedText(ctx, agentNumber || "98765", width / 2, currentY + sectionHeight * 0.4, width - 40, sectionHeight * 0.5, textColor);
+                break;
+            }
+            break;
+            
+          case "secondary":
+            switch (title) {
+              case "Pay Bill":
+                drawFittedText(ctx, accountNumberLabel || "ACCOUNT NUMBER", width / 2, currentY, width - 40, sectionHeight * 0.3, textColor);
+                drawFittedText(ctx, accountNumber || "67890", width / 2, currentY + sectionHeight * 0.4, width - 40, sectionHeight * 0.5, textColor);
+                break;
+              case "Withdraw Money":
+                drawFittedText(ctx, storeNumberLabel || "STORE NUMBER", width / 2, currentY, width - 40, sectionHeight * 0.3, textColor);
+                drawFittedText(ctx, storeNumber || "24680", width / 2, currentY + sectionHeight * 0.4, width - 40, sectionHeight * 0.5, textColor);
+                break;
+            }
+            break;
+            
+          case "business":
+            drawFittedText(ctx, businessName?.toUpperCase() || "NELSON ANANGWE", width / 2, currentY, width - 40, sectionHeight, textColor);
+            break;
+        }
+
+        currentY += sectionHeight;
+      });
+
+      // Generate and draw QR code
       const qrData = await generateDownloadQrData();
-      if (!qrData) {
-        throw new Error("Invalid QR code data");
-      }
-  
-      // Create a temporary container for the QR code
-      const tempDiv = document.createElement('div');
-      tempDiv.style.position = 'absolute';
-      tempDiv.style.left = '-9999px';
+      const tempDiv = document.createElement("div");
+      tempDiv.style.position = "absolute";
+      tempDiv.style.left = "-9999px";
       document.body.appendChild(tempDiv);
-  
-      // Create a root and render the QR code
+
       const root = createRoot(tempDiv);
-      root.render(
-        <QrSvg
-          value={qrData}
-          className="qr-code-svg"
-          fgColor="#000000"
-          style={{ width: qrCodeWidth, height: qrCodeWidth }}
-        />
-      );
-      
-      // Wait briefly for React to render
+      root.render(<QrSvg value={qrData} className="qr-code-svg" fgColor="#000000" style={{ width: qrCodeWidth, height: qrCodeWidth }} />);
       await new Promise(resolve => setTimeout(resolve, 50));
-  
-      // Get the SVG element
-      const svgElement = tempDiv.querySelector('.qr-code-svg') as SVGSVGElement;
-      if (!svgElement) {
-        throw new Error("Could not generate QR code");
-      }
-  
-      // Serialize the SVG
-      const svgData = new XMLSerializer().serializeToString(svgElement);
+
+      const svg = tempDiv.querySelector("svg");
+      if (!svg) throw new Error("QR SVG not found");
+
+      const svgData = new XMLSerializer().serializeToString(svg);
       const img = new Image();
-  
       await new Promise((resolve, reject) => {
         img.onload = resolve;
         img.onerror = reject;
-        img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgData);
+        img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svgData);
       });
-  
-      // Draw the QR code to the main canvas
+
       ctx.drawImage(img, qrCodePadding, qrCodeY, qrCodeWidth, qrCodeWidth);
-  
-      // Clean up
       root.unmount();
       document.body.removeChild(tempDiv);
-      
-      // Generate download link based on selected format
-      let fileName = "";
-      
-      // Set filename based on transaction type
-      switch (title) {
-        case "Send Money":
-          fileName = `${phoneNumber}-${title.toLowerCase().replace(/\s/g, "-")}`;
-          break;
-        case "Pay Bill":
-          fileName = `${paybillNumber}-${title.toLowerCase().replace(/\s/g, "-")}`;
-          break;
-        case "Buy Goods":
-          fileName = `${tillNumber}-${title.toLowerCase().replace(/\s/g, "-")}`;
-          break;
-        case "Withdraw Money":
-          fileName = `${agentNumber}-${title.toLowerCase().replace(/\s/g, "-")}`;
-          break;
-        default:
-          fileName = `mpesa-poster-${Date.now()}`;
-      }
-      
+
+      // Generate filename
+      const fileName = (() => {
+        switch (title) {
+          case "Send Money": return `${phoneNumber}-send-money`;
+          case "Pay Bill": return `${paybillNumber}-pay-bill`;
+          case "Buy Goods": return `${tillNumber}-buy-goods`;
+          case "Withdraw Money": return `${agentNumber}-withdraw-money`;
+          default: return `mpesa-poster-${Date.now()}`;
+        }
+      })();
+
+      // Handle download
       if (format === "pdf") {
-        // Use pdf-lib for PDF generation
-        const { PDFDocument } = await import('pdf-lib');
-        
-        // Create a new PDF document
+        const { PDFDocument } = await import("pdf-lib");
         const pdfDoc = await PDFDocument.create();
-        
-        // Add a page matching the canvas dimensions
-        const page = pdfDoc.addPage([width, totalHeight]);
-        
-        // Convert canvas to PNG image
-        const pngImage = await pdfDoc.embedPng(canvas.toDataURL('image/png'));
-        
-        // Draw the image on the PDF page
-        page.drawImage(pngImage, {
-          x: 0,
-          y: 0,
-          width: width,
-          height: totalHeight,
-        });
-        
-        // Save the PDF
+        const page = pdfDoc.addPage([canvas.width, canvas.height]);
+        const pngImage = await pdfDoc.embedPng(canvas.toDataURL("image/png"));
+        page.drawImage(pngImage, { x: 0, y: 0, width: canvas.width, height: canvas.height });
+
         const pdfBytes = await pdfDoc.save();
-        
-        // Create download link
-        const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-        const link = document.createElement('a');
+        const blob = new Blob([pdfBytes], { type: "application/pdf" });
+        const link = document.createElement("a");
         link.href = URL.createObjectURL(blob);
         link.download = `${fileName}.pdf`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        
-        // Clean up
-        URL.revokeObjectURL(link.href);
       } else {
-        // For image formats (png/jpg)
         const dataUrl = canvas.toDataURL(`image/${format}`, 1.0);
         const link = document.createElement("a");
         link.download = `${fileName}.${format}`;
@@ -1087,11 +910,13 @@ function PosterPage() {
         link.click();
         document.body.removeChild(link);
       }
+
     } catch (error) {
-      console.error("Error generating image:", error);
-      alert("An error occurred while generating the download. Please try again.");
+      console.error("Error generating poster:", error);
+      alert("Failed to generate download. Try again.");
     }
   };
+
   // Helper functions for the preview
   function getGridTemplateRows(title: string, showName: boolean): string {
     const sectionCount = getSectionCount(title, showName);
