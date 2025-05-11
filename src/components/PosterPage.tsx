@@ -421,121 +421,89 @@ function PosterPage() {
         watch("storeNumber"), watch("businessName")]); // Add watch("name") to dependencies    
    
       const generateDownloadQrData = async (): Promise<string> => {
-        const formData = {
-          type: watch("type"),
-          phoneNumber: watch("phoneNumber"),
-          paybillNumber: watch("paybillNumber"),
-          accountNumber: watch("accountNumber"),
-          tillNumber: watch("tillNumber"),
-          agentNumber: watch("agentNumber"),
-          storeNumber: watch("storeNumber"),
-          businessName: watch("businessName"), // Add name to the form data
-          // Include business profile data
-          // businessName: data.businessName,
-          businessTitle: data.businessTitle,
-          businessEmail: data.businessEmail,
-          businessPhone: data.businessPhone,
-          businessWebsite: data.businessWebsite,
-          businessComment: data.businessComment,
-          businessAddress: data.businessAddress,
-          businessWhatsapp: data.businessWhatsapp,
-          businessPromo1: data.businessPromo1,
-          businessPromo2: data.businessPromo2,
-        };
-      
-        if (qrGenerationMethod === "mpesa") {
-          return generateQRCode(formData) || "";
-        } else {
-          try {
-            // Create the QR data object based on transaction type
-            let qrData = {};
-            switch (formData.type) {
-              case TRANSACTION_TYPE.SEND_MONEY:
-                qrData = {
-                  TransactionType: "SendMoney",
-                  RecepientPhoneNumber: formData.phoneNumber,
-                  PhoneNumber: "254", // Default phone number prefix
-                  businessName: formData.businessName // Add name to the data
-                };
-                break;
-              case TRANSACTION_TYPE.PAYBILL:
-                qrData = {
-                  TransactionType: "PayBill",
-                  PaybillNumber: formData.paybillNumber,
-                  AccountNumber: formData.accountNumber,
-                  PhoneNumber: "254",
-                  businessName: formData.businessName, // Add name to the data
-                  // businessName: data.businessName,
-                  businessTitle: data.businessTitle,
-                  businessEmail: data.businessEmail,
-                  businessPhone: data.businessPhone,
-                  businessWebsite: data.businessWebsite,
-                  businessComment: data.businessComment,
-                  businessAddress: data.businessAddress,
-                  businessWhatsapp: data.businessWhatsapp,
-                  businessPromo1: data.businessPromo1,
-                  businessPromo2: data.businessPromo2,
-                };
-                break;
-              case TRANSACTION_TYPE.TILL_NUMBER:
-                qrData = {
-                  TransactionType: "BuyGoods",
-                  TillNumber: formData.tillNumber,
-                  PhoneNumber: "254",
-                  businessName: formData.businessName // Add name to the data
-                };
-                break;
-              case TRANSACTION_TYPE.AGENT:
-                qrData = {
-                  TransactionType: "WithdrawMoney",
-                  AgentId: formData.agentNumber,
-                  StoreNumber: formData.storeNumber,
-                  PhoneNumber: "254",
-                  businessName: formData.businessName, // Add name to the data
-                  // businessName: data.businessName,
-                  businessTitle: data.businessTitle,
-                  businessEmail: data.businessEmail,
-                  businessPhone: data.businessPhone,
-                  businessWebsite: data.businessWebsite,
-                  businessComment: data.businessComment,
-                  businessAddress: data.businessAddress,
-                  businessWhatsapp: data.businessWhatsapp,
-                  businessPromo1: data.businessPromo1,
-                  businessPromo2: data.businessPromo2,
-                };
-                break;
-            }
-      
-            // const jsonString = JSON.stringify(qrData);
-            // Double encode the data to ensure special characters are preserved
-            const encodedData = encodeURIComponent(encodeURIComponent(JSON.stringify(qrData)));
-            const originalUrl = `https://e-biz-stk-prompt-page.vercel.app?data=${encodedData}`;
-      
-            // Create TinyURL
-            const response = await fetch(`https://api.tinyurl.com/create`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer QeiZ8ZP85UdMKoZxaDDo2k8xuquZNXT6vys45A1JImuP4emSxSi2Zz655QDJ',
-              },
-              body: JSON.stringify({
-                url: originalUrl,
-                domain: "tiny.one",
-              }),
-            });
-      
-            const result = await response.json();
-            if (result.data?.tiny_url) {
-              return result.data.tiny_url;
-            }
-            return originalUrl; // Fallback to full URL if TinyURL fails
-          } catch (error) {
-            console.error("Error creating TinyURL:", error);
-            // Fallback to Mpesa QR if TinyURL fails
-            return generateQRCode(formData) || "";
-          }
-        }
+  const formData = {
+    type: watch("type"),
+    phoneNumber: watch("phoneNumber"),
+    paybillNumber: watch("paybillNumber"),
+    accountNumber: watch("accountNumber"),
+    tillNumber: watch("tillNumber"),
+    agentNumber: watch("agentNumber"),
+    storeNumber: watch("storeNumber"),
+    businessName: watch("businessName"),
+    businessTitle: data.businessTitle,
+    businessEmail: data.businessEmail,
+    businessPhone: data.businessPhone,
+    businessWebsite: data.businessWebsite,
+    businessComment: data.businessComment,
+    businessAddress: data.businessAddress,
+    businessWhatsapp: data.businessWhatsapp,
+    businessPromo1: data.businessPromo1,
+    businessPromo2: data.businessPromo2,
+  };
+
+  let qrData = {};
+
+  switch (formData.type) {
+    case TRANSACTION_TYPE.SEND_MONEY:
+      qrData = {
+        TransactionType: "SendMoney",
+        RecepientPhoneNumber: formData.phoneNumber,
+        PhoneNumber: "254",
+        businessName: formData.businessName
       };
+      break;
+    case TRANSACTION_TYPE.PAYBILL:
+      qrData = {
+        TransactionType: "PayBill",
+        PaybillNumber: formData.paybillNumber,
+        AccountNumber: formData.accountNumber,
+        PhoneNumber: "254",
+        ...formData
+      };
+      break;
+    case TRANSACTION_TYPE.TILL_NUMBER:
+      qrData = {
+        TransactionType: "BuyGoods",
+        TillNumber: formData.tillNumber,
+        PhoneNumber: "254",
+        businessName: formData.businessName
+      };
+      break;
+    case TRANSACTION_TYPE.AGENT:
+      qrData = {
+        TransactionType: "WithdrawMoney",
+        AgentId: formData.agentNumber,
+        StoreNumber: formData.storeNumber,
+        PhoneNumber: "254",
+        ...formData
+      };
+      break;
+  }
+
+  try {
+    const json = JSON.stringify(qrData);
+    const encoded = encodeURIComponent(encodeURIComponent(json)); // Double encode
+    const originalUrl = `https://e-biz-stk-prompt-page.vercel.app?data=${encoded}`;
+
+    const response = await fetch(`https://api.tinyurl.com/create`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer QeiZ8ZP85UdMKoZxaDDo2k8xuquZNXT6vys45A1JImuP4emSxSi2Zz655QDJ',
+      },
+      body: JSON.stringify({
+        url: originalUrl,
+        domain: "tiny.one",
+      }),
+    });
+
+    const result = await response.json();
+    return result.data?.tiny_url || originalUrl;
+  } catch (error) {
+    console.error("Error creating TinyURL:", error);
+    return generateQRCode(formData) || "";
+  }
+};
 
   // Add this effect to trigger validation when title changes
   useEffect(() => {
