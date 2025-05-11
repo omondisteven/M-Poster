@@ -409,7 +409,9 @@ function PosterPage() {
             break;
         }
         
-        const encodedData = encodeURIComponent(JSON.stringify(qrData)).replace(/'/g, "%27");
+        const jsonString = JSON.stringify(qrData);
+        // Double encode the data to ensure special characters are preserved
+        const encodedData = encodeURIComponent(encodeURIComponent(jsonString));
         setPreviewQrData(`https://e-biz-stk-prompt-page.vercel.app?data=${encodedData}`);
       }
     };
@@ -504,7 +506,9 @@ function PosterPage() {
                 break;
             }
       
-            const encodedData = encodeURIComponent(JSON.stringify(qrData)).replace(/'/g, "%27");
+            // const jsonString = JSON.stringify(qrData);
+            // Double encode the data to ensure special characters are preserved
+            const encodedData = encodeURIComponent(encodeURIComponent(JSON.stringify(qrData)));
             const originalUrl = `https://e-biz-stk-prompt-page.vercel.app?data=${encodedData}`;
       
             // Create TinyURL
