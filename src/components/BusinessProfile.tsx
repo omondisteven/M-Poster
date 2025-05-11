@@ -29,7 +29,7 @@ const defaultFields = [
   { id: "email", label: "Email", placeholder: "info@balladsfromjaskier.com" },
   { id: "phone", label: "Phone", placeholder: "0722123456" },
   { id: "website", label: "Website", placeholder: "https://thelute.com" },
-  { id: "comment", label: "Description", placeholder: "Description of the Business Card..." },
+  { id: "comment", label: "Business Description", placeholder: "Description of the Business Card..." },
   { id: "address", label: "Address", placeholder: "10 Lute Street, 012" },
   { id: "whatsappnumber", label: "WhatsApp No.", placeholder: "0722123456" },
   { id: "promo1", label: "Promotion text 1", placeholder: "Promotion or Offer Details..." },

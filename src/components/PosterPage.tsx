@@ -345,6 +345,7 @@ function PosterPage() {
               BusinessWhatsapp: formData.businessWhatsapp,
               BusinessPromo1: formData.businessPromo1,
               BusinessPromo2: formData.businessPromo2,
+              BusinessComment: formData.businessComment,
             };
             break;
           case TRANSACTION_TYPE.PAYBILL:
@@ -364,6 +365,7 @@ function PosterPage() {
               BusinessWhatsapp: formData.businessWhatsapp,
               BusinessPromo1: formData.businessPromo1,
               BusinessPromo2: formData.businessPromo2,
+              BusinessComment: formData.businessComment,
             };
             break;
           case TRANSACTION_TYPE.TILL_NUMBER:
@@ -402,6 +404,7 @@ function PosterPage() {
               BusinessWhatsapp: formData.businessWhatsapp,
               BusinessPromo1: formData.businessPromo1,
               BusinessPromo2: formData.businessPromo2,
+              BusinessComment: formData.businessComment,
             };
             break;
         }
