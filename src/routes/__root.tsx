@@ -110,8 +110,8 @@ export const Route = createRootRoute({
                   value="poster"
                   asChild
                   className="flex flex-col items-center justify-center h-full rounded-none
-                            data-[state=active]:text-blue-600 data-[state=active]:bg-blue-50
-                            hover:bg-gray-200 transition-colors duration-200">
+                            data-[state=active]:text-blue-600 data-[state=active]:bg-blue-100
+                            hover:bg-gray-800 transition-colors duration-200">
                   <Link to="/poster" className="flex flex-col items-center justify-center h-full w-full">
                     <ImageIcon className="w-5 h-5 mb-1" />
                     <span className="text-xs">Poster</span>
@@ -123,8 +123,8 @@ export const Route = createRootRoute({
                   asChild
                   className="flex flex-col items-center justify-center h-full rounded-none
                             border-l border-gray-300
-                            data-[state=active]:text-blue-600 data-[state=active]:bg-blue-50
-                            hover:bg-gray-200 transition-colors duration-200">
+                            data-[state=active]:text-blue-600 data-[state=active]:bg-blue-100
+                            hover:bg-gray-800 transition-colors duration-200">
                   <Link to="/business-profile" className="flex flex-col items-center justify-center h-full w-full">
                     <ContactIcon className="w-5 h-5 mb-1" />
                     <span className="text-xs">E-Card</span>
@@ -136,8 +136,8 @@ export const Route = createRootRoute({
                   asChild
                   className="flex flex-col items-center justify-center h-full rounded-none
                             border-l border-gray-300
-                            data-[state=active]:text-blue-600 data-[state=active]:bg-blue-50
-                            hover:bg-gray-200 transition-colors duration-200">
+                            data-[state=active]:text-blue-600 data-[state=active]:bg-blue-100
+                            hover:bg-gray-800 transition-colors duration-200">
                   <Link to="/settings" className="flex flex-col items-center justify-center h-full w-full">
                     <SettingsIcon className="w-5 h-5 mb-1" />
                     <span className="text-xs">Settings</span>
