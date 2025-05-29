@@ -95,7 +95,7 @@ export const Route = createRootRoute({
         )}
 
         {/* Tab content */}
-        <main className={`flex flex-col px-4 ${isMobile ? 'pt-16 pb-20' : 'pb-10'}`}>
+        <main className={`flex flex-col px-4 ${isMobile ? 'pb-20' : 'pb-10'}`}>
           <Outlet />
           {import.meta.env.DEV && <TanStackRouterDevtools />}
         </main>
