@@ -61,7 +61,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
   const [db, saveDb] = useLocalStorage<FormData>(PESAQR_DB, defaultData);
   const [data, setData] = useState<FormData>({ ...defaultData, ...db });
   const [contactCard, setContactCard] = useState<QCard | undefined>(undefined);
-  const [loading, setLoading] = useState(true);
+  // const [loading, setLoading] = useState(true);
 
   const userId = "current_user_id"; // Replace with actual user ID
 
@@ -81,7 +81,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
       } catch (error) {
         console.error("Error loading default values:", error);
       } finally {
-        setLoading(false);
+        // setLoading(false);
       }
     };
 
@@ -117,10 +117,9 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  if (loading) {
-    return <div>Loading...</div>; // Or your loading component
-  }
-
+  // if (loading) {
+  //   return <div>Loading...</div>; // Or your loading component
+  // }
 
   return (
     <AppContext.Provider value={{ data, setData: updateData, contactCard, setContactCard }}>
