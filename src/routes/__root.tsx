@@ -7,6 +7,7 @@ import { createRootRoute } from "@tanstack/react-router";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TanStackRouterDevtools } from "@tanstack/router-devtools";
 import { useEffect, useState } from "react";
+import { ImageIcon, ContactIcon, SettingsIcon } from "lucide-react"; // You can choose different icons
 
 const isEmbedDomain = () => {
   if (typeof window === "undefined") return false;
@@ -109,32 +110,36 @@ export const Route = createRootRoute({
                   value="poster"
                   asChild
                   className="flex flex-col items-center justify-center h-full rounded-none
-                             data-[state=active]:text-blue-500 data-[state=active]:bg-blue-50
-                             hover:bg-gray-100 transition-colors duration-200"
-                >
+                            data-[state=active]:text-blue-600 data-[state=active]:bg-blue-50
+                            hover:bg-gray-200 transition-colors duration-200">
                   <Link to="/poster" className="flex flex-col items-center justify-center h-full w-full">
+                    <ImageIcon className="w-5 h-5 mb-1" />
                     <span className="text-xs">Poster</span>
                   </Link>
                 </TabsTrigger>
+
                 <TabsTrigger
                   value="business-profile"
                   asChild
                   className="flex flex-col items-center justify-center h-full rounded-none
-                             data-[state=active]:text-blue-500 data-[state=active]:bg-blue-50
-                             hover:bg-gray-100 transition-colors duration-200"
-                >
+                            border-l border-gray-300
+                            data-[state=active]:text-blue-600 data-[state=active]:bg-blue-50
+                            hover:bg-gray-200 transition-colors duration-200">
                   <Link to="/business-profile" className="flex flex-col items-center justify-center h-full w-full">
+                    <ContactIcon className="w-5 h-5 mb-1" />
                     <span className="text-xs">E-Card</span>
                   </Link>
                 </TabsTrigger>
+
                 <TabsTrigger
                   value="settings"
                   asChild
                   className="flex flex-col items-center justify-center h-full rounded-none
-                             data-[state=active]:text-blue-500 data-[state=active]:bg-blue-50
-                             hover:bg-gray-100 transition-colors duration-200"
-                >
+                            border-l border-gray-300
+                            data-[state=active]:text-blue-600 data-[state=active]:bg-blue-50
+                            hover:bg-gray-200 transition-colors duration-200">
                   <Link to="/settings" className="flex flex-col items-center justify-center h-full w-full">
+                    <SettingsIcon className="w-5 h-5 mb-1" />
                     <span className="text-xs">Settings</span>
                   </Link>
                 </TabsTrigger>
