@@ -19,9 +19,12 @@ export const Route = createRootRoute({
     }
 
     const router = useRouterState();
-    const activeTab = router.location.pathname.startsWith("/business-profile") 
-      ? "business-profile" 
-      : "poster";
+    // Updated activeTab logic to include 'settings'
+    const activeTab = router.location.pathname.startsWith("/poster")
+      ? "poster"
+      : router.location.pathname.startsWith("/business-profile")
+      ? "business-profile"
+      : "settings"; // Default to 'settings' if no other matches
 
     return (
       <div className="min-h-screen flex flex-col bg-gray-100 overflow-x-hidden relative">
@@ -43,8 +46,8 @@ export const Route = createRootRoute({
         <div className="px-4 pt-4">
           <Tabs value={activeTab}>
             <TabsList className="bg-gray-200 p-1.5 rounded-lg">
-              <TabsTrigger 
-                value="poster" 
+              <TabsTrigger
+                value="poster"
                 asChild
                 className="px-3 py-1 text-sm data-[state=active]:bg-blue-500 data-[state=active]:text-white
                            hover:bg-gray-300 transition-colors duration-200 rounded-md
@@ -52,7 +55,7 @@ export const Route = createRootRoute({
               >
                 <Link to="/poster">Poster</Link>
               </TabsTrigger>
-              <TabsTrigger 
+              <TabsTrigger
                 value="business-profile"
                 asChild
                 className="px-3 py-1 text-sm data-[state=active]:bg-blue-500 data-[state=active]:text-white
@@ -60,6 +63,16 @@ export const Route = createRootRoute({
                            data-[state=active]:hover:bg-blue-600"
               >
                 <Link to="/business-profile">E-Business Card</Link>
+              </TabsTrigger>
+              {/* Add the Settings tab here */}
+              <TabsTrigger
+                value="settings"
+                asChild
+                className="px-3 py-1 text-sm data-[state=active]:bg-blue-500 data-[state=active]:text-white
+                           hover:bg-gray-300 transition-colors duration-200 rounded-md
+                           data-[state=active]:hover:bg-blue-600"
+              >
+                <Link to="/settings">Settings</Link>
               </TabsTrigger>
             </TabsList>
           </Tabs>

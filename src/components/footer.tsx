@@ -1,4 +1,5 @@
 
+// /src/components/ui/footer.tsx
 const Footer = () => {
   return (
     <footer className="py-4 px-4 border-t border-gray-200 mt-0 bg-transparent relative z-10">

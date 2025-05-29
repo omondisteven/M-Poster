@@ -13,6 +13,7 @@
 import { Route as rootRoute } from './routes/__root'
 import { Route as LayoutImport } from './routes/_layout'
 import { Route as IndexImport } from './routes/index'
+import { Route as SettingsIndexImport } from './routes/settings/index'
 import { Route as PosterIndexImport } from './routes/poster/index'
 import { Route as BusinessProfileIndexImport } from './routes/business-profile/index'
 
@@ -26,6 +27,12 @@ const LayoutRoute = LayoutImport.update({
 const IndexRoute = IndexImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const SettingsIndexRoute = SettingsIndexImport.update({
+  id: '/settings/',
+  path: '/settings/',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -73,6 +80,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PosterIndexImport
       parentRoute: typeof rootRoute
     }
+    '/settings/': {
+      id: '/settings/'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsIndexImport
+      parentRoute: typeof rootRoute
+    }
   }
 }
 
@@ -83,6 +97,7 @@ export interface FileRoutesByFullPath {
   '': typeof LayoutRoute
   '/business-profile': typeof BusinessProfileIndexRoute
   '/poster': typeof PosterIndexRoute
+  '/settings': typeof SettingsIndexRoute
 }
 
 export interface FileRoutesByTo {
@@ -90,6 +105,7 @@ export interface FileRoutesByTo {
   '': typeof LayoutRoute
   '/business-profile': typeof BusinessProfileIndexRoute
   '/poster': typeof PosterIndexRoute
+  '/settings': typeof SettingsIndexRoute
 }
 
 export interface FileRoutesById {
@@ -98,14 +114,21 @@ export interface FileRoutesById {
   '/_layout': typeof LayoutRoute
   '/business-profile/': typeof BusinessProfileIndexRoute
   '/poster/': typeof PosterIndexRoute
+  '/settings/': typeof SettingsIndexRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '' | '/business-profile' | '/poster'
+  fullPaths: '/' | '' | '/business-profile' | '/poster' | '/settings'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '' | '/business-profile' | '/poster'
-  id: '__root__' | '/' | '/_layout' | '/business-profile/' | '/poster/'
+  to: '/' | '' | '/business-profile' | '/poster' | '/settings'
+  id:
+    | '__root__'
+    | '/'
+    | '/_layout'
+    | '/business-profile/'
+    | '/poster/'
+    | '/settings/'
   fileRoutesById: FileRoutesById
 }
 
@@ -114,6 +137,7 @@ export interface RootRouteChildren {
   LayoutRoute: typeof LayoutRoute
   BusinessProfileIndexRoute: typeof BusinessProfileIndexRoute
   PosterIndexRoute: typeof PosterIndexRoute
+  SettingsIndexRoute: typeof SettingsIndexRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
@@ -121,6 +145,7 @@ const rootRouteChildren: RootRouteChildren = {
   LayoutRoute: LayoutRoute,
   BusinessProfileIndexRoute: BusinessProfileIndexRoute,
   PosterIndexRoute: PosterIndexRoute,
+  SettingsIndexRoute: SettingsIndexRoute,
 }
 
 export const routeTree = rootRoute
@@ -136,7 +161,8 @@ export const routeTree = rootRoute
         "/",
         "/_layout",
         "/business-profile/",
-        "/poster/"
+        "/poster/",
+        "/settings/"
       ]
     },
     "/": {
@@ -150,6 +176,9 @@ export const routeTree = rootRoute
     },
     "/poster/": {
       "filePath": "poster/index.tsx"
+    },
+    "/settings/": {
+      "filePath": "settings/index.tsx"
     }
   }
 }

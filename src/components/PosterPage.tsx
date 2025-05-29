@@ -2,7 +2,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useRef, useState, useEffect, } from "react";
 import { Button } from "@/components/ui/button";
-import { CheckIcon, GithubIcon, LockIcon, ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
+import { CheckIcon, ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
+// import { GithubIcon, LockIcon, } from "lucide-react";
 import { motion } from "framer-motion";
 import { ColorPicker } from "@/components/ui/color-picker";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -291,7 +292,6 @@ function PosterPage() {
   const { control, handleSubmit, watch, setValue, formState: { errors, isValid }, trigger } = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      // type: TRANSACTION_TYPE.SEND_MONEY,
       type: TRANSACTION_TYPE.PAYBILL,
       selectedColor: "#16a34a",
       showName: false,
@@ -311,6 +311,40 @@ function PosterPage() {
     },
     mode: "onChange",
   });
+  // Load default values when type changes
+  useEffect(() => {
+    const loadDefaultValues = async () => {
+      const currentType = watch("type");
+      
+      // Clear all fields first
+      setValue("phoneNumber", "");
+      setValue("paybillNumber", "");
+      setValue("accountNumber", "");
+      setValue("tillNumber", "");
+      setValue("agentNumber", "");
+      setValue("storeNumber", "");
+
+      // Set values from Firestore based on current type
+      switch (currentType) {
+        case TRANSACTION_TYPE.SEND_MONEY:
+          if (data.phoneNumber) setValue("phoneNumber", data.phoneNumber);
+          break;
+        case TRANSACTION_TYPE.PAYBILL:
+          if (data.paybillNumber) setValue("paybillNumber", data.paybillNumber);
+          if (data.accountNumber) setValue("accountNumber", data.accountNumber);
+          break;
+        case TRANSACTION_TYPE.TILL_NUMBER:
+          if (data.tillNumber) setValue("tillNumber", data.tillNumber);
+          break;
+        case TRANSACTION_TYPE.AGENT:
+          if (data.agentNumber) setValue("agentNumber", data.agentNumber);
+          if (data.storeNumber) setValue("storeNumber", data.storeNumber);
+          break;
+      }
+    };
+
+    loadDefaultValues();
+  }, [watch("type"), data, setValue]);
   
   const phoneNumber = watch("phoneNumber");
   const businessName = watch("businessName");
@@ -327,16 +361,6 @@ function PosterPage() {
   const tillNumberLabel = watch("tillNumberLabel");
   const agentNumberLabel = watch("agentNumberLabel");
   const storeNumberLabel = watch("storeNumberLabel");
-
-  // Sync form values with context
-  useEffect(() => {
-    setValue("paybillNumber", data.paybillNumber);
-    setValue("accountNumber", data.accountNumber);
-    setValue("tillNumber", data.tillNumber);
-    setValue("agentNumber", data.agentNumber);
-    setValue("storeNumber", data.storeNumber);
-    setValue("phoneNumber", data.phoneNumber);
-  }, [data, setValue]);
 
   // Add this useEffect to update the preview QR data
   useEffect(() => {
@@ -617,6 +641,8 @@ function PosterPage() {
       setValue("storeNumber", "");
     }
   }, [title, setValue, trigger]);
+  
+  
 
   const colorOptions = [
     { name: "Green", value: "#16a34a", class: "bg-green-600" },
@@ -1170,32 +1196,9 @@ function PosterPage() {
             M-poster
             </h1>
             <h3 className="text-lg font-display text-gray-800 mt-2 max-w-md">
-            Your M-Pesa 🤝 Payment Poster
+            Your M-Pesa Payment Poster
             </h3>
-        </div>
-
-          {/* App features */}
-          <div className="flex flex-row gap-4 mb-6">
-            <div className="bg-white rounded-lg shadow-sm px-3 py-2 flex items-center border border-green-100 hover:border-green-400 cursor-pointer">
-              <CheckIcon className="w-5 h-5 text-green-600 mr-1" />
-              <span className="text-sm text-gray-700">100% Free</span>
-            </div>
-            <div className="bg-white rounded-lg shadow-sm px-3 py-2 flex items-center border border-blue-100 hover:border-blue-400 cursor-pointer">
-              <LockIcon className="w-5 h-5 text-blue-600 mr-1" />
-              <span className="text-sm text-gray-700">Works Offline</span>
-            </div>
-            <div className="bg-white rounded-lg shadow-sm px-3 py-2 flex items-center border border-purple-100 hover:border-purple-400 cursor-pointer">
-              <GithubIcon className="w-5 h-5 text-purple-600 mr-1" />
-              <a
-                href="https://github.com/omondisteven/M-Poster"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-sm text-gray-700 hover:text-gray-900"
-              >
-                Open Source
-              </a>
-            </div>
-          </div>
+        </div>         
 
           <Card className="">
             <CardTitle className="px-6 text-xl  font-bold text-gray-900">

@@ -1,9 +1,11 @@
+// /src/context/AppContext.tsx
 import type { FormData } from "@/@types/Data";
 import { TRANSACTION_TYPE } from "@/@types/TransactionType";
 import useLocalStorage from "@/hooks/useLocalStorage";
 import { PESAQR_DB } from "@/utils/constants";
 import { createContext, useContext, useEffect, useState } from "react";
 import colors from "tailwindcss/colors";
+import { getDefaultValues, setDefaultValues } from "@/services/defaultValuesService";
 
 // Contact card type (should match the one used in BusinessProfile)
 interface QCard {
@@ -59,11 +61,32 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
   const [db, saveDb] = useLocalStorage<FormData>(PESAQR_DB, defaultData);
   const [data, setData] = useState<FormData>({ ...defaultData, ...db });
   const [contactCard, setContactCard] = useState<QCard | undefined>(undefined);
+  const [loading, setLoading] = useState(true);
+
+  const userId = "current_user_id"; // Replace with actual user ID
 
   // Load Data from DB
   useEffect(() => {
     setData((prev) => ({ ...prev, ...db }));
   }, []);
+
+  // Load data from Firestore on mount
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const savedValues = await getDefaultValues(userId);
+        if (savedValues) {
+          setData(prev => ({ ...prev, ...savedValues }));
+        }
+      } catch (error) {
+        console.error("Error loading default values:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, [userId]);
 
   // Save Updated Data
   useEffect(() => {
@@ -72,10 +95,32 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, [data]);
 
-  // Update data function to allow partial updates
-  const updateData = (newData: Partial<FormData>) => {
-    setData((prev) => ({ ...prev, ...newData }));
+  // Update data function that also saves to Firestore
+  const updateData = async (newData: Partial<FormData>) => {
+    const updatedData = { ...data, ...newData };
+    setData(updatedData);
+    
+    try {
+      await setDefaultValues(userId, {
+        paybillNumber: updatedData.paybillNumber ?? "",
+        accountNumber: updatedData.accountNumber ?? "",
+        tillNumber: updatedData.tillNumber ?? "",
+        agentNumber: updatedData.agentNumber ?? "",
+        storeNumber: updatedData.storeNumber ?? "",
+        phoneNumber: updatedData.phoneNumber ?? "",
+        type: updatedData.type ?? TRANSACTION_TYPE.SEND_MONEY,
+        color: updatedData.color ?? colors.green[600]
+      });
+
+    } catch (error) {
+      console.error("Error saving default values:", error);
+    }
   };
+
+  if (loading) {
+    return <div>Loading...</div>; // Or your loading component
+  }
+
 
   return (
     <AppContext.Provider value={{ data, setData: updateData, contactCard, setContactCard }}>
