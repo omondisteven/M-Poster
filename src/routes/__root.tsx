@@ -78,7 +78,7 @@ export const Route = createRootRoute({
                              hover:bg-gray-300 transition-colors duration-200 rounded-md
                              data-[state=active]:hover:bg-blue-600"
                 >
-                  <Link to="/business-profile">E-Business Card</Link>
+                  <Link to="/business-profile">E-Card</Link>
                 </TabsTrigger>
                 <TabsTrigger
                   value="settings"
