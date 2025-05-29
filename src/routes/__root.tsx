@@ -55,9 +55,8 @@ export const Route = createRootRoute({
           }}
         />
 
-        <div className="sticky top-0 z-50 bg-white shadow">
-          <Header />
-        </div>
+        <Header />
+        
         {/* Desktop Tabs navigation (top) */}
         {!isMobile && (
           <div className="px-4 pt-4">
