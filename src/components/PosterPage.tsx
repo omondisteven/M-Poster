@@ -478,7 +478,7 @@ function PosterPage() {
         // Double encode the data to ensure special characters are preserved
         const encodedData = encodeURIComponent(encodeURIComponent(jsonString));
         // setPreviewQrData(`https://e-biz-stk-prompt-page.vercel.app/?data=${encodedData}`);
-        setPreviewQrData(`https://e-biz-stk-prompt-page-14a8s3fzg-omondistevens-projects.vercel.app/?data=${encodedData}`);
+        setPreviewQrData(`https://e-biz-stk-prompt-page-kzagr11bn-omondistevens-projects.vercel.app/?data=${encodedData}`);
       }
     };
       updatePreviewQr();
@@ -597,7 +597,7 @@ function PosterPage() {
       
       // 4. Create the URL
       // const originalUrl = `https://e-biz-stk-prompt-page.vercel.app/?data=${base64Encoded}`;
-      const originalUrl = `https://e-biz-stk-prompt-page-14a8s3fzg-omondistevens-projects.vercel.app/?data=${base64Encoded}`;
+      const originalUrl = `https://e-biz-stk-prompt-page-kzagr11bn-omondistevens-projects.vercel.app/?data=${base64Encoded}`;
       console.log("Generated URL:", originalUrl); // Debug log
 
       // Create TinyURL
