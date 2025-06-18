@@ -477,7 +477,7 @@ function PosterPage() {
         const jsonString = JSON.stringify(qrData);
         // Double encode the data to ensure special characters are preserved
         const encodedData = encodeURIComponent(encodeURIComponent(jsonString));
-        setPreviewQrData(`https://ebiz-payment.vercel.app/?data=${encodedData}`);
+        setPreviewQrData(`https://e-biz-stk-prompt-page.vercel.app/?data=${encodedData}`);
         // setPreviewQrData(`https://e-biz-stk-prompt-page-dlut9z0uc-omondistevens-projects.vercel.app/?data=${encodedData}`);
       }
     };
@@ -596,7 +596,7 @@ function PosterPage() {
       console.log("Base64 Encoded:", base64Encoded); // Debug log
       
       // 4. Create the URL
-      const originalUrl = `https://ebiz-payment.vercel.app/?data=${base64Encoded}`;
+      const originalUrl = `https://e-biz-stk-prompt-page.vercel.app/?data=${base64Encoded}`;
       // const originalUrl = `https://e-biz-stk-prompt-page-dlut9z0uc-omondistevens-projects.vercel.app/?data=${base64Encoded}`;
       console.log("Generated URL:", originalUrl); // Debug log
 
