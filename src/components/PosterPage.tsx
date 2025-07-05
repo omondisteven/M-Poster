@@ -1201,14 +1201,19 @@ return (
               Your M-Pesa Payment Poster
             </h3>
           </div>     
-          <Card className="bg-[#0a0a23] md:bg-white border-green-500">
-            <CardTitle className="text-center px-6 pb-2 text-xl font-bold text-white md:text-gray-900">
-              Make Your M-Pesa Poster
+          <Card className="relative bg-[#0a0a23] md:bg-white border-green-500">
+            {/* Floating Card Title */}
+            <CardTitle className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#0a0a23] md:bg-white px-4 text-center">
+              <p className="font-handwriting text-xl text-gray-300 md:text-gray-600 whitespace-nowrap">
+                Make Your M-Pesa Poster
+              </p>
               <div className="text-center italic text-gray-300 md:text-gray-500 text-xs mt-1">
-                Download It, Share It, Stick it anywhere!
+                Download It, Share It, Stick it!
               </div>
             </CardTitle>
-            <CardContent className="pt-2">
+
+            {/* Add spacing below the floating title */}
+            <CardContent className="pt-14">
               <form onSubmit={onSubmit} className="space-y-4">
                 {/* Radio buttons */}
                 <div className="relative border border-gray-500 rounded-md p-4 mb-4">
@@ -1750,6 +1755,7 @@ return (
         </div>        
         <Card className="relative bg-[#0a0a23] md:bg-white border border-green-500 rounded-md px-4 pt-8 pb-4">
           {/* Floating label on Card border */}
+          {/* Poster Preview */}
           <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#0a0a23] md:bg-white px-4 text-center">
             <p className="font-handwriting text-xl text-gray-300 md:text-gray-600 whitespace-nowrap">
               A Preview of your poster
@@ -1842,10 +1848,7 @@ return (
                   )}
                 </div>
               </div>
-            </div>
-              
-            {/* Poster Preview */}
-            
+            </div>             
             <div
               id="poster"
               ref={posterRef}
