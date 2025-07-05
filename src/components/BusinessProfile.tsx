@@ -7,7 +7,7 @@ import { saveAs } from "file-saver";
 import {
   Mail, Phone, Globe, MapPin, Share2, Download, Copy, 
 } from "lucide-react";
-import { FaWhatsapp } from "react-icons/fa"; // Font Awesome WhatsApp icon
+import { FaWhatsapp } from "react-icons/fa";
 import { useAppContext } from "@/context/AppContext";
 
 interface QCard {
@@ -53,12 +53,10 @@ function saveRecentEntry(fieldId: string, value: string) {
 const LOCAL_STORAGE_KEY = 'businessProfileData';
 export default function BusinessProfile() {
   const [activeFields, setActiveFields] = useState<typeof defaultFields>(() => {
-    // Load active fields from localStorage if available
     const savedData = localStorage.getItem(LOCAL_STORAGE_KEY);
     return savedData ? JSON.parse(savedData).activeFields || [{ ...defaultFields[0] }] : [{ ...defaultFields[0] }];
   });
   const [formData, setFormData] = useState<QCard | null>(() => {
-    // Load form data from localStorage if available
     const savedData = localStorage.getItem(LOCAL_STORAGE_KEY);
     return savedData ? JSON.parse(savedData).formData || null : null;
   });
@@ -78,11 +76,9 @@ export default function BusinessProfile() {
     }
   }, [formData, activeFields]);
 
-  // Add this function to reset the form
   const resetForm = () => {
     setFormData(null);
-    setActiveFields([{ ...defaultFields[0] }]); // Always reset to just the name field
-    // Clear input values
+    setActiveFields([{ ...defaultFields[0] }]);
     Object.values(inputRefs.current).forEach(ref => {
       if (ref) ref.value = '';
     });
@@ -93,7 +89,6 @@ export default function BusinessProfile() {
     const field = defaultFields.find(f => f.id === fieldId);
     if (!field) return;
     
-    // Prevent removing the 'name' field
     if (fieldId === 'name') return;
     
     if (isActive(fieldId)) {
@@ -120,7 +115,6 @@ export default function BusinessProfile() {
     }
     setFormData(data as QCard);
     
-    // Update the context with business profile data
     setData({
       businessName: data.name || "",
       businessTitle: data.title || "",
@@ -132,13 +126,11 @@ export default function BusinessProfile() {
       businessWhatsapp: data.whatsappnumber || "",
       businessPromo1: data.promo1 || "",
       businessPromo2: data.promo2 || "",
-
     });
   };
 
   useEffect(() => {
     if (formData && isMobile && qrSectionRef.current) {
-      // Scroll to the QR code section with smooth behavior
       qrSectionRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [formData, isMobile]);
@@ -146,14 +138,7 @@ export default function BusinessProfile() {
   const qrRef = useRef<HTMLDivElement | null>(null);
 
   const downloadQR = () => {
-    if (!qrRef.current) {
-      console.error("QR ref not found");
-      return;
-    }
-    if (!formData) {
-      console.error("No form data");
-      return;
-    }
+    if (!qrRef.current || !formData) return;
   
     toPng(qrRef.current, {
       quality: 1,
@@ -221,15 +206,15 @@ export default function BusinessProfile() {
   };
 
   return (
-    <div className="p-4 flex flex-col lg:flex-row gap-8">
+    <div className="p-4 flex flex-col lg:flex-row gap-8 bg-[#0a0a23] md:bg-transparent">
       {/* Left: Entry Form */}
       <div className="w-full lg:w-[70%]">
-      <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold">E-Business Card</h2>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-bold text-white md:text-black">E-Business Card</h2>
           <Button 
             onClick={resetForm}
             variant="outline"
-            className="bg-white hover:bg-gray-100"
+            className="bg-black text-white md:bg-white md:text-black hover:bg-gray-800 md:hover:bg-gray-100"
           >
             Reset
           </Button>
@@ -238,7 +223,7 @@ export default function BusinessProfile() {
           <div className="grid gap-4">
             {activeFields.map(field => (
               <div key={field.id} className="flex flex-col">
-                <label htmlFor={field.id} className={`font-medium ${field.required ? "text-red-600" : ""}`}>
+                <label htmlFor={field.id} className={`font-medium ${field.required ? "text-red-600" : "text-white md:text-black"}`}>
                   {field.label}{field.required && " *"}
                 </label>
                 {["comment", "promo1", "promo2"].includes(field.id) ? (
@@ -246,35 +231,34 @@ export default function BusinessProfile() {
                     id={field.id}
                     ref={el => { inputRefs.current[field.id] = el }}
                     placeholder={field.placeholder}
-                    className="p-2 border rounded"
+                    className="p-2 border border-gray-600 md:border-gray-300 rounded bg-black text-white md:bg-white md:text-black focus:bg-black focus:text-white md:focus:bg-white md:focus:text-black"
                     required={field.required}
                   />
                 ) : (
                   <>
-                  <input
-                    id={field.id}
-                    ref={el => { inputRefs.current[field.id] = el; }}
-                    type="text"
-                    inputMode={["phone", "whatsappnumber"].includes(field.id) ? "numeric" : "text"}
-                    pattern={["phone", "whatsappnumber"].includes(field.id) ? "[0-9\\- ]*" : undefined}
-                    onInput={(e) => {
-                      if (["phone", "whatsappnumber"].includes(field.id)) {
-                        const value = (e.target as HTMLInputElement).value;
-                        (e.target as HTMLInputElement).value = value.replace(/[^\d\- ]/g, '');
-                      }
-                    }}
-                    list={`recent-${field.id}`}
-                    placeholder={field.placeholder}
-                    className="p-2 border rounded"
-                    required={field.required}
-                  />
-
-
-                      <datalist id={`recent-${field.id}`}>
-                        {getRecentEntries(field.id).map((entry, idx) => (
-                          <option key={idx} value={entry} />
-                        ))}
-                      </datalist></>
+                    <input
+                      id={field.id}
+                      ref={el => { inputRefs.current[field.id] = el; }}
+                      type="text"
+                      inputMode={["phone", "whatsappnumber"].includes(field.id) ? "numeric" : "text"}
+                      pattern={["phone", "whatsappnumber"].includes(field.id) ? "[0-9\\- ]*" : undefined}
+                      onInput={(e) => {
+                        if (["phone", "whatsappnumber"].includes(field.id)) {
+                          const value = (e.target as HTMLInputElement).value;
+                          (e.target as HTMLInputElement).value = value.replace(/[^\d\- ]/g, '');
+                        }
+                      }}
+                      list={`recent-${field.id}`}
+                      placeholder={field.placeholder}
+                      className="p-2 border border-gray-600 md:border-gray-300 rounded bg-black text-white md:bg-white md:text-black focus:bg-black focus:text-white md:focus:bg-white md:focus:text-black"
+                      required={field.required}
+                    />
+                    <datalist id={`recent-${field.id}`}>
+                      {getRecentEntries(field.id).map((entry, idx) => (
+                        <option key={idx} value={entry} />
+                      ))}
+                    </datalist>
+                  </>
                 )}
               </div>
             ))}
@@ -282,35 +266,42 @@ export default function BusinessProfile() {
 
           {/* Field toggles */}
           <div className="flex flex-wrap gap-2">
-          {defaultFields.map(field => (
-          field.id !== 'name' && ( // Only render toggle button if it's not the 'name' field
-            <button
-              type="button"
-              key={field.id}
-              onClick={() => toggleField(field.id)}
-              className={`text-sm border px-2 py-1 rounded flex items-center gap-1 ${
-                isActive(field.id) ? "bg-red-100 hover:bg-red-200" : "hover:border-blue-500"
-              }`}
-            >
-              {isActive(field.id) ? "−" : "+"}
-              {field.label}
-            </button>
-          )
-        ))}
+            {defaultFields.map(field => (
+              field.id !== 'name' && (
+                <button
+                  type="button"
+                  key={field.id}
+                  onClick={() => toggleField(field.id)}
+                  className={`text-sm border px-2 py-1 rounded flex items-center gap-1 ${
+                    isActive(field.id) 
+                      ? "bg-red-100 hover:bg-red-200 text-black" 
+                      : "hover:border-blue-500 text-white md:text-black"
+                  }`}
+                >
+                  {isActive(field.id) ? "−" : "+"}
+                  {field.label}
+                </button>
+              )
+            ))}
           </div>
 
-          <Button type="submit">Create Contact Card</Button>
+          <Button 
+            type="submit"
+            className="bg-green-600 hover:bg-green-700 text-white"
+          >
+            Create Contact Card
+          </Button>
         </form>
       </div>      
 
-      {/* Right side - Qr/Contact - Always visible */}
+      {/* Right side - Qr/Contact */}
       <div className="lg:w-[30%]" ref={qrSectionRef}>
-        <div className="bg-white p-4 rounded-lg border-4 border-[#2f363d] shadow-md w-full">
+        <div className="bg-blue-50 p-4 rounded-lg border-4 border-[#2f363d] shadow-md w-full">
           {formData ? (
             <>
               <div 
                 ref={qrRef} 
-                className="flex justify-center mb-4 w-full p-4 bg-white" // Added bg-white for better PNG export
+                className="flex justify-center mb-4 w-full p-4 bg-white"
               >
                 <a href={window.location.href} className="w-full">
                   <QRCode 
@@ -437,7 +428,7 @@ export default function BusinessProfile() {
                           onClick={(e) => handleWhatsAppClick(formData.whatsappnumber!, e)}
                           className="p-2 hover:scale-125 transition-transform"
                         >
-                          <FaWhatsapp className="w-4 h-4 mr-1 text-green-500" />,
+                          <FaWhatsapp className="w-4 h-4 mr-1 text-green-500" />
                         </a>
                       </div>
                     </div>
@@ -465,7 +456,6 @@ export default function BusinessProfile() {
               <hr className="border-t border-gray-300 my-4" />
 
               <div className="flex justify-end gap-2">                
-                
                 {'share' in navigator && typeof navigator.share === 'function' ? (
                   <Button 
                     variant="ghost" 
@@ -521,13 +511,20 @@ export default function BusinessProfile() {
         {formData && (
           <div className="flex gap-2 justify-center mt-4">
             <Button 
-            onClick={downloadQR}
-            disabled={!formData}
-          >
-            <Download className="w-4 h-4 mr-1" />
-            Download QR
-          </Button>
-            <Button onClick={shareQR} variant="outline"><Share2 className="w-4 h-4 mr-1" />Share Qr</Button>
+              onClick={downloadQR}
+              disabled={!formData}
+              className="bg-green-600 hover:bg-green-700 text-white"
+            >
+              <Download className="w-4 h-4 mr-1" />
+              Download QR
+            </Button>
+            <Button 
+              onClick={shareQR} 
+              variant="outline"
+              className="bg-black text-white hover:bg-gray-800 md:bg-white md:text-black md:hover:bg-gray-100"
+            >
+              <Share2 className="w-4 h-4 mr-1" />Share Qr
+            </Button>
           </div>
         )}
       </div>      

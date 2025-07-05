@@ -7,7 +7,7 @@ import { createRootRoute } from "@tanstack/react-router";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TanStackRouterDevtools } from "@tanstack/router-devtools";
 import { useEffect, useState } from "react";
-import { ImageIcon, ContactIcon, SettingsIcon } from "lucide-react"; // You can choose different icons
+import { ImageIcon, ContactIcon, SettingsIcon } from "lucide-react";
 
 const isEmbedDomain = () => {
   if (typeof window === "undefined") return false;
@@ -23,10 +23,9 @@ export const Route = createRootRoute({
     const router = useRouterState();
     const [isMobile, setIsMobile] = useState(false);
 
-    // Check if mobile on mount and resize
     useEffect(() => {
       const checkIfMobile = () => {
-        setIsMobile(window.innerWidth < 768); // Tailwind's md breakpoint
+        setIsMobile(window.innerWidth < 768);
       };
 
       checkIfMobile();
@@ -34,7 +33,6 @@ export const Route = createRootRoute({
       return () => window.removeEventListener('resize', checkIfMobile);
     }, []);
 
-    // Updated activeTab logic to include 'settings'
     const activeTab = router.location.pathname.startsWith("/poster")
       ? "poster"
       : router.location.pathname.startsWith("/business-profile")
@@ -42,7 +40,7 @@ export const Route = createRootRoute({
       : "settings";
 
     return (
-      <div className="min-h-screen flex flex-col bg-gray-100 relative overflow-y-auto">
+      <div className="min-h-screen flex flex-col bg-[#0a0a23] md:bg-gray-100 relative overflow-y-auto">
         {/* Dotted background pattern */}
         <div
           className="absolute h-full w-full inset-0 pointer-events-none"
@@ -102,16 +100,17 @@ export const Route = createRootRoute({
 
         {/* Mobile Bottom Navigation */}
         {isMobile && (
-          <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50">
+          <div className="fixed bottom-0 left-0 right-0 bg-[#0a0a23] border-t border-gray-700 shadow-lg z-50">
             <Tabs value={activeTab} className="w-full">
               <TabsList className="w-full grid grid-cols-3 p-0 h-16">
                 <TabsTrigger
                   value="poster"
                   asChild
-                  className="flex flex-col items-center justify-center h-full rounded-none
-                            data-[state=active]:text-blue-600 data-[state=active]:bg-blue-100
-                            hover:bg-gray-800 transition-colors duration-200">
-                  <Link to="/poster" className="flex flex-col items-center justify-center h-full w-full">
+                  className="flex flex-col items-center justify-center h-full border border-gray-300 rounded-none
+                            data-[state=active]:bg-gray-200 data-[state=active]:text-green-600
+                            bg-blue-900 text-gray-300 hover:bg-blue-800 transition-colors duration-200"
+                >
+                  <Link to="/poster" className="flex flex-col items-center justify-center h-full w-full rounded-none">
                     <ImageIcon className="w-5 h-5 mb-1" />
                     <span className="text-xs">Poster</span>
                   </Link>
@@ -120,11 +119,11 @@ export const Route = createRootRoute({
                 <TabsTrigger
                   value="business-profile"
                   asChild
-                  className="flex flex-col items-center justify-center h-full rounded-none
-                            border-l border-gray-300
-                            data-[state=active]:text-blue-600 data-[state=active]:bg-blue-100
-                            hover:bg-gray-800 transition-colors duration-200">
-                  <Link to="/business-profile" className="flex flex-col items-center justify-center h-full w-full">
+                  className="flex flex-col items-center justify-center h-full border border-gray-300 rounded-none
+                            data-[state=active]:bg-gray-200 data-[state=active]:text-green-600
+                            bg-blue-900 text-gray-300 hover:bg-blue-800 transition-colors duration-200"
+                >
+                  <Link to="/business-profile" className="flex flex-col items-center justify-center h-full w-full rounded-none">
                     <ContactIcon className="w-5 h-5 mb-1" />
                     <span className="text-xs">E-Card</span>
                   </Link>
@@ -133,11 +132,11 @@ export const Route = createRootRoute({
                 <TabsTrigger
                   value="settings"
                   asChild
-                  className="flex flex-col items-center justify-center h-full rounded-none
-                            border-l border-gray-300
-                            data-[state=active]:text-blue-600 data-[state=active]:bg-blue-100
-                            hover:bg-gray-800 transition-colors duration-200">
-                  <Link to="/settings" className="flex flex-col items-center justify-center h-full w-full">
+                  className="flex flex-col items-center justify-center h-full border border-gray-300 rounded-none
+                            data-[state=active]:bg-gray-200 data-[state=active]:text-green-600
+                            bg-blue-900 text-gray-300 hover:bg-blue-800 transition-colors duration-200"
+                >
+                  <Link to="/settings" className="flex flex-col items-center justify-center h-full w-full rounded-none">
                     <SettingsIcon className="w-5 h-5 mb-1" />
                     <span className="text-xs">Settings</span>
                   </Link>
@@ -146,7 +145,6 @@ export const Route = createRootRoute({
             </Tabs>
           </div>
         )}
-
         <Footer />
       </div>
     );

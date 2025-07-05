@@ -1187,23 +1187,22 @@ function PosterPage() {
     }
   };
 
-  return (
-    <div className="flex flex-col bg-gray-100">
+return (
+    <div className="flex flex-col bg-[#0a0a23] md:bg-gray-100">
       <div className="flex-1 flex flex-col md:flex-row px-4 py-4 sm:py-8 md:py-0 sm:px-6 lg:px-8 gap-8 relative z-10">
         {/* Left Column - App Info */}
         <div className="w-full md:w-1/2 flex flex-col md:py-12 md:px-8">
         {/* Header for medium screens and up - now in left column */}
-        <div className="hidden md:block mb-8">
-            <h1 className="text-4xl font-display font-bold text-green-600">
-            M-poster
-            </h1>
-            <h3 className="text-lg font-display text-gray-800 mt-2 max-w-md">
-            Your M-Pesa Payment Poster
-            </h3>
-        </div>         
-
-          <Card className="">
-            <CardTitle className="px-6 text-xl  font-bold text-gray-900">
+          <div className="hidden md:block mb-8">
+              <h1 className="text-4xl font-display font-bold text-green-600">
+                  M-poster
+              </h1>
+              <h3 className="text-lg font-display text-gray-800 md:text-gray-800 mt-2 max-w-md">
+                  Your M-Pesa Payment Poster
+              </h3>
+          </div>     
+          <Card className="bg-[#0a0a23] md:bg-white">
+            <CardTitle className="px-6 text-xl font-bold text-white md:text-gray-900">
               Make Your Payment Poster
             </CardTitle>
 
@@ -1211,7 +1210,7 @@ function PosterPage() {
               <form onSubmit={onSubmit} className="space-y-4">
                 {/* Transaction Type Selector */}
                 <div>
-                  <label htmlFor="type" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label htmlFor="type" className="block text-sm font-medium text-white md:text-gray-700 mb-1">
                     Transaction Type
                   </label>
                   <Controller
@@ -1247,10 +1246,10 @@ function PosterPage() {
                         }}
                         value={field.value}
                       >
-                        <SelectTrigger className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold">
+                        <SelectTrigger className="w-full p-3 border border-gray-600 md:border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold bg-black text-white md:bg-white md:text-black">
                           <SelectValue placeholder="Select transaction type" />
                         </SelectTrigger>
-                        <SelectContent>                          
+                        <SelectContent className="bg-[#0a0a23] text-white md:bg-white md:text-black">                          
                           <SelectItem value={TRANSACTION_TYPE.PAYBILL}>Pay Bill</SelectItem>
                           <SelectItem value={TRANSACTION_TYPE.TILL_NUMBER}>Buy Goods</SelectItem>
                           <SelectItem value={TRANSACTION_TYPE.AGENT}>Withdraw Money</SelectItem>
@@ -1265,7 +1264,7 @@ function PosterPage() {
                 </div>
                   {/* Radio buttons */}
                   <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-white md:text-gray-700 mb-2">
                       Generate QR Code for:
                     </label>
                     <div className="flex space-x-4">
@@ -1276,7 +1275,7 @@ function PosterPage() {
                           checked={qrGenerationMethod === "push"}
                           onChange={() => setQrGenerationMethod("push")}
                         />
-                        <span>Push STK</span>
+                        <span className="text-white md:text-black">Push STK</span>
                       </label>
                       <label className="flex items-center space-x-2">
                         <input
@@ -1285,7 +1284,7 @@ function PosterPage() {
                           checked={qrGenerationMethod === "mpesa"}
                           onChange={() => setQrGenerationMethod("mpesa")}
                         />
-                        <span>M-Pesa App</span>
+                        <span className="text-white md:text-black">M-Pesa App</span>
                       </label>
                     </div>
                     <p className="text-sm text-green-500 mt-2">
@@ -1297,7 +1296,7 @@ function PosterPage() {
                 {/* Send Money Fields */}
                 {watch("type") === TRANSACTION_TYPE.SEND_MONEY && (
                   <div>
-                    <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700 mb-1">
+                    <label htmlFor="phoneNumber" className="block text-sm font-medium text-white md:text-gray-700 mb-1">
                       Phone Number
                     </label>
                     <Controller
@@ -1321,7 +1320,7 @@ function PosterPage() {
                                   phoneHistory.addToHistory(field.value);
                                 }
                               }}
-                              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold"
+                              className="w-full p-3 border border-gray-600 md:border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold bg-black text-white md:bg-white md:text-black"
                               placeholder="0722 256 123"
                               list={`phoneNumber-history`}
                             />
@@ -1346,7 +1345,7 @@ function PosterPage() {
                 {watch("type") === TRANSACTION_TYPE.PAYBILL && (
                   <>
                     <div>
-                      <label htmlFor="paybillNumber" className="block text-sm font-medium text-gray-700 mb-1">
+                      <label htmlFor="paybillNumber" className="block text-sm font-medium text-white md:text-gray-700 mb-1">
                         Business Number
                       </label>
                       <Controller
@@ -1371,7 +1370,7 @@ function PosterPage() {
                                     paybillHistory.addToHistory(field.value);
                                   }
                                 }}
-                                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold"
+                                className="w-full p-3 border border-gray-600 md:border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold bg-black text-white md:bg-white md:text-black"
                                 placeholder="123456"
                                 list={`paybillNumber-history`}
                               />
@@ -1391,7 +1390,7 @@ function PosterPage() {
                       )}
                     </div>
                     <div>
-                      <label htmlFor="accountNumber" className="block text-sm font-medium text-gray-700 mb-1">
+                      <label htmlFor="accountNumber" className="block text-sm font-medium text-white md:text-gray-700 mb-1">
                         Account Number
                       </label>
                       <Controller
@@ -1412,7 +1411,7 @@ function PosterPage() {
                                     accountHistory.addToHistory(field.value);
                                   }
                                 }}
-                                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold"
+                                className="w-full p-3 border border-gray-600 md:border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold bg-black text-white md:bg-white md:text-black"
                                 placeholder="Account number"
                                 list={`accountNumber-history`}
                               />
@@ -1437,7 +1436,7 @@ function PosterPage() {
                 {/* Buy Goods (Till Number) Fields */}
                 {watch("type") === TRANSACTION_TYPE.TILL_NUMBER && (
                   <div>
-                    <label htmlFor="tillNumber" className="block text-sm font-medium text-gray-700 mb-1">
+                    <label htmlFor="tillNumber" className="block text-sm font-medium text-white md:text-gray-700 mb-1">
                       Till Number
                     </label>
                     <Controller
@@ -1462,7 +1461,7 @@ function PosterPage() {
                                   tillHistory.addToHistory(field.value);
                                 }
                               }}
-                              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold"
+                              className="w-full p-3 border border-gray-600 md:border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold bg-black text-white md:bg-white md:text-black"
                               placeholder="123456"
                               list={`tillNumber-history`}
                             />
@@ -1487,7 +1486,7 @@ function PosterPage() {
                 {watch("type") === TRANSACTION_TYPE.AGENT && (
                   <>
                     <div>
-                      <label htmlFor="agentNumber" className="block text-sm font-medium text-gray-700 mb-1">
+                      <label htmlFor="agentNumber" className="block text-sm font-medium text-white md:text-gray-700 mb-1">
                         Agent Number
                       </label>
                       <Controller
@@ -1512,7 +1511,7 @@ function PosterPage() {
                                     agentHistory.addToHistory(field.value);
                                   }
                                 }}
-                                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold"
+                                className="w-full p-3 border border-gray-600 md:border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold bg-black text-white md:bg-white md:text-black"
                                 placeholder="Agent number"
                                 list={`agentNumber-history`}
                               />
@@ -1532,7 +1531,7 @@ function PosterPage() {
                       )}
                     </div>
                     <div>
-                      <label htmlFor="storeNumber" className="block text-sm font-medium text-gray-700 mb-1">
+                      <label htmlFor="storeNumber" className="block text-sm font-medium text-white md:text-gray-700 mb-1">
                         Store Number
                       </label>
                       <Controller
@@ -1553,7 +1552,7 @@ function PosterPage() {
                                     storeHistory.addToHistory(field.value);
                                   }
                                 }}
-                                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold"
+                                className="w-full p-3 border border-gray-600 md:border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold bg-black text-white md:bg-white md:text-black"
                                 placeholder="Store number"
                                 list={`storeNumber-history`}
                               />
@@ -1587,12 +1586,13 @@ function PosterPage() {
                         onCheckedChange={(checked: boolean) => {
                           field.onChange(checked);
                         }}
+                        className="text-white border-white"
                       />
                     )}
                   />
                   <label
                     htmlFor="showName"
-                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-white md:text-black"
                   >
                     Include Merchant Name
                   </label>
@@ -1600,7 +1600,7 @@ function PosterPage() {
 
                 {watch("showName") && (
                   <div>
-                    <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+                    <label htmlFor="name" className="block text-sm font-medium text-white md:text-gray-700 mb-1">
                       Merchant Name
                     </label>
                     <Controller
@@ -1623,7 +1623,7 @@ function PosterPage() {
                                   businessHistory.addToHistory(field.value);
                                 }
                               }}
-                              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold"
+                              className="w-full p-3 border border-gray-600 md:border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold bg-black text-white md:bg-white md:text-black"
                               placeholder="NELSON ANANGWE"
                               list={`businessName-history`}
                             />
@@ -1646,7 +1646,7 @@ function PosterPage() {
 
                 {/* Color Picker */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                  <label className="block text-sm font-medium text-white md:text-gray-700 mb-3">
                     Poster Color
                   </label>
                   <div className="flex items-center space-x-4">
@@ -1656,7 +1656,7 @@ function PosterPage() {
                         type="button"
                         className={`size-8 rounded-full border-2 flex items-center justify-center ${
                           selectedColor === color.value
-                            ? "border-gray-800"
+                            ? "border-gray-300 md:border-gray-800"
                             : "border-transparent"
                         } ${color.class}`}
                         onClick={() => setValue("selectedColor", color.value)}
@@ -1679,7 +1679,7 @@ function PosterPage() {
                           />
                         )}
                       />
-                      <span className="ml-2 text-xs text-gray-500">Custom</span>
+                      <span className="ml-2 text-xs text-gray-300 md:text-gray-500">Custom</span>
                     </div>
                   </div>
                 </div>
@@ -1729,7 +1729,7 @@ function PosterPage() {
             </CardContent>
           </Card>
 
-          <div className="text-center text-gray-500 mt-2 text-sm">
+          <div className="text-center text-gray-300 md:text-gray-500 mt-2 text-sm">
             Download It, Share It , Stick it anywhere !
           </div>
         </div>
@@ -1841,7 +1841,7 @@ function PosterPage() {
             )}          </div>
             {/* Preview text */}
             <div className="flex flex-col items-center justify-center text-center mt-3">
-              <p className="font-handwriting text-xl text-gray-600">
+              <p className="font-handwriting text-xl text-gray-300 md:text-gray-600">
                 A Preview of your poster
               </p>
             </div>
@@ -1850,21 +1850,21 @@ function PosterPage() {
 
           {/* Template Selector */}
           <div className="w-full max-w-lg mt-8">
-            <h3 className="text-lg font-bold text-gray-800 mb-3 flex items-center">
+            <h3 className="text-lg font-bold text-white md:text-gray-800 mb-3 flex items-center">
               Select Template Size
-              <span className="ml-2 text-xs text-gray-500 italic">
+              <span className="ml-2 text-xs text-gray-300 md:text-gray-500 italic">
                 (scroll horizontally to see more)
               </span>
             </h3>
             <div className="relative w-full rounded-xl overflow-hidden">
               {/* Left scroll indicator */}
-              <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-gray-100 to-transparent z-10 pointer-events-none flex items-center justify-start pl-1">
-                <ChevronLeftIcon className="h-6 w-6 text-gray-500 animate-pulse" />
+              <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-[#0a0a23] md:from-gray-100 to-transparent z-10 pointer-events-none flex items-center justify-start pl-1">
+                <ChevronLeftIcon className="h-6 w-6 text-gray-300 md:text-gray-500 animate-pulse" />
               </div>
 
               {/* Right scroll indicator */}
-              <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-gray-100 to-transparent z-10 pointer-events-none flex items-center justify-end pr-1">
-                <ChevronRightIcon className="h-6 w-6 text-gray-500 animate-pulse" />
+              <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-[#0a0a23] md:from-gray-100 to-transparent z-10 pointer-events-none flex items-center justify-end pr-1">
+                <ChevronRightIcon className="h-6 w-6 text-gray-300 md:text-gray-500 animate-pulse" />
               </div>
 
               <ScrollArea className="w-full h-[170px] rounded-lg">
@@ -1876,20 +1876,20 @@ function PosterPage() {
                       className={`p-3 rounded-lg cursor-pointer transition-all w-[160px] h-[150px] flex flex-col ${
                         selectedTemplate.slug === template.slug
                           ? "bg-gray-800 text-white ring-2 ring-green-500"
-                          : "bg-white hover:bg-gray-100 border border-gray-200"
+                          : "bg-[#1a1a3a] hover:bg-[#2a2a4a] md:bg-white md:hover:bg-gray-100 border border-gray-700 md:border-gray-200"
                       }`}
                     >
                       <div className="font-medium truncate">
                         {template.name}
                       </div>
-                      <div className="text-xs mt-1 line-clamp-2 flex-grow">
+                      <div className="text-xs mt-1 line-clamp-2 flex-grow text-gray-300 md:text-gray-800">
                         {template.description}
                       </div>
                       <div
                         className={`text-xs mt-1 font-semibold ${
                           selectedTemplate.slug === template.slug
                             ? "text-green-300"
-                            : "text-green-600"
+                            : "text-green-400 md:text-green-600"
                         }`}
                       >
                         {template.size.label}
@@ -1898,7 +1898,7 @@ function PosterPage() {
                         className={`text-xs mt-1 ${
                           selectedTemplate.slug === template.slug
                             ? "text-gray-300"
-                            : "text-gray-500"
+                            : "text-gray-400 md:text-gray-500"
                         }`}
                       >
                         {template.size.width}×{template.size.height}px
@@ -1913,7 +1913,7 @@ function PosterPage() {
         </div>
       </div>
 
-      {/* Twitter CTA for Template Contributions */}
+      {/* Twitter CTA for Template Contributions
       <div className="w-full py-4 bg-blue-50 border-t border-blue-100 relative z-10">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-center sm:justify-between">
           <div className="flex items-center mb-3 sm:mb-0">
@@ -1935,7 +1935,7 @@ function PosterPage() {
             </svg>            
           </div>          
         </div>
-      </div>
+      </div> */}
     </div>
   );
 }
