@@ -107,8 +107,8 @@ export const Route = createRootRoute({
                   value="poster"
                   asChild
                   className="flex flex-col items-center justify-center h-full border border-gray-300 rounded-none
-                            data-[state=active]:bg-gray-600 data-[state=active]:text-green-600
-                            bg-blue-900 text-gray-300 hover:bg-blue-800 transition-colors duration-200"
+                            data-[state=active]:bg-gray-300 data-[state=active]:text-green-600
+                            bg-gray-600 text-gray-300 hover:bg-blue-800 transition-colors duration-200"
                 >
                   <Link to="/poster" className="flex flex-col items-center justify-center h-full w-full rounded-none">
                     <ImageIcon className="w-5 h-5 mb-1" />
@@ -120,8 +120,8 @@ export const Route = createRootRoute({
                   value="business-profile"
                   asChild
                   className="flex flex-col items-center justify-center h-full border border-gray-300 rounded-none
-                            data-[state=active]:bg-gray-200 data-[state=active]:text-green-600
-                            bg-blue-900 text-gray-300 hover:bg-blue-800 transition-colors duration-200"
+                            data-[state=active]:bg-gray-300 data-[state=active]:text-green-600
+                            bg-gray-600 text-gray-300 hover:bg-blue-800 transition-colors duration-200"
                 >
                   <Link to="/business-profile" className="flex flex-col items-center justify-center h-full w-full rounded-none">
                     <ContactIcon className="w-5 h-5 mb-1" />
@@ -133,8 +133,8 @@ export const Route = createRootRoute({
                   value="settings"
                   asChild
                   className="flex flex-col items-center justify-center h-full border border-gray-300 rounded-none
-                            data-[state=active]:bg-gray-200 data-[state=active]:text-green-600
-                            bg-blue-900 text-gray-300 hover:bg-blue-800 transition-colors duration-200"
+                            data-[state=active]:bg-gray-300 data-[state=active]:text-green-600
+                            bg-gray-600 text-gray-300 hover:bg-blue-800 transition-colors duration-200"
                 >
                   <Link to="/settings" className="flex flex-col items-center justify-center h-full w-full rounded-none">
                     <SettingsIcon className="w-5 h-5 mb-1" />

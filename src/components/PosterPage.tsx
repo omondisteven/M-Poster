@@ -1192,25 +1192,142 @@ return (
       <div className="flex-1 flex flex-col md:flex-row px-4 py-4 sm:py-8 md:py-0 sm:px-6 lg:px-8 gap-8 relative z-10">
         {/* Left Column - App Info */}
         <div className="w-full md:w-1/2 flex flex-col md:py-12 md:px-8">
-        {/* Header for medium screens and up - now in left column */}
+          {/* Header for medium screens and up - now in left column */}
           <div className="hidden md:block mb-8">
-              <h1 className="text-4xl font-display font-bold text-green-600">
-                  M-poster
-              </h1>
-              <h3 className="text-lg font-display text-gray-800 md:text-gray-800 mt-2 max-w-md">
-                  Your M-Pesa Payment Poster
-              </h3>
+            <h1 className="text-4xl font-display font-bold text-green-600">
+              M-poster
+            </h1>
+            <h3 className="text-lg font-display text-gray-800 md:text-gray-800 mt-2 max-w-md">
+              Your M-Pesa Payment Poster
+            </h3>
           </div>     
           <Card className="bg-[#0a0a23] md:bg-white">
-            <CardTitle className="px-6 text-xl font-bold text-white md:text-gray-900">
+            <CardTitle className="text-center px-6 text-xl font-bold text-white md:text-gray-900">
               Make Your Payment Poster
+              <div className="text-center text-gray-300 md:text-gray-500 mt-2 text-sm">
+                Download It, Share It , Stick it anywhere !
+              </div>
             </CardTitle>
-
             <CardContent>
               <form onSubmit={onSubmit} className="space-y-4">
+                {/* Radio buttons */}
+                <div className="relative border border-gray-500 rounded-md p-4 mb-6 mt-8">
+                  {/* Floating label that breaks the top border */}
+                  <div className="absolute -top-3 left-4 bg-gray-600 px-2 text-sm font-medium text-white">
+                    Generate QR Code for:
+                  </div>
+
+                  <div className="flex space-x-4 mt-2">
+                    <label className="flex items-center space-x-2">
+                      <input
+                        type="radio"
+                        className="form-radio h-4 w-4 text-green-600"
+                        checked={qrGenerationMethod === "push"}
+                        onChange={() => setQrGenerationMethod("push")}
+                      />
+                      <span className="text-white md:text-black">Push STK</span>
+                    </label>
+                    <label className="flex items-center space-x-2">
+                      <input
+                        type="radio"
+                        className="form-radio h-4 w-4 text-green-600"
+                        checked={qrGenerationMethod === "mpesa"}
+                        onChange={() => setQrGenerationMethod("mpesa")}
+                      />
+                      <span className="text-white md:text-black">M-Pesa App</span>
+                    </label>
+                  </div>
+
+                  <p className="text-xs italic text-green-500 mt-3">
+                    {qrGenerationMethod === "push"
+                      ? "Qr Code will initiate an M-Pesa payment"
+                      : "Qr Code will open the M-Pesa app"}
+                  </p>
+                </div>
+
+                {/* Show Name Checkbox and Name Input */}
+                <div className="flex items-center space-x-2 mb-2">
+                  <Controller
+                    name="showName"
+                    control={control}
+                    render={({ field }) => (
+                      <Checkbox
+                        id="showName"
+                        checked={field.value}
+                        onCheckedChange={(checked: boolean) => {
+                          field.onChange(checked);
+                        }}
+                        className="text-white border-white"
+                      />
+                    )}
+                  />
+                  <label
+                    htmlFor="showName"
+                    className="text-sm font-small leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-white md:text-black"
+                  >
+                    Include Merchant Name
+                  </label>
+                </div>
+
+                {watch("showName") && (
+                  <div className="relative">
+                    <Controller
+                      name="businessName"
+                      control={control}
+                      render={({ field }) => {
+                        const businessHistory = useInputHistory('businessName');
+                        
+                        return (
+                          <div className="relative">
+                            <Input
+                              id="name"
+                              type="text"
+                              value={field.value || ""}
+                              onChange={(e) => {
+                                field.onChange(e.target.value.toUpperCase());
+                              }}
+                              onBlur={() => {
+                                if (field.value) {
+                                  businessHistory.addToHistory(field.value);
+                                }
+                              }}
+                              className="w-full p-3 border border-gray-600 md:border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold bg-black text-white md:bg-white md:text-black peer"
+                              placeholder=" "
+                              list={`businessName-history`}
+                            />
+                            <label 
+                              htmlFor="name" 
+                              className={`absolute left-3 transition-all pointer-events-none bg-black px-1 ${
+                                field.value
+                                  ? "-top-2 text-xs text-green-500 bg-black"
+                                  : "top-1/2 -translate-y-1/2 text-base text-gray-400 peer-focus:-top-2 peer-focus:text-xs peer-focus:text-green-500 peer-focus:bg-black"
+                              } md:hidden`}
+                            >
+                              Merchant Name
+                            </label>
+                            {businessHistory.history.length > 0 && (
+                              <datalist id={`businessName-history`}>
+                                {businessHistory.history.map((item, index) => (
+                                  <option key={index} value={item} />
+                                ))}
+                              </datalist>
+                            )}
+                          </div>
+                        );
+                      }}
+                    />
+                    {errors.businessName && (
+                      <p className="mt-1 text-sm text-red-500">{errors.businessName.message}</p>
+                    )}
+                  </div>
+                )}
+
                 {/* Transaction Type Selector */}
-                <div>
-                  <label htmlFor="type" className="block text-sm font-medium text-white md:text-gray-700 mb-1">
+                <div className="relative">
+                  <label 
+                    htmlFor="type" 
+                    className="hidden md:block text-sm font-medium text-white md:text-gray-700 mb-1"
+                  >
                     Transaction Type
                   </label>
                   <Controller
@@ -1246,9 +1363,19 @@ return (
                         }}
                         value={field.value}
                       >
-                        <SelectTrigger className="w-full p-3 border border-gray-600 md:border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold bg-black text-white md:bg-white md:text-black">
-                          <SelectValue placeholder="Select transaction type" />
+                        <SelectTrigger className="w-full p-3 border border-gray-600 md:border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold bg-black text-white md:bg-white md:text-black peer">
+                          <SelectValue placeholder=" " />
                         </SelectTrigger>
+                        <label 
+                          htmlFor="type" 
+                          className={`absolute left-3 transition-all pointer-events-none bg-black px-1 ${
+                            field.value
+                              ? "-top-2 text-xs text-green-500 bg-black"
+                              : "top-1/2 -translate-y-1/2 text-base text-gray-400 peer-focus:-top-2 peer-focus:text-xs peer-focus:text-green-500 peer-focus:bg-black"
+                          } md:hidden`}
+                        >
+                          Transaction Type
+                        </label>
                         <SelectContent className="bg-[#0a0a23] text-white md:bg-white md:text-black">                          
                           <SelectItem value={TRANSACTION_TYPE.PAYBILL}>Pay Bill</SelectItem>
                           <SelectItem value={TRANSACTION_TYPE.TILL_NUMBER}>Buy Goods</SelectItem>
@@ -1262,43 +1389,10 @@ return (
                     <p className="mt-1 text-sm text-red-500">{errors.type.message}</p>
                   )}
                 </div>
-                  {/* Radio buttons */}
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium text-white md:text-gray-700 mb-2">
-                      Generate QR Code for:
-                    </label>
-                    <div className="flex space-x-4">
-                      <label className="flex items-center space-x-2">
-                        <input
-                          type="radio"
-                          className="form-radio h-4 w-4 text-green-600"
-                          checked={qrGenerationMethod === "push"}
-                          onChange={() => setQrGenerationMethod("push")}
-                        />
-                        <span className="text-white md:text-black">Push STK</span>
-                      </label>
-                      <label className="flex items-center space-x-2">
-                        <input
-                          type="radio"
-                          className="form-radio h-4 w-4 text-green-600"
-                          checked={qrGenerationMethod === "mpesa"}
-                          onChange={() => setQrGenerationMethod("mpesa")}
-                        />
-                        <span className="text-white md:text-black">M-Pesa App</span>
-                      </label>
-                    </div>
-                    <p className="text-sm text-green-500 mt-2">
-                      {qrGenerationMethod === "push" 
-                        ? "Qr Code will initiate an M-Pesa payment directly"
-                        : "Qr Code will open the M-Pesa app"}
-                    </p>
-                  </div>
+                  
                 {/* Send Money Fields */}
                 {watch("type") === TRANSACTION_TYPE.SEND_MONEY && (
-                  <div>
-                    <label htmlFor="phoneNumber" className="block text-sm font-medium text-white md:text-gray-700 mb-1">
-                      Phone Number
-                    </label>
+                  <div className="relative">
                     <Controller
                       name="phoneNumber"
                       control={control}
@@ -1320,10 +1414,20 @@ return (
                                   phoneHistory.addToHistory(field.value);
                                 }
                               }}
-                              className="w-full p-3 border border-gray-600 md:border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold bg-black text-white md:bg-white md:text-black"
-                              placeholder="0722 256 123"
+                              className="w-full p-3 border border-gray-600 md:border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold bg-black text-white md:bg-white md:text-black peer"
+                              placeholder=" "
                               list={`phoneNumber-history`}
                             />
+                            <label 
+                              htmlFor="phone" 
+                              className={`absolute left-3 transition-all pointer-events-none bg-black px-1 ${
+                                field.value
+                                  ? "-top-2 text-xs text-green-500 bg-black"
+                                  : "top-1/2 -translate-y-1/2 text-base text-gray-400 peer-focus:-top-2 peer-focus:text-xs peer-focus:text-green-500 peer-focus:bg-black"
+                              } md:hidden`}
+                            >
+                              Phone Number
+                            </label>
                             {phoneHistory.history.length > 0 && (
                               <datalist id={`phoneNumber-history`}>
                                 {phoneHistory.history.map((item, index) => (
@@ -1344,10 +1448,7 @@ return (
                 {/* Pay Bill Fields */}
                 {watch("type") === TRANSACTION_TYPE.PAYBILL && (
                   <>
-                    <div>
-                      <label htmlFor="paybillNumber" className="block text-sm font-medium text-white md:text-gray-700 mb-1">
-                        Business Number
-                      </label>
+                    <div className="relative">
                       <Controller
                         name="paybillNumber"
                         control={control}
@@ -1370,10 +1471,20 @@ return (
                                     paybillHistory.addToHistory(field.value);
                                   }
                                 }}
-                                className="w-full p-3 border border-gray-600 md:border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold bg-black text-white md:bg-white md:text-black"
-                                placeholder="123456"
+                                className="w-full p-3 border border-gray-600 md:border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold bg-black text-white md:bg-white md:text-black peer"
+                                placeholder=" "
                                 list={`paybillNumber-history`}
                               />
+                              <label 
+                                htmlFor="paybillNumber" 
+                                className={`absolute left-3 transition-all pointer-events-none bg-black px-1 ${
+                                  field.value
+                                    ? "-top-2 text-xs text-green-500 bg-black"
+                                    : "top-1/2 -translate-y-1/2 text-base text-gray-400 peer-focus:-top-2 peer-focus:text-xs peer-focus:text-green-500 peer-focus:bg-black"
+                                } md:hidden`}
+                              >
+                                Business Number
+                              </label>
                               {paybillHistory.history.length > 0 && (
                                 <datalist id={`paybillNumber-history`}>
                                   {paybillHistory.history.map((item, index) => (
@@ -1389,10 +1500,7 @@ return (
                         <p className="mt-1 text-sm text-red-500">{errors.paybillNumber.message}</p>
                       )}
                     </div>
-                    <div>
-                      <label htmlFor="accountNumber" className="block text-sm font-medium text-white md:text-gray-700 mb-1">
-                        Account Number
-                      </label>
+                    <div className="relative">
                       <Controller
                         name="accountNumber"
                         control={control}
@@ -1411,10 +1519,20 @@ return (
                                     accountHistory.addToHistory(field.value);
                                   }
                                 }}
-                                className="w-full p-3 border border-gray-600 md:border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold bg-black text-white md:bg-white md:text-black"
-                                placeholder="Account number"
+                                className="w-full p-3 border border-gray-600 md:border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold bg-black text-white md:bg-white md:text-black peer"
+                                placeholder=" "
                                 list={`accountNumber-history`}
                               />
+                              <label 
+                                htmlFor="accountNumber" 
+                                className={`absolute left-3 transition-all pointer-events-none bg-black px-1 ${
+                                  field.value
+                                    ? "-top-2 text-xs text-green-500 bg-black"
+                                    : "top-1/2 -translate-y-1/2 text-base text-gray-400 peer-focus:-top-2 peer-focus:text-xs peer-focus:text-green-500 peer-focus:bg-black"
+                                } md:hidden`}
+                              >
+                                Account Number
+                              </label>
                               {accountHistory.history.length > 0 && (
                                 <datalist id={`accountNumber-history`}>
                                   {accountHistory.history.map((item, index) => (
@@ -1435,10 +1553,7 @@ return (
 
                 {/* Buy Goods (Till Number) Fields */}
                 {watch("type") === TRANSACTION_TYPE.TILL_NUMBER && (
-                  <div>
-                    <label htmlFor="tillNumber" className="block text-sm font-medium text-white md:text-gray-700 mb-1">
-                      Till Number
-                    </label>
+                  <div className="relative">
                     <Controller
                       name="tillNumber"
                       control={control}
@@ -1461,10 +1576,20 @@ return (
                                   tillHistory.addToHistory(field.value);
                                 }
                               }}
-                              className="w-full p-3 border border-gray-600 md:border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold bg-black text-white md:bg-white md:text-black"
-                              placeholder="123456"
+                              className="w-full p-3 border border-gray-600 md:border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold bg-black text-white md:bg-white md:text-black peer"
+                              placeholder=" "
                               list={`tillNumber-history`}
                             />
+                            <label 
+                              htmlFor="tillNumber" 
+                              className={`absolute left-3 transition-all pointer-events-none bg-black px-1 ${
+                                field.value
+                                  ? "-top-2 text-xs text-green-500 bg-black"
+                                  : "top-1/2 -translate-y-1/2 text-base text-gray-400 peer-focus:-top-2 peer-focus:text-xs peer-focus:text-green-500 peer-focus:bg-black"
+                              } md:hidden`}
+                            >
+                              Till Number
+                            </label>
                             {tillHistory.history.length > 0 && (
                               <datalist id={`tillNumber-history`}>
                                 {tillHistory.history.map((item, index) => (
@@ -1485,10 +1610,7 @@ return (
                 {/* Withdraw Money (Agent) Fields */}
                 {watch("type") === TRANSACTION_TYPE.AGENT && (
                   <>
-                    <div>
-                      <label htmlFor="agentNumber" className="block text-sm font-medium text-white md:text-gray-700 mb-1">
-                        Agent Number
-                      </label>
+                    <div className="relative">
                       <Controller
                         name="agentNumber"
                         control={control}
@@ -1511,10 +1633,20 @@ return (
                                     agentHistory.addToHistory(field.value);
                                   }
                                 }}
-                                className="w-full p-3 border border-gray-600 md:border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold bg-black text-white md:bg-white md:text-black"
-                                placeholder="Agent number"
+                                className="w-full p-3 border border-gray-600 md:border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold bg-black text-white md:bg-white md:text-black peer"
+                                placeholder=" "
                                 list={`agentNumber-history`}
                               />
+                              <label 
+                                htmlFor="agentNumber" 
+                                className={`absolute left-3 transition-all pointer-events-none bg-black px-1 ${
+                                  field.value
+                                    ? "-top-2 text-xs text-green-500 bg-black"
+                                    : "top-1/2 -translate-y-1/2 text-base text-gray-400 peer-focus:-top-2 peer-focus:text-xs peer-focus:text-green-500 peer-focus:bg-black"
+                                } md:hidden`}
+                              >
+                                Agent Number
+                              </label>
                               {agentHistory.history.length > 0 && (
                                 <datalist id={`agentNumber-history`}>
                                   {agentHistory.history.map((item, index) => (
@@ -1530,10 +1662,7 @@ return (
                         <p className="mt-1 text-sm text-red-500">{errors.agentNumber.message}</p>
                       )}
                     </div>
-                    <div>
-                      <label htmlFor="storeNumber" className="block text-sm font-medium text-white md:text-gray-700 mb-1">
-                        Store Number
-                      </label>
+                    <div className="relative">
                       <Controller
                         name="storeNumber"
                         control={control}
@@ -1552,10 +1681,20 @@ return (
                                     storeHistory.addToHistory(field.value);
                                   }
                                 }}
-                                className="w-full p-3 border border-gray-600 md:border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold bg-black text-white md:bg-white md:text-black"
-                                placeholder="Store number"
+                                className="w-full p-3 border border-gray-600 md:border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold bg-black text-white md:bg-white md:text-black peer"
+                                placeholder=" "
                                 list={`storeNumber-history`}
                               />
+                              <label 
+                                htmlFor="storeNumber" 
+                                className={`absolute left-3 transition-all pointer-events-none bg-black px-1 ${
+                                  field.value
+                                    ? "-top-2 text-xs text-green-500 bg-black"
+                                    : "top-1/2 -translate-y-1/2 text-base text-gray-400 peer-focus:-top-2 peer-focus:text-xs peer-focus:text-green-500 peer-focus:bg-black"
+                                } md:hidden`}
+                              >
+                                Store Number
+                              </label>
                               {storeHistory.history.length > 0 && (
                                 <datalist id={`storeNumber-history`}>
                                   {storeHistory.history.map((item, index) => (
@@ -1572,78 +1711,8 @@ return (
                       )}
                     </div>
                   </>
-                )}
-               
-                {/* Show Name Checkbox and Name Input */}
-                <div className="flex items-center space-x-2 mb-2">
-                  <Controller
-                    name="showName"
-                    control={control}
-                    render={({ field }) => (
-                      <Checkbox
-                        id="showName"
-                        checked={field.value}
-                        onCheckedChange={(checked: boolean) => {
-                          field.onChange(checked);
-                        }}
-                        className="text-white border-white"
-                      />
-                    )}
-                  />
-                  <label
-                    htmlFor="showName"
-                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-white md:text-black"
-                  >
-                    Include Merchant Name
-                  </label>
-                </div>
-
-                {watch("showName") && (
-                  <div>
-                    <label htmlFor="name" className="block text-sm font-medium text-white md:text-gray-700 mb-1">
-                      Merchant Name
-                    </label>
-                    <Controller
-                      name="businessName"
-                      control={control}
-                      render={({ field }) => {
-                        const businessHistory = useInputHistory('businessName');
-                        
-                        return (
-                          <div className="relative">
-                            <Input
-                              id="name"
-                              type="text"
-                              value={field.value || ""}
-                              onChange={(e) => {
-                                field.onChange(e.target.value.toUpperCase());
-                              }}
-                              onBlur={() => {
-                                if (field.value) {
-                                  businessHistory.addToHistory(field.value);
-                                }
-                              }}
-                              className="w-full p-3 border border-gray-600 md:border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold bg-black text-white md:bg-white md:text-black"
-                              placeholder="NELSON ANANGWE"
-                              list={`businessName-history`}
-                            />
-                            {businessHistory.history.length > 0 && (
-                              <datalist id={`businessName-history`}>
-                                {businessHistory.history.map((item, index) => (
-                                  <option key={index} value={item} />
-                                ))}
-                              </datalist>
-                            )}
-                          </div>
-                        );
-                      }}
-                    />
-                    {errors.businessName && (
-                      <p className="mt-1 text-sm text-red-500">{errors.businessName.message}</p>
-                    )}
-                  </div>
-                )}
-
+                )}        
+                
                 {/* Color Picker */}
                 <div>
                   <label className="block text-sm font-medium text-white md:text-gray-700 mb-3">
@@ -1683,171 +1752,160 @@ return (
                     </div>
                   </div>
                 </div>
-                <div className="flex md:flex-row flex-col mt-4 w-full md:w-4/5 space-between gap-2 items-center">
-                  {/* Share Button */}
+                <div className="flex flex-row mt-4 w-full gap-2 items-center">
+                  {/* Share Button - Now smaller and inline */}
                   <motion.div
-                    whileHover={{
-                      scale: 1.05,
-                      transition: {
-                        duration: 0.2,
-                      },
-                    }}
-                    className="w-full"
+                    whileHover={{ scale: 1.03 }}
+                    className="flex-1 min-w-[120px]"
                   >
                     <Button
                       type="button"
                       onClick={handleShare}
-                      className="w-full bg-blue-600 text-white text-xl font-bold py-8 rounded-lg shadow-lg hover:bg-blue-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="w-full bg-blue-600 text-white text-sm font-bold py-4 px-2 rounded-lg hover:bg-blue-700 transition-colors duration-200 disabled:opacity-50"
                       disabled={!isValid}
                     >
-                      <HiOutlineShare className="size-8" />
-                      <span className="py-4">Share</span>
+                      <HiOutlineShare className="size-5 mr-1" />
+                      <span>Share</span>
                     </Button>
                   </motion.div>
-                  
-                  {/* Download Button */}
+
+                  {/* Download Button - Now smaller and inline */}
                   <motion.div
-                    whileHover={{
-                      scale: 1.05,
-                      transition: {
-                        duration: 0.2,
-                      },
-                    }}
-                    className="w-full"
+                    whileHover={{ scale: 1.03 }}
+                    className="flex-1 min-w-[120px]"
                   >
                     <Button
                       type="submit"
-                      className="w-full bg-gray-800 text-white text-xl font-bold py-8 rounded-lg shadow-lg hover:bg-gray-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="w-full bg-gray-800 text-white text-sm font-bold py-4 px-2 rounded-lg hover:bg-gray-700 transition-colors duration-200 disabled:opacity-50"
                       disabled={!isValid}
                     >
-                      <HiOutlineDownload className="size-8" />
-                      <span className="py-4">Download</span>
+                      <HiOutlineDownload className="size-5 mr-1" />
+                      <span>Download</span>
                     </Button>
-                  </motion.div>                
-                </div>                
+                  </motion.div>
+                </div>              
               </form>
             </CardContent>
-          </Card>
-
-          <div className="text-center text-gray-300 md:text-gray-500 mt-2 text-sm">
-            Download It, Share It , Stick it anywhere !
-          </div>
-        </div>
-
+          </Card>          
+        </div>        
         <div className="w-full md:w-1/2 flex flex-col items-center justify-center md:py-12">
-        {/* Poster Container */}
-        <div className="w-full max-w-lg">
-          {/* QR Code Component */}
-          <div className="w-full flex justify-center">
-            <div 
-              className="bg-white border-l-8 border-r-8 border-t-0 border-gray-800 flex flex-col w-full"
-              style={{ 
-                maxWidth: `${selectedTemplate.size.width}px`
-              }}
-            >
-              {/* Enhanced Dark Gray Section with guaranteed visibility */}
+          {/* Preview text */} 
+              <div className="flex flex-col items-center justify-center text-center mt-3">
+                <p className="font-handwriting text-xl text-gray-300 md:text-gray-600">
+                  A Preview of your poster
+                </p>
+              </div>    
+          {/* Poster Container */}            
+          <div className="w-full max-w-lg">
+            {/* QR Code Component */}
+            <div className="w-full flex justify-center">
               <div 
-                className="w-full flex items-center justify-center py-4 px-2"
-                style={{
-                  backgroundColor: selectedColor,
-                  borderTop: "8px solid #1a2335",  // Added top border
-                  minHeight: "70px",
-                  borderBottom: "8px solid #1a2335"
+                className="bg-white border-l-8 border-r-8 border-t-0 border-gray-800 flex flex-col w-full"
+                style={{ 
+                  maxWidth: `${selectedTemplate.size.width}px`
                 }}
-              >
-                <p 
-                  className="text-center text-3xl font-bold text-white whitespace-nowrap"
+              >                
+                {/* Enhanced Dark Gray Section with guaranteed visibility */}
+                <div 
+                  className="w-full flex items-center justify-center py-4 px-2"
                   style={{
-                    fontSize: "clamp(1.25rem, 4vw, 2rem)"
+                    backgroundColor: selectedColor,
+                    borderTop: "8px solid #1a2335",
+                    minHeight: "70px",
+                    borderBottom: "8px solid #1a2335"
                   }}
                 >
-                  SCAN TO PAY!
-                </p>
-              </div>
-              
-              {/* QR Code Section */}
-              <div className="w-full p-3" style={{ aspectRatio: "1/1" }}>
-                {previewQrData ? (
-                  <QrSvg
-                    value={previewQrData}
-                    className="qr-code-svg w-full h-full"
-                    fgColor="#000000"
-                  />
-                ) : (
-                  <div className="flex items-center justify-center h-full text-gray-500">
-                    Generating QR code...
-                  </div>
-                )}
+                  <p 
+                    className="text-center text-3xl font-bold text-white whitespace-nowrap"
+                    style={{
+                      fontSize: "clamp(1.25rem, 4vw, 2rem)"
+                    }}
+                  >
+                    SCAN TO PAY!
+                  </p>
+                </div>
+                
+                {/* QR Code Section */}
+                <div className="w-full p-3" style={{ aspectRatio: "1/1" }}>
+                  {previewQrData ? (
+                    <QrSvg
+                      value={previewQrData}
+                      className="qr-code-svg w-full h-full"
+                      fgColor="#000000"
+                    />
+                  ) : (
+                    <div className="flex items-center justify-center h-full text-gray-500">
+                      Generating QR code...
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
+              
+            {/* Poster Preview */}
             
-          {/* Poster Preview */}
-          <div
-            id="poster"
-            ref={posterRef}
-            className="grid bg-white w-full shadow-lg overflow-hidden border-8 border-gray-800"
-            style={{
-              gridTemplateRows: getGridTemplateRows(title, showName),
-              aspectRatio: `${selectedTemplate.size.width} / ${selectedTemplate.size.height}`,
-              height: '1200',
-              minHeight: calculatePosterMinHeight(title, showName)
-            }}
-          >
-            {/* Title Section (always first) */}
-            <div 
+            <div
+              id="poster"
+              ref={posterRef}
+              className="grid bg-white w-full shadow-lg overflow-hidden border-8 border-gray-800"
+              style={{
+                gridTemplateRows: getGridTemplateRows(title, showName),
+                aspectRatio: `${selectedTemplate.size.width} / ${selectedTemplate.size.height}`,
+                height: '1200',
+                minHeight: calculatePosterMinHeight(title, showName)
+              }}
+            >
+              {/* Title Section (always first) */}
+              <div 
                 className="flex flex-col items-center justify-center" 
                 style={{ 
-                    backgroundColor: selectedColor,
-                    minHeight: "80px",
-                    padding: "0.5rem 0"
+                  backgroundColor: selectedColor,
+                  minHeight: "80px",
+                  padding: "0.5rem 0"
                 }}
-                >
+              >
                 <div className="text-lg font-bold w-full py-1 px-0 text-center text-white">
-                    Transaction
+                  Transaction
                 </div>
                 <h2 className="text-2xl sm:text-3xl font-bold text-white text-center px-2">
-                    {title.toUpperCase()}
+                  {title.toUpperCase()}
                 </h2>
-                </div>
-            {/* Middle Sections */}
-            {renderMiddleSections(title, selectedColor, showName)}
+              </div>
+              {/* Middle Sections */}
+              {renderMiddleSections(title, selectedColor, showName)}
 
-            {/* Name Section (when showName is true) */}
-            {showName && (
-            <div
-                className="flex flex-col items-center justify-center"
-                style={{
-                backgroundColor: getSectionColors(title, showName)[getSectionCount(title, showName) - 1],
-                minHeight: "80px",
-                padding: "0.5rem 0",
-                borderTop: "8px solid #1a2335"
-                }}>
-                <div className="text-lg font-bold w-full py-1 px-0 text-center"
-                style={{ 
-                    color: getSectionColors(title, showName)[getSectionCount(title, showName) - 1] === selectedColor ? "#ffffff" : "#000000",
-                }}
+              {/* Name Section (when showName is true) */}
+              {showName && (
+                <div
+                  className="flex flex-col items-center justify-center"
+                  style={{
+                    backgroundColor: getSectionColors(title, showName)[getSectionCount(title, showName) - 1],
+                    minHeight: "80px",
+                    padding: "0.5rem 0",
+                    borderTop: "8px solid #1a2335"
+                  }}
                 >
-                Business Name
+                  <div 
+                    className="text-lg font-bold w-full py-1 px-0 text-center"
+                    style={{ 
+                      color: getSectionColors(title, showName)[getSectionCount(title, showName) - 1] === selectedColor ? "#ffffff" : "#000000",
+                    }}
+                  >
+                    Business Name
+                  </div>
+                  <div 
+                    className="text-2xl sm:text-3xl font-bold text-center px-2"
+                    style={{ 
+                      color: getSectionColors(title, showName)[getSectionCount(title, showName) - 1] === selectedColor ? "#ffffff" : "#000000",
+                    }}
+                  >
+                    {businessName || "NELSON ANANGWE"}
+                  </div>
                 </div>
-                <div className="text-2xl sm:text-3xl font-bold text-center px-2"
-                style={{ 
-                    color: getSectionColors(title, showName)[getSectionCount(title, showName) - 1] === selectedColor ? "#ffffff" : "#000000",
-                }}
-                >
-                {businessName || "NELSON ANANGWE"}
-                </div>
-            </div>
-            )}          </div>
-            {/* Preview text */}
-            <div className="flex flex-col items-center justify-center text-center mt-3">
-              <p className="font-handwriting text-xl text-gray-300 md:text-gray-600">
-                A Preview of your poster
-              </p>
-            </div>
-            
+              )}
+            </div>                   
           </div>
-
+          
           {/* Template Selector */}
           <div className="w-full max-w-lg mt-8">
             <h3 className="text-lg font-bold text-white md:text-gray-800 mb-3 flex items-center">
@@ -1911,31 +1969,7 @@ return (
             </div>
           </div>
         </div>
-      </div>
-
-      {/* Twitter CTA for Template Contributions
-      <div className="w-full py-4 bg-blue-50 border-t border-blue-100 relative z-10">
-        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-center sm:justify-between">
-          <div className="flex items-center mb-3 sm:mb-0">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5 text-blue-500 mr-2"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              strokeWidth="2"
-              stroke="currentColor"
-              fill="none"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-              <path d="M4 4l11.733 16h4.267l-11.733 -16z"></path>
-              <path d="M4 20l6.768 -6.768m2.46 -2.46l6.772 -6.772"></path>
-            </svg>            
-          </div>          
-        </div>
-      </div> */}
+      </div>     
     </div>
   );
 }
