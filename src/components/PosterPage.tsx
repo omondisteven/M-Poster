@@ -1748,7 +1748,7 @@ return (
             </CardContent>
           </Card>          
         </div>        
-        <Card className="relative bg-[#0a0a23] md:bg-white border border-gray-500 rounded-md px-4 pt-8 pb-4">
+        <Card className="relative bg-[#0a0a23] md:bg-white border border-green-500 rounded-md px-4 pt-8 pb-4">
           {/* Floating label on Card border */}
           <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#0a0a23] md:bg-white px-4 text-center">
             <p className="font-handwriting text-xl text-gray-300 md:text-gray-600 whitespace-nowrap">
