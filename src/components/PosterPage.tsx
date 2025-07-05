@@ -1194,29 +1194,28 @@ return (
         <div className="w-full md:w-1/2 flex flex-col md:py-12 md:px-8">
           {/* Header for medium screens and up - now in left column */}
           <div className="hidden md:block mb-8">
-            <h1 className="text-4xl font-display font-bold text-green-600">
+            <h1 className="text-4xl font-display font-bold text-green-200">
               M-poster
             </h1>
             <h3 className="text-lg font-display text-gray-800 md:text-gray-800 mt-2 max-w-md">
               Your M-Pesa Payment Poster
             </h3>
           </div>     
-          <Card className="bg-[#0a0a23] md:bg-white">
-            <CardTitle className="text-center px-6 text-xl font-bold text-white md:text-gray-900">
-              Make Your Payment Poster
-              <div className="text-center text-gray-300 md:text-gray-500 mt-2 text-sm">
-                Download It, Share It , Stick it anywhere !
+          <Card className="bg-[#0a0a23] md:bg-white border-green-500">
+            <CardTitle className="text-center px-6 pb-2 text-xl font-bold text-white md:text-gray-900">
+              Make Your M-Pesa Poster
+              <div className="text-center italic text-gray-300 md:text-gray-500 text-xs mt-1">
+                Download It, Share It, Stick it anywhere!
               </div>
             </CardTitle>
-            <CardContent>
+            <CardContent className="pt-2">
               <form onSubmit={onSubmit} className="space-y-4">
                 {/* Radio buttons */}
-                <div className="relative border border-gray-500 rounded-md p-4 mb-6 mt-8">
+                <div className="relative border border-gray-500 rounded-md p-4 mb-4">
                   {/* Floating label that breaks the top border */}
                   <div className="absolute -top-3 left-4 bg-gray-600 px-2 text-sm font-medium text-white">
                     Generate QR Code for:
                   </div>
-
                   <div className="flex space-x-4 mt-2">
                     <label className="flex items-center space-x-2">
                       <input
@@ -1246,7 +1245,7 @@ return (
                 </div>
 
                 {/* Show Name Checkbox and Name Input */}
-                <div className="flex items-center space-x-2 mb-2">
+                <div className="flex items-center space-x-2 mb-2 pb-2">
                   <Controller
                     name="showName"
                     control={control}
@@ -1711,47 +1710,8 @@ return (
                       <p className="mt-1 text-sm text-red-500">{errors.businessName.message}</p>
                     )}
                   </div>
-                )}  
+                )}                  
                 
-                {/* Color Picker */}
-                <div>
-                  <label className="block text-sm font-medium text-white md:text-gray-700 mb-3">
-                    Poster Color
-                  </label>
-                  <div className="flex items-center space-x-4">
-                    {colorOptions.map((color) => (
-                      <button
-                        key={color.value}
-                        type="button"
-                        className={`size-8 rounded-full border-2 flex items-center justify-center ${
-                          selectedColor === color.value
-                            ? "border-gray-300 md:border-gray-800"
-                            : "border-transparent"
-                        } ${color.class}`}
-                        onClick={() => setValue("selectedColor", color.value)}
-                        aria-label={`Select ${color.name} color`}
-                      >
-                        {selectedColor === color.value && (
-                          <CheckIcon className="h-5 w-5 text-white" />
-                        )}
-                      </button>
-                    ))}
-                    <div className="flex items-center">
-                      <Controller
-                        name="selectedColor"
-                        control={control}
-                        render={({ field }) => (
-                          <ColorPicker
-                            value={field.value}
-                            onChange={(value) => field.onChange(value)}
-                            className="size-8 rounded-full"
-                          />
-                        )}
-                      />
-                      <span className="ml-2 text-xs text-gray-300 md:text-gray-500">Custom</span>
-                    </div>
-                  </div>
-                </div>
                 <div className="flex flex-row mt-4 w-full gap-2 items-center">
                   {/* Share Button - Now smaller and inline */}
                   <motion.div
@@ -1788,13 +1748,55 @@ return (
             </CardContent>
           </Card>          
         </div>        
-        <div className="w-full md:w-1/2 flex flex-col items-center justify-center md:py-12">
-          {/* Preview text */} 
-              <div className="flex flex-col items-center justify-center text-center mt-3">
-                <p className="font-handwriting text-xl text-gray-300 md:text-gray-600">
-                  A Preview of your poster
-                </p>
-              </div>    
+        <Card className="relative bg-[#0a0a23] md:bg-white border border-gray-500 rounded-md px-4 pt-8 pb-4">
+          {/* Floating label on Card border */}
+          <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#0a0a23] md:bg-white px-4 text-center">
+            <p className="font-handwriting text-xl text-gray-300 md:text-gray-600 whitespace-nowrap">
+              A Preview of your poster
+            </p>
+          </div>
+
+          <div className="w-full md:w-1/2 flex flex-col items-center justify-center md:py-12">
+
+            {/* Color Picker */}
+            <div className="relative border border-gray-500 rounded-md p-4 mb-4 mt-2 w-full">
+              <div className="absolute -top-3 left-4 bg-gray-600 px-2 text-sm text-white">
+                Pick Poster Color
+              </div>
+              <div className="flex items-center space-x-4">
+                {colorOptions.map((color) => (
+                  <button
+                    key={color.value}
+                    type="button"
+                    className={`size-8 rounded-full border-2 flex items-center justify-center ${
+                      selectedColor === color.value
+                        ? "border-gray-300 md:border-gray-800"
+                        : "border-transparent"
+                    } ${color.class}`}
+                    onClick={() => setValue("selectedColor", color.value)}
+                    aria-label={`Select ${color.name} color`}
+                  >
+                    {selectedColor === color.value && (
+                      <CheckIcon className="h-5 w-5 text-white" />
+                    )}
+                  </button>
+                ))}
+                <div className="flex items-center">
+                  <Controller
+                    name="selectedColor"
+                    control={control}
+                    render={({ field }) => (
+                      <ColorPicker
+                        value={field.value}
+                        onChange={(value) => field.onChange(value)}
+                        className="size-8 rounded-full"
+                      />
+                    )}
+                  />
+                  <span className="ml-2 text-xs text-gray-300 md:text-gray-500">Custom</span>
+                </div>
+              </div>
+            </div>  
           {/* Poster Container */}            
           <div className="w-full max-w-lg">
             {/* QR Code Component */}
@@ -1908,8 +1910,8 @@ return (
           
           {/* Template Selector */}
           <div className="w-full max-w-lg mt-8">
-            <h3 className="text-lg font-bold text-white md:text-gray-800 mb-3 flex items-center">
-              Select Template Size
+            <h3 className="text-lg text-white md:text-gray-800 mb-3 flex items-center">
+              Select Template
               <span className="ml-2 text-xs text-gray-300 md:text-gray-500 italic">
                 (scroll horizontally to see more)
               </span>
@@ -1969,6 +1971,7 @@ return (
             </div>
           </div>
         </div>
+        </Card>        
       </div>     
     </div>
   );
