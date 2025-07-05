@@ -107,7 +107,7 @@ export const Route = createRootRoute({
                   value="poster"
                   asChild
                   className="flex flex-col items-center justify-center h-full border border-gray-300 rounded-none
-                            data-[state=active]:bg-gray-200 data-[state=active]:text-green-600
+                            data-[state=active]:bg-gray-600 data-[state=active]:text-green-600
                             bg-blue-900 text-gray-300 hover:bg-blue-800 transition-colors duration-200"
                 >
                   <Link to="/poster" className="flex flex-col items-center justify-center h-full w-full rounded-none">
