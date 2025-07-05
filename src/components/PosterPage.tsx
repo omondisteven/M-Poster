@@ -1267,60 +1267,7 @@ return (
                   >
                     Include Merchant Name
                   </label>
-                </div>
-
-                {watch("showName") && (
-                  <div className="relative">
-                    <Controller
-                      name="businessName"
-                      control={control}
-                      render={({ field }) => {
-                        const businessHistory = useInputHistory('businessName');
-                        
-                        return (
-                          <div className="relative">
-                            <Input
-                              id="name"
-                              type="text"
-                              value={field.value || ""}
-                              onChange={(e) => {
-                                field.onChange(e.target.value.toUpperCase());
-                              }}
-                              onBlur={() => {
-                                if (field.value) {
-                                  businessHistory.addToHistory(field.value);
-                                }
-                              }}
-                              className="w-full p-3 border border-gray-600 md:border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold bg-black text-white md:bg-white md:text-black peer"
-                              placeholder=" "
-                              list={`businessName-history`}
-                            />
-                            <label 
-                              htmlFor="name" 
-                              className={`absolute left-3 transition-all pointer-events-none bg-black px-1 ${
-                                field.value
-                                  ? "-top-2 text-xs text-green-500 bg-black"
-                                  : "top-1/2 -translate-y-1/2 text-base text-gray-400 peer-focus:-top-2 peer-focus:text-xs peer-focus:text-green-500 peer-focus:bg-black"
-                              } md:hidden`}
-                            >
-                              Merchant Name
-                            </label>
-                            {businessHistory.history.length > 0 && (
-                              <datalist id={`businessName-history`}>
-                                {businessHistory.history.map((item, index) => (
-                                  <option key={index} value={item} />
-                                ))}
-                              </datalist>
-                            )}
-                          </div>
-                        );
-                      }}
-                    />
-                    {errors.businessName && (
-                      <p className="mt-1 text-sm text-red-500">{errors.businessName.message}</p>
-                    )}
-                  </div>
-                )}
+                </div>               
 
                 {/* Transaction Type Selector */}
                 <div className="relative">
@@ -1711,7 +1658,60 @@ return (
                       )}
                     </div>
                   </>
-                )}        
+                )}      
+
+                {watch("showName") && (
+                  <div className="relative">
+                    <Controller
+                      name="businessName"
+                      control={control}
+                      render={({ field }) => {
+                        const businessHistory = useInputHistory('businessName');
+                        
+                        return (
+                          <div className="relative">
+                            <Input
+                              id="name"
+                              type="text"
+                              value={field.value || ""}
+                              onChange={(e) => {
+                                field.onChange(e.target.value.toUpperCase());
+                              }}
+                              onBlur={() => {
+                                if (field.value) {
+                                  businessHistory.addToHistory(field.value);
+                                }
+                              }}
+                              className="w-full p-3 border border-gray-600 md:border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold bg-black text-white md:bg-white md:text-black peer"
+                              placeholder=" "
+                              list={`businessName-history`}
+                            />
+                            <label 
+                              htmlFor="name" 
+                              className={`absolute left-3 transition-all pointer-events-none bg-black px-1 ${
+                                field.value
+                                  ? "-top-2 text-xs text-green-500 bg-black"
+                                  : "top-1/2 -translate-y-1/2 text-base text-gray-400 peer-focus:-top-2 peer-focus:text-xs peer-focus:text-green-500 peer-focus:bg-black"
+                              } md:hidden`}
+                            >
+                              Merchant Name
+                            </label>
+                            {businessHistory.history.length > 0 && (
+                              <datalist id={`businessName-history`}>
+                                {businessHistory.history.map((item, index) => (
+                                  <option key={index} value={item} />
+                                ))}
+                              </datalist>
+                            )}
+                          </div>
+                        );
+                      }}
+                    />
+                    {errors.businessName && (
+                      <p className="mt-1 text-sm text-red-500">{errors.businessName.message}</p>
+                    )}
+                  </div>
+                )}  
                 
                 {/* Color Picker */}
                 <div>
