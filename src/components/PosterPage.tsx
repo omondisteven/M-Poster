@@ -1194,7 +1194,7 @@ return (
         <div className="w-full md:w-1/2 flex flex-col md:py-12 md:px-8">
           {/* Header for medium screens and up - now in left column */}
           <div className="hidden md:block mb-8">
-            <h1 className="text-4xl font-display font-bold text-green-200">
+            <h1 className="text-4xl font-display font-bold text-green-500 md: text-green-200">
               M-poster
             </h1>
             <h3 className="text-lg font-display text-gray-800 md:text-gray-800 mt-2 max-w-md">
@@ -1720,273 +1720,277 @@ return (
               </form>
             </CardContent>
           </Card>
-        </div>         
-        {/* Customize poster section */}
-        <Card className="relative bg-[#0a0a23] md:bg-white border border-green-500 rounded-md px-4 pt-8 pb-4">
-            {/* Floating label on Card border */}
-            <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#0a0a23] md:bg-white px-4 text-center">
-              <p className="font-handwriting text-xl text-gray-300 md:text-gray-600 whitespace-nowrap">
-                Customize your Poster
-              </p>
-            </div>
-
-            <div className="w-full md:w-1/2 flex flex-col items-center justify-center md:py-12">
-
-              {/* Color Picker */}
-              <div className="relative border border-gray-500 rounded-md p-4 mb-4 mt-2 w-full">
-                <div className="absolute -top-3 left-4 bg-gray-600 px-2 text-sm text-white">
-                  Pick Poster Color
-                </div>
-                <div className="flex items-center space-x-4">
-                  {colorOptions.map((color) => (
-                    <button
-                      key={color.value}
-                      type="button"
-                      className={`size-8 rounded-full border-2 flex items-center justify-center ${
-                        selectedColor === color.value
-                          ? "border-gray-300 md:border-gray-800"
-                          : "border-transparent"
-                      } ${color.class}`}
-                      onClick={() => setValue("selectedColor", color.value)}
-                      aria-label={`Select ${color.name} color`}
-                    >
-                      {selectedColor === color.value && (
-                        <CheckIcon className="h-5 w-5 text-white" />
-                      )}
-                    </button>
-                  ))}
-                  <div className="flex items-center">
-                    <Controller
-                      name="selectedColor"
-                      control={control}
-                      render={({ field }) => (
-                        <ColorPicker
-                          value={field.value}
-                          onChange={(value) => field.onChange(value)}
-                          className="size-8 rounded-full"
-                        />
-                      )}
-                    />
-                    <span className="ml-2 text-xs text-gray-300 md:text-gray-500">Custom</span>
-                  </div>
-                </div>
-              </div> 
-
-              {/* Template selector subsection */}
-              <div className="relative border border-gray-500 rounded-md p-4 mb-4 mt-2 w-full">
-                <div className="absolute -top-3 left-4 bg-gray-600 px-2 text-sm text-white">
-                  Select a Template for your Poster
-                </div>
-                <div className="relative w-full rounded-xl overflow-hidden">
-                {/* Left scroll indicator */}
-                <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-[#0a0a23] md:from-gray-100 to-transparent z-10 pointer-events-none flex items-center justify-start pl-1">
-                  <ChevronLeftIcon className="h-6 w-6 text-gray-300 md:text-gray-500 animate-pulse" />
-                </div>
-
-                {/* Right scroll indicator */}
-                <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-[#0a0a23] md:from-gray-100 to-transparent z-10 pointer-events-none flex items-center justify-end pr-1">
-                  <ChevronRightIcon className="h-6 w-6 text-gray-300 md:text-gray-500 animate-pulse" />
-                </div>
-
-                <ScrollArea className="w-full h-[170px] rounded-lg">
-                  <div className="flex space-x-4 px-8 py-1 min-w-max">
-                    {templates.map((template) => (
-                      <div
-                        key={template.slug}
-                        onClick={() => setSelectedTemplate(template)}
-                        className={`p-3 rounded-lg cursor-pointer transition-all w-[160px] h-[150px] flex flex-col ${
-                          selectedTemplate.slug === template.slug
-                            ? "bg-gray-800 text-white ring-2 ring-green-500"
-                            : "bg-[#1a1a3a] hover:bg-[#2a2a4a] md:bg-white md:hover:bg-gray-100 border border-gray-700 md:border-gray-200"
-                        }`}
-                      >
-                        <div className="font-medium truncate">
-                          {template.name}
-                        </div>
-                        <div className="text-xs mt-1 line-clamp-2 flex-grow text-gray-300 md:text-gray-800">
-                          {template.description}
-                        </div>
-                        <div
-                          className={`text-xs mt-1 font-semibold ${
-                            selectedTemplate.slug === template.slug
-                              ? "text-green-300"
-                              : "text-green-400 md:text-green-600"
-                          }`}
-                        >
-                          {template.size.label}
-                        </div>
-                        <div
-                          className={`text-xs mt-1 ${
-                            selectedTemplate.slug === template.slug
-                              ? "text-gray-300"
-                              : "text-gray-400 md:text-gray-500"
-                          }`}
-                        >
-                          {template.size.width}×{template.size.height}px
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  <ScrollBar orientation="horizontal" />
-                </ScrollArea>
-              </div>
-              </div>             
-          </div>
-        </Card> 
-        <form onSubmit={onSubmit} className="space-y-4">
-          <Card className="relative bg-[#0a0a23] md:bg-white border border-green-500 rounded-md px-4 pt-8 pb-4">
-          {/* Poster Preview */}
+        </div>
+        {/* Second Column - Customize + Preview */}
+          <div className="w-full md:w-1/2 flex flex-col gap-6">
+            {/* Customize poster section - now full width */}
+            <Card className="relative bg-[#0a0a23] md:bg-white border border-green-500 rounded-md px-4 pt-8 pb-4 w-full">
+              {/* Floating label on Card border */}
               <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#0a0a23] md:bg-white px-4 text-center">
                 <p className="font-handwriting text-xl text-gray-300 md:text-gray-600 whitespace-nowrap">
-                  A Preview of your poster
+                  Customize your Poster
                 </p>
               </div>
-              <div className="w-full md:w-1/2 flex flex-col items-center justify-center md:py-12">
-              {/* Poster Container */}            
-              <div className="w-full max-w-lg">
-                {/* QR Code Component */}
-                <div className="w-full flex justify-center">
-                  <div 
-                    className="bg-white border-l-8 border-r-8 border-t-0 border-gray-800 flex flex-col w-full"
-                    style={{ 
-                      maxWidth: `${selectedTemplate.size.width}px`
-                    }}
-                  >                
-                    {/* Enhanced Dark Gray Section with guaranteed visibility */}
-                    <div 
-                      className="w-full flex items-center justify-center py-4 px-2"
-                      style={{
-                        backgroundColor: selectedColor,
-                        borderTop: "8px solid #1a2335",
-                        minHeight: "70px",
-                        borderBottom: "8px solid #1a2335"
-                      }}
-                    >
-                      <p 
-                        className="text-center text-3xl font-bold text-white whitespace-nowrap"
-                        style={{
-                          fontSize: "clamp(1.25rem, 4vw, 2rem)"
-                        }}
+
+              <div className="w-full flex flex-col items-center justify-center">
+                {/* Color Picker - full width */}
+                <div className="relative border border-gray-500 rounded-md p-4 mb-4 mt-2 w-full">
+                  <div className="absolute -top-3 left-4 bg-gray-600 px-2 text-sm text-white">
+                    Pick Poster Color
+                  </div>
+                  <div className="flex items-center space-x-4">
+                    {colorOptions.map((color) => (
+                      <button
+                        key={color.value}
+                        type="button"
+                        className={`size-8 rounded-full border-2 flex items-center justify-center ${
+                          selectedColor === color.value
+                            ? "border-gray-300 md:border-gray-800"
+                            : "border-transparent"
+                        } ${color.class}`}
+                        onClick={() => setValue("selectedColor", color.value)}
+                        aria-label={`Select ${color.name} color`}
                       >
-                        SCAN TO PAY!
-                      </p>
+                        {selectedColor === color.value && (
+                          <CheckIcon className="h-5 w-5 text-white" />
+                        )}
+                      </button>
+                    ))}
+                    <div className="flex items-center">
+                      <Controller
+                        name="selectedColor"
+                        control={control}
+                        render={({ field }) => (
+                          <ColorPicker
+                            value={field.value}
+                            onChange={(value) => field.onChange(value)}
+                            className="size-8 rounded-full"
+                          />
+                        )}
+                      />
+                      <span className="ml-2 text-xs text-gray-300 md:text-gray-500">Custom</span>
                     </div>
-                    
-                    {/* QR Code Section */}
-                    <div className="w-full p-3" style={{ aspectRatio: "1/1" }}>
-                      {previewQrData ? (
-                        <QrSvg
-                          value={previewQrData}
-                          className="qr-code-svg w-full h-full"
-                          fgColor="#000000"
-                        />
-                      ) : (
-                        <div className="flex items-center justify-center h-full text-gray-500">
-                          Generating QR code...
-                        </div>
-                      )}
+                  </div>
+                </div> 
+
+                {/* Template selector subsection - full width */}
+                <div className="relative border border-gray-500 rounded-md p-4 mb-4 mt-2 w-full">
+                  <div className="absolute -top-3 left-4 bg-gray-600 px-2 text-sm text-white">
+                    Select a Template for your Poster
+                  </div>
+                  <div className="relative w-full rounded-xl overflow-hidden">
+                    {/* Left scroll indicator */}
+                    <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-[#0a0a23] md:from-gray-100 to-transparent z-10 pointer-events-none flex items-center justify-start pl-1">
+                      <ChevronLeftIcon className="h-6 w-6 text-gray-300 md:text-gray-500 animate-pulse" />
                     </div>
+
+                    {/* Right scroll indicator */}
+                    <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-[#0a0a23] md:from-gray-100 to-transparent z-10 pointer-events-none flex items-center justify-end pr-1">
+                      <ChevronRightIcon className="h-6 w-6 text-gray-300 md:text-gray-500 animate-pulse" />
+                    </div>
+
+                    <ScrollArea className="w-full h-[170px] rounded-lg">
+                      <div className="flex space-x-4 px-8 py-1 min-w-max">
+                        {templates.map((template) => (
+                          <div
+                            key={template.slug}
+                            onClick={() => setSelectedTemplate(template)}
+                            className={`p-3 rounded-lg cursor-pointer transition-all w-[160px] h-[150px] flex flex-col ${
+                              selectedTemplate.slug === template.slug
+                                ? "bg-gray-800 text-white ring-2 ring-green-500"
+                                : "bg-[#1a1a3a] hover:bg-[#2a2a4a] md:bg-white md:hover:bg-gray-100 border border-gray-700 md:border-gray-200"
+                            }`}
+                          >
+                            <div className="font-medium truncate">
+                              {template.name}
+                            </div>
+                            <div className="text-xs mt-1 line-clamp-2 flex-grow text-gray-300 md:text-gray-800">
+                              {template.description}
+                            </div>
+                            <div
+                              className={`text-xs mt-1 font-semibold ${
+                                selectedTemplate.slug === template.slug
+                                  ? "text-green-300"
+                                  : "text-green-400 md:text-green-600"
+                              }`}
+                            >
+                              {template.size.label}
+                            </div>
+                            <div
+                              className={`text-xs mt-1 ${
+                                selectedTemplate.slug === template.slug
+                                  ? "text-gray-300"
+                                  : "text-gray-400 md:text-gray-500"
+                              }`}
+                            >
+                              {template.size.width}×{template.size.height}px
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      <ScrollBar orientation="horizontal" />
+                    </ScrollArea>
                   </div>
                 </div>             
-                <div
-                  id="poster"
-                  ref={posterRef}
-                  className="grid bg-white w-full shadow-lg overflow-hidden border-8 border-gray-800"
-                  style={{
-                    gridTemplateRows: getGridTemplateRows(title, showName),
-                    aspectRatio: `${selectedTemplate.size.width} / ${selectedTemplate.size.height}`,
-                    height: '1200',
-                    minHeight: calculatePosterMinHeight(title, showName)
-                  }}
-                >
-                  {/* Title Section (always first) */}
-                  <div 
-                    className="flex flex-col items-center justify-center" 
-                    style={{ 
-                      backgroundColor: selectedColor,
-                      minHeight: "80px",
-                      padding: "0.5rem 0"
-                    }}
-                  >
-                    <div className="text-lg font-bold w-full py-1 px-0 text-center text-white">
-                      Transaction
-                    </div>
-                    <h2 className="text-2xl sm:text-3xl font-bold text-white text-center px-2">
-                      {title.toUpperCase()}
-                    </h2>
-                  </div>
-                  {/* Middle Sections */}
-                  {renderMiddleSections(title, selectedColor, showName)}
+              </div>
+            </Card>
 
-                  {/* Name Section (when showName is true) */}
-                  {showName && (
+            {/* Poster Preview Section - full width */}
+            <form onSubmit={onSubmit} className="space-y-4 w-full">
+              <Card className="relative bg-[#0a0a23] md:bg-white border border-green-500 rounded-md px-4 pt-8 pb-4 w-full">
+                {/* Poster Preview */}
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#0a0a23] md:bg-white px-4 text-center">
+                  <p className="font-handwriting text-xl text-gray-300 md:text-gray-600 whitespace-nowrap">
+                    A Preview of your poster
+                  </p>
+                </div>
+                <div className="w-full flex flex-col items-center justify-center">
+                  {/* Poster Container */}            
+                  <div className="w-full max-w-lg">
+                    {/* QR Code Component */}
+                    <div className="w-full flex justify-center">
+                      <div 
+                        className="bg-white border-l-8 border-r-8 border-t-0 border-gray-800 flex flex-col w-full"
+                        style={{ 
+                          maxWidth: `${selectedTemplate.size.width}px`
+                        }}
+                      >                
+                        {/* Enhanced Dark Gray Section with guaranteed visibility */}
+                        <div 
+                          className="w-full flex items-center justify-center py-4 px-2"
+                          style={{
+                            backgroundColor: selectedColor,
+                            borderTop: "8px solid #1a2335",
+                            minHeight: "70px",
+                            borderBottom: "8px solid #1a2335"
+                          }}
+                        >
+                          <p 
+                            className="text-center text-3xl font-bold text-white whitespace-nowrap"
+                            style={{
+                              fontSize: "clamp(1.25rem, 4vw, 2rem)"
+                            }}
+                          >
+                            SCAN TO PAY!
+                          </p>
+                        </div>
+                        
+                        {/* QR Code Section */}
+                        <div className="w-full p-3" style={{ aspectRatio: "1/1" }}>
+                          {previewQrData ? (
+                            <QrSvg
+                              value={previewQrData}
+                              className="qr-code-svg w-full h-full"
+                              fgColor="#000000"
+                            />
+                          ) : (
+                            <div className="flex items-center justify-center h-full text-gray-500">
+                              Generating QR code...
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>             
                     <div
-                      className="flex flex-col items-center justify-center"
+                      id="poster"
+                      ref={posterRef}
+                      className="grid bg-white w-full shadow-lg overflow-hidden border-8 border-gray-800"
                       style={{
-                        backgroundColor: getSectionColors(title, showName)[getSectionCount(title, showName) - 1],
-                        minHeight: "80px",
-                        padding: "0.5rem 0",
-                        borderTop: "8px solid #1a2335"
+                        gridTemplateRows: getGridTemplateRows(title, showName),
+                        aspectRatio: `${selectedTemplate.size.width} / ${selectedTemplate.size.height}`,
+                        height: '1200',
+                        minHeight: calculatePosterMinHeight(title, showName)
                       }}
                     >
+                      {/* Title Section (always first) */}
                       <div 
-                        className="text-lg font-bold w-full py-1 px-0 text-center"
+                        className="flex flex-col items-center justify-center" 
                         style={{ 
-                          color: getSectionColors(title, showName)[getSectionCount(title, showName) - 1] === selectedColor ? "#ffffff" : "#000000",
+                          backgroundColor: selectedColor,
+                          minHeight: "80px",
+                          padding: "0.5rem 0"
                         }}
                       >
-                        Business Name
+                        <div className="text-lg font-bold w-full py-1 px-0 text-center text-white">
+                          Transaction
+                        </div>
+                        <h2 className="text-2xl sm:text-3xl font-bold text-white text-center px-2">
+                          {title.toUpperCase()}
+                        </h2>
                       </div>
-                      <div 
-                        className="text-2xl sm:text-3xl font-bold text-center px-2"
-                        style={{ 
-                          color: getSectionColors(title, showName)[getSectionCount(title, showName) - 1] === selectedColor ? "#ffffff" : "#000000",
-                        }}
-                      >
-                        {businessName || "NELSON ANANGWE"}
-                      </div>
-                    </div>
-                  )}
-                </div>                   
-              </div>
-            </div>
-            <div className="flex flex-row mt-4 w-full gap-2 items-center">
-            {/* Share Button - Now smaller and inline */}
-            <motion.div
-              whileHover={{ scale: 1.03 }}
-              className="flex-1 min-w-[120px]"
-            >
-              <Button
-                type="button"
-                onClick={handleShare}
-                className="w-full bg-blue-600 text-white text-sm font-bold py-4 px-2 rounded-lg hover:bg-blue-700 transition-colors duration-200 disabled:opacity-50"
-                disabled={!isValid}
-              >
-                <HiOutlineShare className="size-5 mr-1" />
-                <span>Share</span>
-              </Button>
-            </motion.div>
+                      {/* Middle Sections */}
+                      {renderMiddleSections(title, selectedColor, showName)}
 
-            {/* Download Button - Now smaller and inline */}
-            <motion.div
-              whileHover={{ scale: 1.03 }}
-              className="flex-1 min-w-[120px]"
-            >
-              <Button
-                type="submit"
-                className="w-full bg-gray-800 text-white text-sm font-bold py-4 px-2 rounded-lg hover:bg-gray-700 transition-colors duration-200 disabled:opacity-50"
-                disabled={!isValid}
-              >
-                <HiOutlineDownload className="size-5 mr-1" />
-                <span>Download</span>
-              </Button>
-            </motion.div>
-          </div> 
-          </Card>          
-        </form>             
-      </div>     
-    </div>
-  );
+                      {/* Name Section (when showName is true) */}
+                      {showName && (
+                        <div
+                          className="flex flex-col items-center justify-center"
+                          style={{
+                            backgroundColor: getSectionColors(title, showName)[getSectionCount(title, showName) - 1],
+                            minHeight: "80px",
+                            padding: "0.5rem 0",
+                            borderTop: "8px solid #1a2335"
+                          }}
+                        >
+                          <div 
+                            className="text-lg font-bold w-full py-1 px-0 text-center"
+                            style={{ 
+                              color: getSectionColors(title, showName)[getSectionCount(title, showName) - 1] === selectedColor ? "#ffffff" : "#000000",
+                            }}
+                          >
+                            Business Name
+                          </div>
+                          <div 
+                            className="text-2xl sm:text-3xl font-bold text-center px-2"
+                            style={{ 
+                              color: getSectionColors(title, showName)[getSectionCount(title, showName) - 1] === selectedColor ? "#ffffff" : "#000000",
+                            }}
+                          >
+                            {businessName || "NELSON ANANGWE"}
+                          </div>
+                        </div>
+                      )}
+                    </div>                   
+                  </div>
+                </div>
+                <div className="flex flex-row mt-4 w-full gap-2 items-center">
+                  {/* Share Button */}
+                  <motion.div
+                    whileHover={{ scale: 1.03 }}
+                    className="flex-1 min-w-[120px]"
+                  >
+                    <Button
+                      type="button"
+                      onClick={handleShare}
+                      className="w-full bg-blue-600 text-white text-sm font-bold py-4 px-2 rounded-lg hover:bg-blue-700 transition-colors duration-200 disabled:opacity-50"
+                      disabled={!isValid}
+                    >
+                      <HiOutlineShare className="size-5 mr-1" />
+                      <span>Share</span>
+                    </Button>
+                  </motion.div>
+
+                  {/* Download Button */}
+                  <motion.div
+                    whileHover={{ scale: 1.03 }}
+                    className="flex-1 min-w-[120px]"
+                  >
+                    <Button
+                      type="submit"
+                      className="w-full bg-gray-800 text-white text-sm font-bold py-4 px-2 rounded-lg hover:bg-gray-700 transition-colors duration-200 disabled:opacity-50"
+                      disabled={!isValid}
+                    >
+                      <HiOutlineDownload className="size-5 mr-1" />
+                      <span>Download</span>
+                    </Button>
+                  </motion.div>
+                </div> 
+              </Card>          
+            </form>       
+          </div>
+        </div>     
+      </div>
+    );
 }
 
 export default PosterPage
