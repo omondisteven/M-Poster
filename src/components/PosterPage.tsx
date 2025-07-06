@@ -1716,40 +1716,7 @@ return (
                       <p className="mt-1 text-sm text-red-500">{errors.businessName.message}</p>
                     )}
                   </div>
-                )}                  
-                
-                <div className="flex flex-row mt-4 w-full gap-2 items-center">
-                  {/* Share Button - Now smaller and inline */}
-                  <motion.div
-                    whileHover={{ scale: 1.03 }}
-                    className="flex-1 min-w-[120px]"
-                  >
-                    <Button
-                      type="button"
-                      onClick={handleShare}
-                      className="w-full bg-blue-600 text-white text-sm font-bold py-4 px-2 rounded-lg hover:bg-blue-700 transition-colors duration-200 disabled:opacity-50"
-                      disabled={!isValid}
-                    >
-                      <HiOutlineShare className="size-5 mr-1" />
-                      <span>Share</span>
-                    </Button>
-                  </motion.div>
-
-                  {/* Download Button - Now smaller and inline */}
-                  <motion.div
-                    whileHover={{ scale: 1.03 }}
-                    className="flex-1 min-w-[120px]"
-                  >
-                    <Button
-                      type="submit"
-                      className="w-full bg-gray-800 text-white text-sm font-bold py-4 px-2 rounded-lg hover:bg-gray-700 transition-colors duration-200 disabled:opacity-50"
-                      disabled={!isValid}
-                    >
-                      <HiOutlineDownload className="size-5 mr-1" />
-                      <span>Download</span>
-                    </Button>
-                  </motion.div>
-                </div>              
+                )}   
               </form>
             </CardContent>
           </Card>
@@ -1868,9 +1835,8 @@ return (
         </Card> 
         <form onSubmit={onSubmit} className="space-y-4">
           <Card className="relative bg-[#0a0a23] md:bg-white border border-green-500 rounded-md px-4 pt-8 pb-4">
-          {/* Floating label on Card border */}
           {/* Poster Preview */}
-            <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#0a0a23] md:bg-white px-4 text-center">
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#0a0a23] md:bg-white px-4 text-center">
                 <p className="font-handwriting text-xl text-gray-300 md:text-gray-600 whitespace-nowrap">
                   A Preview of your poster
                 </p>
