@@ -1188,10 +1188,10 @@ function PosterPage() {
   };
 
 return (
-    <div className="flex flex-col bg-[#0a0a23] md:bg-gray-100">
-      <div className="flex-1 flex flex-col md:flex-row px-4 py-4 sm:py-8 md:py-0 sm:px-6 lg:px-8 gap-8 relative z-10">
+    <div className="flex flex-col bg-[#0a0a23] md:bg-gray-100 w-full max-w-[100vw] overflow-x-hidden">
+      <div className="flex-1 flex flex-col lg:flex-row px-4 py-4 sm:py-8 md:py-0 sm:px-6 lg:px-8 gap-4 md:gap-8 relative z-10">
         {/* Left Column - App Info */}
-        <div className="w-full md:w-1/2 flex flex-col md:py-12 md:px-8">
+        <div className="w-full lg:w-1/2 flex flex-col md:py-12 md:px-4 lg:px-8">
           {/* Header for medium screens and up - now in left column */}
           <div className="hidden md:block mb-8">
             <h1 className="text-4xl font-display font-bold text-green-500 md: text-green-200">

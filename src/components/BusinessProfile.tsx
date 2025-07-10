@@ -212,9 +212,9 @@ export default function BusinessProfile() {
   );
 
   return (
-    <div className="p-4 flex flex-col lg:flex-row gap-8 bg-[#0a0a23] md:bg-transparent">
+    <div className="p-4 flex flex-col lg:flex-row gap-4 md:gap-8 bg-[#0a0a23] md:bg-transparent w-full max-w-[100vw] overflow-x-hidden">
       {/* Left: Entry Form */}      
-      <div className="w-full lg:w-[70%]">
+      <div className="w-full lg:w-[70%] min-w-0"> {/* Add min-w-0 to prevent flex item overflow */}
         <h2 className="text-xl font-bold text-white md:text-black pb-8">E-Business Card</h2>
         <Card className="relative bg-[#0a0a23] md:bg-gray-100 border border-green-500 rounded-md px-4 pt-8 pb-4">
           <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#0a0a23] md:bg-gray-100 px-4 text-center">

@@ -89,10 +89,10 @@ export default function SettingsPage() {
   });
 
   return (
-    <div className="space-y-6">
-      <Card>
+    <div className="space-y-6 px-4 py-4 max-w-[100vw] overflow-x-hidden">
+      <Card className="w-full max-w-full">
         <CardHeader>
-          <CardTitle className="text-blue-600">Appearance</CardTitle>
+          <CardTitle className="text-blue-600 text-lg sm:text-xl">Appearance</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-between">
