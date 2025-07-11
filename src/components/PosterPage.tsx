@@ -1927,7 +1927,7 @@ return (
                       {/* Name Section (when showName is true) */}
                       {showName && (
                         <div
-                          className="flex flex-col items-center justify-center"
+                          className="flex flex-col items-center justify-center "
                           style={{
                             backgroundColor: getSectionColors(title, showName)[getSectionCount(title, showName) - 1],
                             minHeight: "80px",
@@ -1944,7 +1944,7 @@ return (
                             Business Name
                           </div>
                           <div 
-                            className="text-2xl sm:text-3xl font-bold text-center px-2"
+                            className="text-2xl sm:text-3xl font-bold text-center px-2 break-words overflow-hidden w-full"
                             style={{ 
                               fontSize: "clamp(1rem, 4vw, 1.75rem)",
                               color: getSectionColors(title, showName)[getSectionCount(title, showName) - 1] === selectedColor ? "#ffffff" : "#000000",
