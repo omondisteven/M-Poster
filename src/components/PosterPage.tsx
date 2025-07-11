@@ -1022,7 +1022,7 @@ function PosterPage() {
         if (sectionIndex === 0) {
           return (
             <>
-              <div className="text-lg font-bold w-full py-1 px-0 text-center" style={{ color: textColor }}>
+              <div className="font-bold w-full py-1 px-0 text-center" style={{ color: textColor, fontSize: "clamp()" }}>
                 Business Number
               </div>
               <div className="text-xl sm:text-2xl md:text-3xl lg:text-3xl font-bold text-center py-1" style={{ color: textColor }}>
@@ -1033,7 +1033,7 @@ function PosterPage() {
         } else {
           return (
             <>
-              <div className="text-lg font-bold w-full py-1 px-0 text-center" style={{ color: textColor }}>
+              <div className="font-bold w-full py-1 px-0 text-center" style={{ color: textColor, fontSize: "clamp()" }}>
                 Account Number
               </div>
               <div className="text-xl sm:text-2xl md:text-3xl lg:text-3xl font-bold text-center py-1" style={{ color: textColor }}>
@@ -1046,7 +1046,7 @@ function PosterPage() {
       case "Buy Goods":
         return (
           <>
-            <div className="text-lg font-bold w-full py-1 px-0 text-center" style={{ color: textColor }}>
+            <div className="font-bold w-full py-1 px-0 text-center" style={{ color: textColor, fontSize: "clamp()" }}>
               Till Number
             </div>
             <div className="text-xl sm:text-2xl md:text-3xl lg:text-3xl font-bold text-center py-1" style={{ color: textColor }}>
@@ -1070,7 +1070,7 @@ function PosterPage() {
         } else {
           return (
             <>
-              <div className="text-lg font-bold w-full py-1 px-0 text-center" style={{ color: textColor }}>
+              <div className="font-bold w-full py-1 px-0 text-center" style={{ color: textColor, fontSize: "clamp()" }}>
                 Store Number
               </div>
               <div className="text-xl sm:text-2xl md:text-3xl lg:text-3xl font-bold text-center py-1" style={{ color: textColor }}>
@@ -1914,7 +1914,7 @@ return (
                           padding: "0.5rem 0"
                         }}
                       >
-                        <div className="text-lg font-bold w-full py-1 px-0 text-center text-white">
+                        <div className="font-bold w-full py-1 px-0 text-center text-white" style={{fontSize: "clamp()"}}>
                           Transaction
                         </div>
                         <h2 className="text-2xl sm:text-3xl font-bold text-white text-center px-2">
@@ -1936,9 +1936,9 @@ return (
                           }}
                         >
                           <div 
-                            className="text-lg font-bold w-full py-1 px-0 text-center"
+                            className="font-bold w-full py-1 px-0 text-center"
                             style={{ 
-                              color: getSectionColors(title, showName)[getSectionCount(title, showName) - 1] === selectedColor ? "#ffffff" : "#000000",
+                              color: getSectionColors(title, showName)[getSectionCount(title, showName) - 1] === selectedColor ? "#ffffff" : "#000000", fontSize: "clamp()"
                             }}
                           >
                             Business Name
@@ -1946,11 +1946,13 @@ return (
                           <div 
                             className="text-2xl sm:text-3xl font-bold text-center px-2"
                             style={{ 
+                              fontSize: "clamp(1rem, 4vw, 1.75rem)",
                               color: getSectionColors(title, showName)[getSectionCount(title, showName) - 1] === selectedColor ? "#ffffff" : "#000000",
                             }}
                           >
                             {businessName || "NELSON ANANGWE"}
                           </div>
+
                         </div>
                       )}
                     </div>                   
