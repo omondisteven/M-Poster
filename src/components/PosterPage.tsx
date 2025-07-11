@@ -1010,10 +1010,27 @@ function PosterPage() {
   function renderSectionContent(title: string, sectionIndex: number, isWhite: boolean) {
     const textColor = isWhite ? "#000000" : "#ffffff";
     
+    // Common text styles for labels
+    const labelStyles = {
+      color: textColor,
+      fontSize: "clamp(0.875rem, 3vw, 1.125rem)",
+      lineHeight: "1.2"
+    };
+
+    // Common text styles for values
+    const valueStyles = {
+      color: textColor,
+      fontSize: "clamp(1.25rem, 4vw, 2rem)",
+      lineHeight: "1.2"
+    };
+
     switch (title) {
       case "Send Money":
         return (
-          <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-center py-2" style={{ color: textColor }}>
+          <div 
+            className="font-bold text-center py-2 px-2" 
+            style={valueStyles}
+          >
             {phoneNumber || "0722 256 123"}
           </div>
         );
@@ -1022,10 +1039,10 @@ function PosterPage() {
         if (sectionIndex === 0) {
           return (
             <>
-              <div className="font-bold w-full py-1 px-0 text-center" style={{ color: textColor, fontSize: "clamp()" }}>
+              <div className="font-bold w-full py-1 px-2 text-center" style={labelStyles}>
                 Business Number
               </div>
-              <div className="text-xl sm:text-2xl md:text-3xl lg:text-3xl font-bold text-center py-1" style={{ color: textColor }}>
+              <div className="font-bold text-center py-1 px-2" style={valueStyles}>
                 {paybillNumber || "12345"}
               </div>
             </>
@@ -1033,10 +1050,10 @@ function PosterPage() {
         } else {
           return (
             <>
-              <div className="font-bold w-full py-1 px-0 text-center" style={{ color: textColor, fontSize: "clamp()" }}>
+              <div className="font-bold w-full py-1 px-2 text-center" style={labelStyles}>
                 Account Number
               </div>
-              <div className="text-xl sm:text-2xl md:text-3xl lg:text-3xl font-bold text-center py-1" style={{ color: textColor }}>
+              <div className="font-bold text-center py-1 px-2" style={valueStyles}>
                 {accountNumber || "67890"}
               </div>
             </>
@@ -1046,10 +1063,10 @@ function PosterPage() {
       case "Buy Goods":
         return (
           <>
-            <div className="font-bold w-full py-1 px-0 text-center" style={{ color: textColor, fontSize: "clamp()" }}>
+            <div className="font-bold w-full py-1 px-2 text-center" style={labelStyles}>
               Till Number
             </div>
-            <div className="text-xl sm:text-2xl md:text-3xl lg:text-3xl font-bold text-center py-1" style={{ color: textColor }}>
+            <div className="font-bold text-center py-1 px-2" style={valueStyles}>
               {tillNumber || "54321"}
             </div>
           </>
@@ -1059,10 +1076,10 @@ function PosterPage() {
         if (sectionIndex === 0) {
           return (
             <>
-              <div className="text-lg font-bold w-full py-1 px-0 text-center" style={{ color: textColor }}>
+              <div className="font-bold w-full py-1 px-2 text-center" style={labelStyles}>
                 Agent Number
               </div>
-              <div className="text-xl sm:text-2xl md:text-3xl lg:text-3xl font-bold text-center py-1" style={{ color: textColor }}>
+              <div className="font-bold text-center py-1 px-2" style={valueStyles}>
                 {agentNumber || "98765"}
               </div>
             </>
@@ -1070,10 +1087,10 @@ function PosterPage() {
         } else {
           return (
             <>
-              <div className="font-bold w-full py-1 px-0 text-center" style={{ color: textColor, fontSize: "clamp()" }}>
+              <div className="font-bold w-full py-1 px-2 text-center" style={labelStyles}>
                 Store Number
               </div>
-              <div className="text-xl sm:text-2xl md:text-3xl lg:text-3xl font-bold text-center py-1" style={{ color: textColor }}>
+              <div className="font-bold text-center py-1 px-2" style={valueStyles}>
                 {storeNumber || "24680"}
               </div>
             </>
@@ -1909,26 +1926,22 @@ return (
                       }}
                     >
                       {/* Title Section */}
-                      <div
-                        className="flex flex-col items-center justify-center w-full px-2"
-                        style={{
-                          backgroundColor: selectedColor,
-                          minHeight: "80px",
-                          padding: "0.5rem 0",
-                        }}
-                      >
-                        <div className="w-full text-center text-white font-bold"
-                          style={{
-                            fontSize: "clamp(1rem, 3.5vw, 1.25rem)",
-                          }}
+                      <div 
+                          className="flex flex-col items-center justify-center px-2" 
+                          style={{ 
+                            backgroundColor: selectedColor,
+                            minHeight: "80px",
+                            padding: "0.5rem 0"
+                          }}>
+                        <div 
+                          className="font-bold w-full py-1 text-center text-white"
+                          style={{ fontSize: "clamp(0.875rem, 3vw, 1.125rem)" }}
                         >
                           Transaction
                         </div>
-                        <h2
-                          className="text-center text-white font-bold w-full break-words overflow-hidden px-2"
-                          style={{
-                            fontSize: "clamp(1.5rem, 5vw, 2.25rem)",
-                          }}
+                        <h2 
+                          className="font-bold text-white text-center px-2 w-full break-words"
+                          style={{ fontSize: "clamp(1.25rem, 4vw, 1.75rem)" }}
                         >
                           {title.toUpperCase()}
                         </h2>
@@ -1940,32 +1953,28 @@ return (
                       {/* Optional Name Section */}
                       {showName && (
                         <div
-                          className="flex flex-col items-center justify-center w-full px-2"
+                          className="flex flex-col items-center justify-center px-2"
                           style={{
                             backgroundColor: getSectionColors(title, showName)[getSectionCount(title, showName) - 1],
                             minHeight: "80px",
                             padding: "0.5rem 0",
-                            borderTop: "8px solid #1a2335",
+                            borderTop: "8px solid #1a2335"
                           }}
                         >
-                          <div
-                            className="text-center font-bold w-full break-words overflow-hidden"
-                            style={{
-                              fontSize: "clamp(1rem, 3.5vw, 1.25rem)",
-                              color: getSectionColors(title, showName)[getSectionCount(title, showName) - 1] === selectedColor
-                                ? "#ffffff"
-                                : "#000000",
+                          <div 
+                            className="font-bold w-full py-1 text-center"
+                            style={{ 
+                              color: getSectionColors(title, showName)[getSectionCount(title, showName) - 1] === selectedColor ? "#ffffff" : "#000000",
+                              fontSize: "clamp(0.875rem, 3vw, 1.125rem)"
                             }}
                           >
                             Business Name
                           </div>
-                          <div
-                            className="text-center font-bold w-full break-words overflow-hidden px-2"
-                            style={{
-                              fontSize: "clamp(1.5rem, 5vw, 2.25rem)",
-                              color: getSectionColors(title, showName)[getSectionCount(title, showName) - 1] === selectedColor
-                                ? "#ffffff"
-                                : "#000000",
+                          <div 
+                            className="font-bold text-center px-2 w-full break-words"
+                            style={{ 
+                              color: getSectionColors(title, showName)[getSectionCount(title, showName) - 1] === selectedColor ? "#ffffff" : "#000000",
+                              fontSize: "clamp(1rem, 4vw, 1.5rem)"
                             }}
                           >
                             {businessName || "NELSON ANANGWE"}
