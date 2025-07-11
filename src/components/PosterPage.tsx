@@ -1218,7 +1218,7 @@ return (
               Your M-Pesa Payment Poster
             </h3>
           </div>
-          <div className="w-full overflow-x-auto">
+          <div className="w-full">
               {/* Poster card */}
             <Card className="relative bg-[#0a0a23] md:bg-white border-green-500 min-w-[320px]">
               {/* Floating Card Title */}
@@ -1742,7 +1742,7 @@ return (
           
         </div>
         {/* Second Column - Customize + Preview */}
-          <div className="w-full md:w-1/2 flex flex-col gap-6 w-full overflow-x-auto">
+          <div className="w-full md:w-1/2 flex flex-col gap-6 w-full">
             {/* Customize poster section - now full width */}
             <Card className="relative bg-[#0a0a23] md:bg-white border border-green-500 rounded-md px-4 pt-8 pb-4 w-full">
               {/* Floating label on Card border */}
@@ -1865,7 +1865,7 @@ return (
                   </p>
                 </div>
 
-                <div className="w-full flex flex-col items-center justify-center overflow-x-auto">
+                <div className="w-full flex flex-col items-center justify-center">
                   {/* Poster Container */}
                   <div className="w-full max-w-lg">
                     {/* QR Code Block */}
