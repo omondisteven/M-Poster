@@ -1796,7 +1796,7 @@ return (
                 {/* Template selector subsection - full width */}
                 <div className="relative border border-gray-500 rounded-md p-4 mb-4 mt-2 w-full">
                   <div className="absolute -top-3 left-4 bg-gray-600 px-2 text-sm text-white">
-                    Select a Template for your Poster
+                    Select a Template
                   </div>
                   <div className="relative w-full rounded-xl overflow-hidden">
                     {/* Left scroll indicator */}
