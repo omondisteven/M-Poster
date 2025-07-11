@@ -1841,43 +1841,44 @@ return (
             {/* Poster Preview Section - full width */}
             <form onSubmit={onSubmit} className="space-y-4 w-full">
               <Card className="relative bg-[#0a0a23] md:bg-white border border-green-500 rounded-md px-4 pt-8 pb-4 w-full">
-                {/* Poster Preview */}
+                {/* Floating label */}
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#0a0a23] md:bg-white px-4 text-center">
                   <p className="font-handwriting text-xl text-gray-300 md:text-gray-600 whitespace-nowrap">
                     A Preview of your poster
                   </p>
                 </div>
+
                 <div className="w-full flex flex-col items-center justify-center overflow-x-auto">
-                  {/* Poster Container */}            
+                  {/* Poster Container */}
                   <div className="w-full max-w-lg">
-                    {/* QR Code Component */}
+                    {/* QR Code Block */}
                     <div className="w-full flex justify-center">
-                      <div 
+                      <div
                         className="bg-white border-l-8 border-r-8 border-t-0 border-gray-800 flex flex-col w-full"
-                        style={{ 
-                          maxWidth: `${selectedTemplate.size.width}px`
+                        style={{
+                          maxWidth: `${selectedTemplate.size.width}px`,
                         }}
-                      >                
-                        {/* Enhanced Dark Gray Section with guaranteed visibility */}
-                        <div 
+                      >
+                        {/* Header Section */}
+                        <div
                           className="w-full flex items-center justify-center py-4 px-2"
                           style={{
                             backgroundColor: selectedColor,
                             borderTop: "8px solid #1a2335",
                             minHeight: "70px",
-                            borderBottom: "8px solid #1a2335"
+                            borderBottom: "8px solid #1a2335",
                           }}
                         >
-                          <p 
-                            className="text-center text-3xl font-bold text-white whitespace-nowrap"
+                          <p
+                            className="text-center font-bold text-white whitespace-nowrap w-full overflow-hidden break-words px-2"
                             style={{
-                              fontSize: "clamp(1.25rem, 4vw, 2rem)"
+                              fontSize: "clamp(1.25rem, 4vw, 2rem)",
                             }}
                           >
                             SCAN TO PAY!
                           </p>
                         </div>
-                        
+
                         {/* QR Code Section */}
                         <div className="w-full p-3" style={{ aspectRatio: "1/1" }}>
                           {previewQrData ? (
@@ -1893,7 +1894,9 @@ return (
                           )}
                         </div>
                       </div>
-                    </div>             
+                    </div>
+
+                    {/* Poster Grid Section */}
                     <div
                       id="poster"
                       ref={posterRef}
@@ -1902,68 +1905,80 @@ return (
                         gridTemplateRows: getGridTemplateRows(title, showName),
                         aspectRatio: `${selectedTemplate.size.width} / ${selectedTemplate.size.height}`,
                         height: '1200',
-                        minHeight: calculatePosterMinHeight(title, showName)
+                        minHeight: calculatePosterMinHeight(title, showName),
                       }}
                     >
-                      {/* Title Section (always first) */}
-                      <div 
-                        className="flex flex-col items-center justify-center" 
-                        style={{ 
+                      {/* Title Section */}
+                      <div
+                        className="flex flex-col items-center justify-center w-full px-2"
+                        style={{
                           backgroundColor: selectedColor,
                           minHeight: "80px",
-                          padding: "0.5rem 0"
+                          padding: "0.5rem 0",
                         }}
                       >
-                        <div className="font-bold w-full py-1 px-0 text-center text-white" style={{fontSize: "clamp()"}}>
+                        <div className="w-full text-center text-white font-bold"
+                          style={{
+                            fontSize: "clamp(1rem, 3.5vw, 1.25rem)",
+                          }}
+                        >
                           Transaction
                         </div>
-                        <h2 className="text-2xl sm:text-3xl font-bold text-white text-center px-2">
+                        <h2
+                          className="text-center text-white font-bold w-full break-words overflow-hidden px-2"
+                          style={{
+                            fontSize: "clamp(1.5rem, 5vw, 2.25rem)",
+                          }}
+                        >
                           {title.toUpperCase()}
                         </h2>
                       </div>
+
                       {/* Middle Sections */}
                       {renderMiddleSections(title, selectedColor, showName)}
 
-                      {/* Name Section (when showName is true) */}
+                      {/* Optional Name Section */}
                       {showName && (
                         <div
-                          className="flex flex-col items-center justify-center "
+                          className="flex flex-col items-center justify-center w-full px-2"
                           style={{
                             backgroundColor: getSectionColors(title, showName)[getSectionCount(title, showName) - 1],
                             minHeight: "80px",
                             padding: "0.5rem 0",
-                            borderTop: "8px solid #1a2335"
+                            borderTop: "8px solid #1a2335",
                           }}
                         >
-                          <div 
-                            className="font-bold w-full py-1 px-0 text-center"
-                            style={{ 
-                              color: getSectionColors(title, showName)[getSectionCount(title, showName) - 1] === selectedColor ? "#ffffff" : "#000000", fontSize: "clamp()"
+                          <div
+                            className="text-center font-bold w-full break-words overflow-hidden"
+                            style={{
+                              fontSize: "clamp(1rem, 3.5vw, 1.25rem)",
+                              color: getSectionColors(title, showName)[getSectionCount(title, showName) - 1] === selectedColor
+                                ? "#ffffff"
+                                : "#000000",
                             }}
                           >
                             Business Name
                           </div>
-                          <div 
-                            className="text-2xl sm:text-3xl font-bold text-center px-2 break-words overflow-hidden w-full"
-                            style={{ 
-                              fontSize: "clamp(1rem, 4vw, 1.75rem)",
-                              color: getSectionColors(title, showName)[getSectionCount(title, showName) - 1] === selectedColor ? "#ffffff" : "#000000",
+                          <div
+                            className="text-center font-bold w-full break-words overflow-hidden px-2"
+                            style={{
+                              fontSize: "clamp(1.5rem, 5vw, 2.25rem)",
+                              color: getSectionColors(title, showName)[getSectionCount(title, showName) - 1] === selectedColor
+                                ? "#ffffff"
+                                : "#000000",
                             }}
                           >
                             {businessName || "NELSON ANANGWE"}
                           </div>
-
                         </div>
                       )}
-                    </div>                   
+                    </div>
                   </div>
                 </div>
+
+                {/* Share & Download Buttons */}
                 <div className="flex flex-row mt-4 w-full gap-2 items-center">
-                  {/* Share Button */}
-                  <motion.div
-                    whileHover={{ scale: 1.03 }}
-                    className="flex-1 min-w-[120px]"
-                  >
+                  <motion.div whileHover={{ scale: 1.03 }} className="flex-1 min-w-[120px]">
                     <Button
                       type="button"
                       onClick={handleShare}
@@ -1974,12 +1989,7 @@ return (
                       <span>Share</span>
                     </Button>
                   </motion.div>
-
-                  {/* Download Button */}
-                  <motion.div
-                    whileHover={{ scale: 1.03 }}
-                    className="flex-1 min-w-[120px]"
-                  >
+                  <motion.div whileHover={{ scale: 1.03 }} className="flex-1 min-w-[120px]">
                     <Button
                       type="submit"
                       className="w-full bg-gray-800 text-white text-sm font-bold py-4 px-2 rounded-lg hover:bg-gray-700 transition-colors duration-200 disabled:opacity-50"
@@ -1989,9 +1999,9 @@ return (
                       <span>Download</span>
                     </Button>
                   </motion.div>
-                </div> 
-              </Card>          
-            </form>       
+                </div>
+              </Card>
+            </form>
           </div>
         </div>     
       </div>
