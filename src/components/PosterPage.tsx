@@ -1223,7 +1223,7 @@ return (
             <CardContent className="pt-14">
                 <form onSubmit={onSubmit} className="space-y-4">
                 {/* Radio buttons */}
-                <div className="relative border border-gray-500 rounded-md p-4 mb-4">
+                <div className="relative border border-gray-500 rounded-md p-2 mb-4">
                     {/* Floating label that breaks the top border */}
                     <div className="absolute -top-3 left-4 bg-gray-600 px-2 text-sm font-medium text-white">
                     Generate QR Code for:
