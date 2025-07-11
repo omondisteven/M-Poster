@@ -1249,7 +1249,7 @@ return (
                           checked={qrGenerationMethod === "push"}
                           onChange={() => setQrGenerationMethod("push")}
                         />
-                        <span className="text-white md:text-black">Push STK</span>
+                        <span className="text-white mt-3 md:text-black">Push STK</span>
                       </label>
                       <label className="flex items-center space-x-2">
                         <input
@@ -1258,7 +1258,7 @@ return (
                           checked={qrGenerationMethod === "mpesa"}
                           onChange={() => setQrGenerationMethod("mpesa")}
                         />
-                        <span className="text-white md:text-black">M-Pesa App</span>
+                        <span className="text-white mt-3 md:text-black">M-Pesa App</span>
                       </label>
                     </div>
 
