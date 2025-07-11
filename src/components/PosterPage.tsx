@@ -1210,8 +1210,8 @@ return (
       {/* Left Column: Make + Customize */}
       <div className="w-full md:w-1/2 flex flex-col gap-6">
         {/* Make Your Poster Card */}
-        <Card className="relative bg-[#0a0a23] md:bg-white border border-green-500 rounded-md px-4 pt-8 pb-4 w-full">
-          <CardTitle className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#0a0a23] md:bg-white px-4 text-center">
+        <Card className="relative bg-[#0a0a23] md:bg-white border border-green-500 rounded-md px-2 sm:px-3 pt-6 pb-3 w-full">
+          <CardTitle className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#0a0a23] md:bg-white px-2 sm:px-3 text-center">
             <p className="font-handwriting text-xl text-white md:text-gray-600 whitespace-nowrap">
               Make Your M-Pesa Poster
             </p>
@@ -1728,7 +1728,7 @@ return (
         </Card>
 
         {/* Customize Poster Card */}
-        <Card className="relative bg-[#0a0a23] md:bg-white border border-green-500 rounded-md px-4 pt-8 pb-4 w-full">
+        <Card className="relative bg-[#0a0a23] md:bg-white border border-green-500 rounded-md px-2 sm:px-3 pt-8 pb-4 w-full">
           <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#0a0a23] md:bg-white px-4 text-center">
             <p className="font-handwriting text-xl text-gray-300 md:text-gray-600 whitespace-nowrap">
               Customize your Poster
@@ -1837,7 +1837,7 @@ return (
       {/* Right Column: Poster Preview */}
       <div className="w-full md:w-1/2 flex flex-col">
         <form onSubmit={onSubmit} className="space-y-4 w-full">
-          <Card className="relative bg-[#0a0a23] md:bg-white border border-green-500 rounded-md px-4 pt-8 pb-4 w-full">
+          <Card className="relative bg-[#0a0a23] md:bg-white border border-green-500 rounded-md px-2 sm:px-3 pt-6 pb-3 w-full">
             <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#0a0a23] md:bg-white px-4 text-center">
               <p className="font-handwriting text-xl text-gray-300 md:text-gray-600 whitespace-nowrap">
                 A Preview of your poster
