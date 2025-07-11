@@ -1736,28 +1736,28 @@ return (
           </div>
           {/* Color Picker - full width */}
             <div className="relative border border-gray-500 rounded-md p-4 mb-4 mt-2 w-full">
-                <div className="absolute -top-3 left-4 bg-gray-600 px-2 text-sm text-white">
-                    Pick Poster Color
-                </div>
-                <div className="flex items-center space-x-4">
-                    {colorOptions.map((color) => (
-                    <button
-                        key={color.value}
-                        type="button"
-                        className={`w-8 h-8 min-w-8 min-h-8 shrink-0 rounded-full border-2 flex items-center justify-center  ${
-                        selectedColor === color.value
-                            ? "border-gray-300 md:border-gray-800"
-                            : "border-transparent"
-                        } ${color.class}`}
-                        onClick={() => setValue("selectedColor", color.value)}
-                        aria-label={`Select ${color.name} color`}
-                    >
-                        {selectedColor === color.value && (
-                        <CheckIcon className="h-5 w-5 text-white" />
-                        )}
-                    </button>
-                    ))}
-                    <div className="flex items-center">
+              <div className="absolute -top-3 left-4 bg-gray-600 px-2 text-sm text-white">
+                  Pick Poster Color
+              </div>
+              <div className="flex items-center gap-x-1">
+                {colorOptions.map((color) => (
+                <button
+                    key={color.value}
+                    type="button"
+                    className={`w-8 h-8 min-w-8 min-h-8 shrink-0 rounded-full border-2 flex items-center justify-center  ${
+                    selectedColor === color.value
+                        ? "border-gray-300 md:border-gray-800"
+                        : "border-transparent"
+                    } ${color.class}`}
+                    onClick={() => setValue("selectedColor", color.value)}
+                    aria-label={`Select ${color.name} color`}
+                >
+                    {selectedColor === color.value && (
+                    <CheckIcon className="h-5 w-5 text-white" />
+                    )}
+                </button>
+                ))}
+                <div className="flex items-center">
                     <Controller
                         name="selectedColor"
                         control={control}
@@ -1769,10 +1769,11 @@ return (
                         />
                         )}
                     />
-                    <span className="ml-2 text-xs text-gray-300 md:text-gray-500">Custom</span>
-                    </div>
-                </div>                
-            </div>{/* Template selector subsection - full width */}
+                   <span className="ml-2 text-xs text-gray-300 bg-[#0a0a23] md:text-gray-500">Custom</span>
+                  </div>
+              </div>                
+            </div>
+            {/* Template selector subsection - full width */}
               <div className="relative border border-gray-500 rounded-md p-4 mb-4 mt-2 w-full">
                 <div className="absolute -top-3 left-4 bg-gray-600 px-2 text-sm text-white">
                     Select a Template
