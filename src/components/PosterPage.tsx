@@ -1205,7 +1205,7 @@ function PosterPage() {
   };
 
 return (
-    <div className="flex flex-col bg-[#0a0a23] md:bg-gray-100 w-full max-w-[100vw] overflow-x-auto">
+    <div className="flex flex-col bg-[#0a0a23] md:bg-gray-100 w-full max-w-[100vw]">
       <div className="flex-1 flex flex-col md:flex-row flex-wrap px-4 py-4 sm:py-8 md:py-0 sm:px-6 lg:px-8 gap-8 relative z-10">
         {/* Left Column - App Info */}
         <div className="w-full lg:w-1/2 flex flex-col md:py-12 md:px-4 lg:px-8">
