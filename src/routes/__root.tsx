@@ -40,7 +40,7 @@ export const Route = createRootRoute({
       : "settings";
 
     return (
-      <div className="min-h-screen flex flex-col bg-[#0a0a23] md:bg-gray-100 relative overflow-x-hidden">
+      <div className="min-h-screen flex flex-col bg-[#0a0a23] md:bg-gray-100 relative overflow-hidden">
         {/* Dotted background pattern */}
         <div
           className="absolute h-full w-full inset-0 pointer-events-none"
@@ -93,7 +93,7 @@ export const Route = createRootRoute({
         )}
 
         {/* Tab content */}
-        <main className={`flex flex-col px-4 ${isMobile ? 'pt-[90px] pb-20' : 'pb-10'}`}>
+        <main className={`flex flex-col px-4 ${isMobile ? 'pt-[90px] pb-20' : 'pb-10'} overflow-auto max-h-screen`}>
           <Outlet />
           {import.meta.env.DEV && <TanStackRouterDevtools />}
         </main>

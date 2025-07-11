@@ -1189,7 +1189,7 @@ function PosterPage() {
 
 return (
     <div className="flex flex-col bg-[#0a0a23] md:bg-gray-100 w-full max-w-[100vw] overflow-x-hidden">
-      <div className="flex-1 flex flex-col lg:flex-row px-4 py-4 sm:py-8 md:py-0 sm:px-6 lg:px-8 gap-4 md:gap-8 relative z-10">
+      <div className="flex-1 flex flex-col md:flex-row flex-wrap px-4 py-4 sm:py-8 md:py-0 sm:px-6 lg:px-8 gap-8 relative z-10">
         {/* Left Column - App Info */}
         <div className="w-full lg:w-1/2 flex flex-col md:py-12 md:px-4 lg:px-8">
           {/* Header for medium screens and up - now in left column */}
@@ -1200,217 +1200,323 @@ return (
             <h3 className="text-lg font-display text-gray-800 md:text-gray-800 mt-2 max-w-md">
               Your M-Pesa Payment Poster
             </h3>
-          </div>     
-          {/* Poster card */}
-          <Card className="relative bg-[#0a0a23] md:bg-white border-green-500">
-            {/* Floating Card Title */}
-            <CardTitle className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#0a0a23] md:bg-white px-4 text-center">
-              <p className="font-handwriting text-xl text-white md:text-gray-600 whitespace-nowrap">
-                Make Your M-Pesa Poster
-              </p>
-              <div className="text-center italic text-gray-300 md:text-gray-500 text-xs mt-1">
-                Download It, Share It, Stick it!
-              </div>
-            </CardTitle>
-
-            {/* Add spacing below the floating title */}
-            <CardContent className="pt-14">
-              <form onSubmit={onSubmit} className="space-y-4">
-                {/* Radio buttons */}
-                <div className="relative border border-gray-500 rounded-md p-4 mb-4">
-                  {/* Floating label that breaks the top border */}
-                  <div className="absolute -top-3 left-4 bg-gray-600 px-2 text-sm font-medium text-white">
-                    Generate QR Code for:
-                  </div>
-                  <div className="flex space-x-4 mt-2">
-                    <label className="flex items-center space-x-2">
-                      <input
-                        type="radio"
-                        className="form-radio h-4 w-4 text-green-600"
-                        checked={qrGenerationMethod === "push"}
-                        onChange={() => setQrGenerationMethod("push")}
-                      />
-                      <span className="text-white md:text-black">Push STK</span>
-                    </label>
-                    <label className="flex items-center space-x-2">
-                      <input
-                        type="radio"
-                        className="form-radio h-4 w-4 text-green-600"
-                        checked={qrGenerationMethod === "mpesa"}
-                        onChange={() => setQrGenerationMethod("mpesa")}
-                      />
-                      <span className="text-white md:text-black">M-Pesa App</span>
-                    </label>
-                  </div>
-
-                  <p className="text-xs italic text-green-500 mt-3">
-                    {qrGenerationMethod === "push"
-                      ? "Qr Code will initiate an M-Pesa payment"
-                      : "Qr Code will open the M-Pesa app"}
-                  </p>
+          </div>
+          <div className="w-full overflow-x-auto">
+              {/* Poster card */}
+            <Card className="relative bg-[#0a0a23] md:bg-white border-green-500 min-w-[320px]">
+              {/* Floating Card Title */}
+              <CardTitle className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#0a0a23] md:bg-white px-4 text-center">
+                <p className="font-handwriting text-xl text-white md:text-gray-600 whitespace-nowrap">
+                  Make Your M-Pesa Poster
+                </p>
+                <div className="text-center italic text-gray-300 md:text-gray-500 text-xs mt-1">
+                  Download It, Share It, Stick it!
                 </div>
+              </CardTitle>
 
-                {/* Show Name Checkbox and Name Input */}
-                <div className="flex items-center space-x-2 mb-2 pb-2">
-                  <Controller
-                    name="showName"
-                    control={control}
-                    render={({ field }) => (
-                      <Checkbox
-                        id="showName"
-                        checked={field.value}
-                        onCheckedChange={(checked: boolean) => {
-                          field.onChange(checked);
-                        }}
-                        className="text-white border-white"
-                      />
-                    )}
-                  />
-                  <label
-                    htmlFor="showName"
-                    className="text-sm font-small leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-white md:text-black"
-                  >
-                    Include Merchant Name
-                  </label>
-                </div>               
+              {/* Add spacing below the floating title */}
+              <CardContent className="pt-14">
+                <form onSubmit={onSubmit} className="space-y-4">
+                  {/* Radio buttons */}
+                  <div className="relative border border-gray-500 rounded-md p-4 mb-4">
+                    {/* Floating label that breaks the top border */}
+                    <div className="absolute -top-3 left-4 bg-gray-600 px-2 text-sm font-medium text-white">
+                      Generate QR Code for:
+                    </div>
+                    <div className="flex space-x-4 mt-2">
+                      <label className="flex items-center space-x-2">
+                        <input
+                          type="radio"
+                          className="form-radio h-4 w-4 text-green-600"
+                          checked={qrGenerationMethod === "push"}
+                          onChange={() => setQrGenerationMethod("push")}
+                        />
+                        <span className="text-white md:text-black">Push STK</span>
+                      </label>
+                      <label className="flex items-center space-x-2">
+                        <input
+                          type="radio"
+                          className="form-radio h-4 w-4 text-green-600"
+                          checked={qrGenerationMethod === "mpesa"}
+                          onChange={() => setQrGenerationMethod("mpesa")}
+                        />
+                        <span className="text-white md:text-black">M-Pesa App</span>
+                      </label>
+                    </div>
 
-                {/* Transaction Type Selector */}
-                <div className="relative">
-                  <label 
-                    htmlFor="type" 
-                    className="hidden md:block text-sm font-medium text-white md:text-gray-700 mb-1"
-                  >
-                    Transaction Type
-                  </label>
-                  <Controller
-                    name="type"
-                    control={control}
-                    render={({ field }) => (
-                      <Select 
-                        onValueChange={(value: TRANSACTION_TYPE) => {
-                          field.onChange(value);
-                          // Update the title for display purposes
-                          switch(value) {
-                            case TRANSACTION_TYPE.SEND_MONEY:
-                              setValue("title", "Send Money");
-                              break;
-                            case TRANSACTION_TYPE.PAYBILL:
-                              setValue("title", "Pay Bill");
-                              break;
-                            case TRANSACTION_TYPE.TILL_NUMBER:
-                              setValue("title", "Buy Goods");
-                              break;
-                            case TRANSACTION_TYPE.AGENT:
-                              setValue("title", "Withdraw Money");
-                              break;
-                          }
-                          // Clear irrelevant fields when type changes
-                          setValue("phoneNumber", "");
-                          setValue("paybillNumber", "");
-                          setValue("accountNumber", "");
-                          setValue("tillNumber", "");
-                          setValue("agentNumber", "");
-                          setValue("storeNumber", "");
-                          trigger();
-                        }}
-                        value={field.value}
-                      >
-                        <SelectTrigger className="w-full p-3 border border-gray-600 md:border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold bg-black text-white md:bg-white md:text-black peer">
-                          <SelectValue placeholder=" " />
-                        </SelectTrigger>
-                        <label 
-                          htmlFor="type" 
-                          className={`absolute left-3 transition-all pointer-events-none bg-black px-1 ${
-                            field.value
-                              ? "-top-2 text-xs text-green-500 bg-black"
-                              : "top-1/2 -translate-y-1/2 text-base text-gray-400 peer-focus:-top-2 peer-focus:text-xs peer-focus:text-green-500 peer-focus:bg-black"
-                          } md:hidden`}
+                    <p className="text-xs italic text-green-500 mt-3">
+                      {qrGenerationMethod === "push"
+                        ? "Qr Code will initiate an M-Pesa payment"
+                        : "Qr Code will open the M-Pesa app"}
+                    </p>
+                  </div>
+
+                  {/* Show Name Checkbox and Name Input */}
+                  <div className="flex items-center space-x-2 mb-2 pb-2">
+                    <Controller
+                      name="showName"
+                      control={control}
+                      render={({ field }) => (
+                        <Checkbox
+                          id="showName"
+                          checked={field.value}
+                          onCheckedChange={(checked: boolean) => {
+                            field.onChange(checked);
+                          }}
+                          className="text-white border-white"
+                        />
+                      )}
+                    />
+                    <label
+                      htmlFor="showName"
+                      className="text-sm font-small leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-white md:text-black"
+                    >
+                      Include Merchant Name
+                    </label>
+                  </div>               
+
+                  {/* Transaction Type Selector */}
+                  <div className="relative">
+                    <label 
+                      htmlFor="type" 
+                      className="hidden md:block text-sm font-medium text-white md:text-gray-700 mb-1"
+                    >
+                      Transaction Type
+                    </label>
+                    <Controller
+                      name="type"
+                      control={control}
+                      render={({ field }) => (
+                        <Select 
+                          onValueChange={(value: TRANSACTION_TYPE) => {
+                            field.onChange(value);
+                            // Update the title for display purposes
+                            switch(value) {
+                              case TRANSACTION_TYPE.SEND_MONEY:
+                                setValue("title", "Send Money");
+                                break;
+                              case TRANSACTION_TYPE.PAYBILL:
+                                setValue("title", "Pay Bill");
+                                break;
+                              case TRANSACTION_TYPE.TILL_NUMBER:
+                                setValue("title", "Buy Goods");
+                                break;
+                              case TRANSACTION_TYPE.AGENT:
+                                setValue("title", "Withdraw Money");
+                                break;
+                            }
+                            // Clear irrelevant fields when type changes
+                            setValue("phoneNumber", "");
+                            setValue("paybillNumber", "");
+                            setValue("accountNumber", "");
+                            setValue("tillNumber", "");
+                            setValue("agentNumber", "");
+                            setValue("storeNumber", "");
+                            trigger();
+                          }}
+                          value={field.value}
                         >
-                          Transaction Type
-                        </label>
-                        <SelectContent className="bg-[#0a0a23] text-white md:bg-white md:text-black">                          
-                          <SelectItem value={TRANSACTION_TYPE.PAYBILL}>Pay Bill</SelectItem>
-                          <SelectItem value={TRANSACTION_TYPE.TILL_NUMBER}>Buy Goods</SelectItem>
-                          <SelectItem value={TRANSACTION_TYPE.AGENT}>Withdraw Money</SelectItem>
-                          <SelectItem value={TRANSACTION_TYPE.SEND_MONEY}>Send Money</SelectItem>
-                        </SelectContent>
-                      </Select>
+                          <SelectTrigger className="w-full p-3 border border-gray-600 md:border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold bg-black text-white md:bg-white md:text-black peer">
+                            <SelectValue placeholder=" " />
+                          </SelectTrigger>
+                          <label 
+                            htmlFor="type" 
+                            className={`absolute left-3 transition-all pointer-events-none bg-black px-1 ${
+                              field.value
+                                ? "-top-2 text-xs text-green-500 bg-black"
+                                : "top-1/2 -translate-y-1/2 text-base text-gray-400 peer-focus:-top-2 peer-focus:text-xs peer-focus:text-green-500 peer-focus:bg-black"
+                            } md:hidden`}
+                          >
+                            Transaction Type
+                          </label>
+                          <SelectContent className="bg-[#0a0a23] text-white md:bg-white md:text-black">                          
+                            <SelectItem value={TRANSACTION_TYPE.PAYBILL}>Pay Bill</SelectItem>
+                            <SelectItem value={TRANSACTION_TYPE.TILL_NUMBER}>Buy Goods</SelectItem>
+                            <SelectItem value={TRANSACTION_TYPE.AGENT}>Withdraw Money</SelectItem>
+                            <SelectItem value={TRANSACTION_TYPE.SEND_MONEY}>Send Money</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
+                    {errors.type && (
+                      <p className="mt-1 text-sm text-red-500">{errors.type.message}</p>
                     )}
-                  />
-                  {errors.type && (
-                    <p className="mt-1 text-sm text-red-500">{errors.type.message}</p>
+                  </div>
+                    
+                  {/* Send Money Fields */}
+                  {watch("type") === TRANSACTION_TYPE.SEND_MONEY && (
+                    <div className="relative">
+                      <Controller
+                        name="phoneNumber"
+                        control={control}
+                        render={({ field }) => {
+                          const phoneHistory = useInputHistory('phoneNumber');
+                          
+                          return (
+                            <div className="relative">
+                              <Input
+                                id="phone"
+                                type="tel"
+                                value={field.value || ""}
+                                onChange={(e) => {
+                                  const formatted = formatPhoneNumber(e.target.value);
+                                  field.onChange(formatted);
+                                }}
+                                onBlur={() => {
+                                  if (field.value) {
+                                    phoneHistory.addToHistory(field.value);
+                                  }
+                                }}
+                                className="w-full p-3 border border-gray-600 md:border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold bg-black text-white md:bg-white md:text-black peer"
+                                placeholder=" "
+                                list={`phoneNumber-history`}
+                              />
+                              <label 
+                                htmlFor="phone" 
+                                className={`absolute left-3 transition-all pointer-events-none bg-black px-1 ${
+                                  field.value
+                                    ? "-top-2 text-xs text-green-500 bg-black"
+                                    : "top-1/2 -translate-y-1/2 text-base text-gray-400 peer-focus:-top-2 peer-focus:text-xs peer-focus:text-green-500 peer-focus:bg-black"
+                                } md:hidden`}
+                              >
+                                Phone Number
+                              </label>
+                              {phoneHistory.history.length > 0 && (
+                                <datalist id={`phoneNumber-history`}>
+                                  {phoneHistory.history.map((item, index) => (
+                                    <option key={index} value={item} />
+                                  ))}
+                                </datalist>
+                              )}
+                            </div>
+                          );
+                        }}
+                      />
+                      {errors.phoneNumber && (
+                        <p className="mt-1 text-sm text-red-500">{errors.phoneNumber.message}</p>
+                      )}
+                    </div>
                   )}
-                </div>
-                  
-                {/* Send Money Fields */}
-                {watch("type") === TRANSACTION_TYPE.SEND_MONEY && (
-                  <div className="relative">
-                    <Controller
-                      name="phoneNumber"
-                      control={control}
-                      render={({ field }) => {
-                        const phoneHistory = useInputHistory('phoneNumber');
-                        
-                        return (
-                          <div className="relative">
-                            <Input
-                              id="phone"
-                              type="tel"
-                              value={field.value || ""}
-                              onChange={(e) => {
-                                const formatted = formatPhoneNumber(e.target.value);
-                                field.onChange(formatted);
-                              }}
-                              onBlur={() => {
-                                if (field.value) {
-                                  phoneHistory.addToHistory(field.value);
-                                }
-                              }}
-                              className="w-full p-3 border border-gray-600 md:border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold bg-black text-white md:bg-white md:text-black peer"
-                              placeholder=" "
-                              list={`phoneNumber-history`}
-                            />
-                            <label 
-                              htmlFor="phone" 
-                              className={`absolute left-3 transition-all pointer-events-none bg-black px-1 ${
-                                field.value
-                                  ? "-top-2 text-xs text-green-500 bg-black"
-                                  : "top-1/2 -translate-y-1/2 text-base text-gray-400 peer-focus:-top-2 peer-focus:text-xs peer-focus:text-green-500 peer-focus:bg-black"
-                              } md:hidden`}
-                            >
-                              Phone Number
-                            </label>
-                            {phoneHistory.history.length > 0 && (
-                              <datalist id={`phoneNumber-history`}>
-                                {phoneHistory.history.map((item, index) => (
-                                  <option key={index} value={item} />
-                                ))}
-                              </datalist>
-                            )}
-                          </div>
-                        );
-                      }}
-                    />
-                    {errors.phoneNumber && (
-                      <p className="mt-1 text-sm text-red-500">{errors.phoneNumber.message}</p>
-                    )}
-                  </div>
-                )}
 
-                {/* Pay Bill Fields */}
-                {watch("type") === TRANSACTION_TYPE.PAYBILL && (
-                  <>
+                  {/* Pay Bill Fields */}
+                  {watch("type") === TRANSACTION_TYPE.PAYBILL && (
+                    <>
+                      <div className="relative">
+                        <Controller
+                          name="paybillNumber"
+                          control={control}
+                          render={({ field }) => {
+                            const paybillHistory = useInputHistory('paybillNumber');
+                            
+                            return (
+                              <div className="relative">
+                                <Input
+                                  id="paybillNumber"
+                                  type="text"
+                                  inputMode="numeric"
+                                  value={field.value || ""}
+                                  onChange={(e) => {
+                                    const value = e.target.value.replace(/\D/g, "");
+                                    field.onChange(value);
+                                  }}
+                                  onBlur={() => {
+                                    if (field.value) {
+                                      paybillHistory.addToHistory(field.value);
+                                    }
+                                  }}
+                                  className="w-full p-3 border border-gray-600 md:border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold bg-black text-white md:bg-white md:text-black peer"
+                                  placeholder=" "
+                                  list={`paybillNumber-history`}
+                                />
+                                <label 
+                                  htmlFor="paybillNumber" 
+                                  className={`absolute left-3 transition-all pointer-events-none bg-black px-1 ${
+                                    field.value
+                                      ? "-top-2 text-xs text-green-500 bg-black"
+                                      : "top-1/2 -translate-y-1/2 text-base text-gray-400 peer-focus:-top-2 peer-focus:text-xs peer-focus:text-green-500 peer-focus:bg-black"
+                                  } md:hidden`}
+                                >
+                                  Business Number
+                                </label>
+                                {paybillHistory.history.length > 0 && (
+                                  <datalist id={`paybillNumber-history`}>
+                                    {paybillHistory.history.map((item, index) => (
+                                      <option key={index} value={item} />
+                                    ))}
+                                  </datalist>
+                                )}
+                              </div>
+                            );
+                          }}
+                        />
+                        {errors.paybillNumber && (
+                          <p className="mt-1 text-sm text-red-500">{errors.paybillNumber.message}</p>
+                        )}
+                      </div>
+                      <div className="relative">
+                        <Controller
+                          name="accountNumber"
+                          control={control}
+                          render={({ field }) => {
+                            const accountHistory = useInputHistory('accountNumber');
+                            
+                            return (
+                              <div className="relative">
+                                <Input
+                                  id="accountNumber"
+                                  type="text"
+                                  value={field.value || ""}
+                                  onChange={field.onChange}
+                                  onBlur={() => {
+                                    if (field.value) {
+                                      accountHistory.addToHistory(field.value);
+                                    }
+                                  }}
+                                  className="w-full p-3 border border-gray-600 md:border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold bg-black text-white md:bg-white md:text-black peer"
+                                  placeholder=" "
+                                  list={`accountNumber-history`}
+                                />
+                                <label 
+                                  htmlFor="accountNumber" 
+                                  className={`absolute left-3 transition-all pointer-events-none bg-black px-1 ${
+                                    field.value
+                                      ? "-top-2 text-xs text-green-500 bg-black"
+                                      : "top-1/2 -translate-y-1/2 text-base text-gray-400 peer-focus:-top-2 peer-focus:text-xs peer-focus:text-green-500 peer-focus:bg-black"
+                                  } md:hidden`}
+                                >
+                                  Account Number
+                                </label>
+                                {accountHistory.history.length > 0 && (
+                                  <datalist id={`accountNumber-history`}>
+                                    {accountHistory.history.map((item, index) => (
+                                      <option key={index} value={item} />
+                                    ))}
+                                  </datalist>
+                                )}
+                              </div>
+                            );
+                          }}
+                        />
+                        {errors.accountNumber && (
+                          <p className="mt-1 text-sm text-red-500">{errors.accountNumber.message}</p>
+                        )}
+                      </div>
+                    </>
+                  )}
+
+                  {/* Buy Goods (Till Number) Fields */}
+                  {watch("type") === TRANSACTION_TYPE.TILL_NUMBER && (
                     <div className="relative">
                       <Controller
-                        name="paybillNumber"
+                        name="tillNumber"
                         control={control}
                         render={({ field }) => {
-                          const paybillHistory = useInputHistory('paybillNumber');
+                          const tillHistory = useInputHistory('tillNumber');
                           
                           return (
                             <div className="relative">
                               <Input
-                                id="paybillNumber"
+                                id="tillNumber"
                                 type="text"
                                 inputMode="numeric"
                                 value={field.value || ""}
@@ -1420,26 +1526,26 @@ return (
                                 }}
                                 onBlur={() => {
                                   if (field.value) {
-                                    paybillHistory.addToHistory(field.value);
+                                    tillHistory.addToHistory(field.value);
                                   }
                                 }}
                                 className="w-full p-3 border border-gray-600 md:border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold bg-black text-white md:bg-white md:text-black peer"
                                 placeholder=" "
-                                list={`paybillNumber-history`}
+                                list={`tillNumber-history`}
                               />
                               <label 
-                                htmlFor="paybillNumber" 
+                                htmlFor="tillNumber" 
                                 className={`absolute left-3 transition-all pointer-events-none bg-black px-1 ${
                                   field.value
                                     ? "-top-2 text-xs text-green-500 bg-black"
                                     : "top-1/2 -translate-y-1/2 text-base text-gray-400 peer-focus:-top-2 peer-focus:text-xs peer-focus:text-green-500 peer-focus:bg-black"
                                 } md:hidden`}
                               >
-                                Business Number
+                                Till Number
                               </label>
-                              {paybillHistory.history.length > 0 && (
-                                <datalist id={`paybillNumber-history`}>
-                                  {paybillHistory.history.map((item, index) => (
+                              {tillHistory.history.length > 0 && (
+                                <datalist id={`tillNumber-history`}>
+                                  {tillHistory.history.map((item, index) => (
                                     <option key={index} value={item} />
                                   ))}
                                 </datalist>
@@ -1448,160 +1554,157 @@ return (
                           );
                         }}
                       />
-                      {errors.paybillNumber && (
-                        <p className="mt-1 text-sm text-red-500">{errors.paybillNumber.message}</p>
+                      {errors.tillNumber && (
+                        <p className="mt-1 text-sm text-red-500">{errors.tillNumber.message}</p>
                       )}
                     </div>
+                  )}
+
+                  {/* Withdraw Money (Agent) Fields */}
+                  {watch("type") === TRANSACTION_TYPE.AGENT && (
+                    <>
+                      <div className="relative">
+                        <Controller
+                          name="agentNumber"
+                          control={control}
+                          render={({ field }) => {
+                            const agentHistory = useInputHistory('agentNumber');
+                            
+                            return (
+                              <div className="relative">
+                                <Input
+                                  id="agentNumber"
+                                  type="text"
+                                  inputMode="numeric"
+                                  value={field.value || ""}
+                                  onChange={(e) => {
+                                    const value = e.target.value.replace(/\D/g, "");
+                                    field.onChange(value);
+                                  }}
+                                  onBlur={() => {
+                                    if (field.value) {
+                                      agentHistory.addToHistory(field.value);
+                                    }
+                                  }}
+                                  className="w-full p-3 border border-gray-600 md:border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold bg-black text-white md:bg-white md:text-black peer"
+                                  placeholder=" "
+                                  list={`agentNumber-history`}
+                                />
+                                <label 
+                                  htmlFor="agentNumber" 
+                                  className={`absolute left-3 transition-all pointer-events-none bg-black px-1 ${
+                                    field.value
+                                      ? "-top-2 text-xs text-green-500 bg-black"
+                                      : "top-1/2 -translate-y-1/2 text-base text-gray-400 peer-focus:-top-2 peer-focus:text-xs peer-focus:text-green-500 peer-focus:bg-black"
+                                  } md:hidden`}
+                                >
+                                  Agent Number
+                                </label>
+                                {agentHistory.history.length > 0 && (
+                                  <datalist id={`agentNumber-history`}>
+                                    {agentHistory.history.map((item, index) => (
+                                      <option key={index} value={item} />
+                                    ))}
+                                  </datalist>
+                                )}
+                              </div>
+                            );
+                          }}
+                        />
+                        {errors.agentNumber && (
+                          <p className="mt-1 text-sm text-red-500">{errors.agentNumber.message}</p>
+                        )}
+                      </div>
+                      <div className="relative">
+                        <Controller
+                          name="storeNumber"
+                          control={control}
+                          render={({ field }) => {
+                            const storeHistory = useInputHistory('storeNumber');
+                            
+                            return (
+                              <div className="relative">
+                                <Input
+                                  id="storeNumber"
+                                  type="text"
+                                  value={field.value || ""}
+                                  onChange={field.onChange}
+                                  onBlur={() => {
+                                    if (field.value) {
+                                      storeHistory.addToHistory(field.value);
+                                    }
+                                  }}
+                                  className="w-full p-3 border border-gray-600 md:border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold bg-black text-white md:bg-white md:text-black peer"
+                                  placeholder=" "
+                                  list={`storeNumber-history`}
+                                />
+                                <label 
+                                  htmlFor="storeNumber" 
+                                  className={`absolute left-3 transition-all pointer-events-none bg-black px-1 ${
+                                    field.value
+                                      ? "-top-2 text-xs text-green-500 bg-black"
+                                      : "top-1/2 -translate-y-1/2 text-base text-gray-400 peer-focus:-top-2 peer-focus:text-xs peer-focus:text-green-500 peer-focus:bg-black"
+                                  } md:hidden`}
+                                >
+                                  Store Number
+                                </label>
+                                {storeHistory.history.length > 0 && (
+                                  <datalist id={`storeNumber-history`}>
+                                    {storeHistory.history.map((item, index) => (
+                                      <option key={index} value={item} />
+                                    ))}
+                                  </datalist>
+                                )}
+                              </div>
+                            );
+                          }}
+                        />
+                        {errors.storeNumber && (
+                          <p className="mt-1 text-sm text-red-500">{errors.storeNumber.message}</p>
+                        )}
+                      </div>
+                    </>
+                  )}      
+
+                  {watch("showName") && (
                     <div className="relative">
                       <Controller
-                        name="accountNumber"
+                        name="businessName"
                         control={control}
                         render={({ field }) => {
-                          const accountHistory = useInputHistory('accountNumber');
+                          const businessHistory = useInputHistory('businessName');
                           
                           return (
                             <div className="relative">
                               <Input
-                                id="accountNumber"
+                                id="name"
                                 type="text"
-                                value={field.value || ""}
-                                onChange={field.onChange}
-                                onBlur={() => {
-                                  if (field.value) {
-                                    accountHistory.addToHistory(field.value);
-                                  }
-                                }}
-                                className="w-full p-3 border border-gray-600 md:border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold bg-black text-white md:bg-white md:text-black peer"
-                                placeholder=" "
-                                list={`accountNumber-history`}
-                              />
-                              <label 
-                                htmlFor="accountNumber" 
-                                className={`absolute left-3 transition-all pointer-events-none bg-black px-1 ${
-                                  field.value
-                                    ? "-top-2 text-xs text-green-500 bg-black"
-                                    : "top-1/2 -translate-y-1/2 text-base text-gray-400 peer-focus:-top-2 peer-focus:text-xs peer-focus:text-green-500 peer-focus:bg-black"
-                                } md:hidden`}
-                              >
-                                Account Number
-                              </label>
-                              {accountHistory.history.length > 0 && (
-                                <datalist id={`accountNumber-history`}>
-                                  {accountHistory.history.map((item, index) => (
-                                    <option key={index} value={item} />
-                                  ))}
-                                </datalist>
-                              )}
-                            </div>
-                          );
-                        }}
-                      />
-                      {errors.accountNumber && (
-                        <p className="mt-1 text-sm text-red-500">{errors.accountNumber.message}</p>
-                      )}
-                    </div>
-                  </>
-                )}
-
-                {/* Buy Goods (Till Number) Fields */}
-                {watch("type") === TRANSACTION_TYPE.TILL_NUMBER && (
-                  <div className="relative">
-                    <Controller
-                      name="tillNumber"
-                      control={control}
-                      render={({ field }) => {
-                        const tillHistory = useInputHistory('tillNumber');
-                        
-                        return (
-                          <div className="relative">
-                            <Input
-                              id="tillNumber"
-                              type="text"
-                              inputMode="numeric"
-                              value={field.value || ""}
-                              onChange={(e) => {
-                                const value = e.target.value.replace(/\D/g, "");
-                                field.onChange(value);
-                              }}
-                              onBlur={() => {
-                                if (field.value) {
-                                  tillHistory.addToHistory(field.value);
-                                }
-                              }}
-                              className="w-full p-3 border border-gray-600 md:border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold bg-black text-white md:bg-white md:text-black peer"
-                              placeholder=" "
-                              list={`tillNumber-history`}
-                            />
-                            <label 
-                              htmlFor="tillNumber" 
-                              className={`absolute left-3 transition-all pointer-events-none bg-black px-1 ${
-                                field.value
-                                  ? "-top-2 text-xs text-green-500 bg-black"
-                                  : "top-1/2 -translate-y-1/2 text-base text-gray-400 peer-focus:-top-2 peer-focus:text-xs peer-focus:text-green-500 peer-focus:bg-black"
-                              } md:hidden`}
-                            >
-                              Till Number
-                            </label>
-                            {tillHistory.history.length > 0 && (
-                              <datalist id={`tillNumber-history`}>
-                                {tillHistory.history.map((item, index) => (
-                                  <option key={index} value={item} />
-                                ))}
-                              </datalist>
-                            )}
-                          </div>
-                        );
-                      }}
-                    />
-                    {errors.tillNumber && (
-                      <p className="mt-1 text-sm text-red-500">{errors.tillNumber.message}</p>
-                    )}
-                  </div>
-                )}
-
-                {/* Withdraw Money (Agent) Fields */}
-                {watch("type") === TRANSACTION_TYPE.AGENT && (
-                  <>
-                    <div className="relative">
-                      <Controller
-                        name="agentNumber"
-                        control={control}
-                        render={({ field }) => {
-                          const agentHistory = useInputHistory('agentNumber');
-                          
-                          return (
-                            <div className="relative">
-                              <Input
-                                id="agentNumber"
-                                type="text"
-                                inputMode="numeric"
                                 value={field.value || ""}
                                 onChange={(e) => {
-                                  const value = e.target.value.replace(/\D/g, "");
-                                  field.onChange(value);
+                                  field.onChange(e.target.value.toUpperCase());
                                 }}
                                 onBlur={() => {
                                   if (field.value) {
-                                    agentHistory.addToHistory(field.value);
+                                    businessHistory.addToHistory(field.value);
                                   }
                                 }}
                                 className="w-full p-3 border border-gray-600 md:border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold bg-black text-white md:bg-white md:text-black peer"
                                 placeholder=" "
-                                list={`agentNumber-history`}
+                                list={`businessName-history`}
                               />
                               <label 
-                                htmlFor="agentNumber" 
+                                htmlFor="name" 
                                 className={`absolute left-3 transition-all pointer-events-none bg-black px-1 ${
                                   field.value
                                     ? "-top-2 text-xs text-green-500 bg-black"
                                     : "top-1/2 -translate-y-1/2 text-base text-gray-400 peer-focus:-top-2 peer-focus:text-xs peer-focus:text-green-500 peer-focus:bg-black"
                                 } md:hidden`}
                               >
-                                Agent Number
+                                Merchant Name
                               </label>
-                              {agentHistory.history.length > 0 && (
-                                <datalist id={`agentNumber-history`}>
-                                  {agentHistory.history.map((item, index) => (
+                              {businessHistory.history.length > 0 && (
+                                <datalist id={`businessName-history`}>
+                                  {businessHistory.history.map((item, index) => (
                                     <option key={index} value={item} />
                                   ))}
                                 </datalist>
@@ -1610,119 +1713,19 @@ return (
                           );
                         }}
                       />
-                      {errors.agentNumber && (
-                        <p className="mt-1 text-sm text-red-500">{errors.agentNumber.message}</p>
+                      {errors.businessName && (
+                        <p className="mt-1 text-sm text-red-500">{errors.businessName.message}</p>
                       )}
                     </div>
-                    <div className="relative">
-                      <Controller
-                        name="storeNumber"
-                        control={control}
-                        render={({ field }) => {
-                          const storeHistory = useInputHistory('storeNumber');
-                          
-                          return (
-                            <div className="relative">
-                              <Input
-                                id="storeNumber"
-                                type="text"
-                                value={field.value || ""}
-                                onChange={field.onChange}
-                                onBlur={() => {
-                                  if (field.value) {
-                                    storeHistory.addToHistory(field.value);
-                                  }
-                                }}
-                                className="w-full p-3 border border-gray-600 md:border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold bg-black text-white md:bg-white md:text-black peer"
-                                placeholder=" "
-                                list={`storeNumber-history`}
-                              />
-                              <label 
-                                htmlFor="storeNumber" 
-                                className={`absolute left-3 transition-all pointer-events-none bg-black px-1 ${
-                                  field.value
-                                    ? "-top-2 text-xs text-green-500 bg-black"
-                                    : "top-1/2 -translate-y-1/2 text-base text-gray-400 peer-focus:-top-2 peer-focus:text-xs peer-focus:text-green-500 peer-focus:bg-black"
-                                } md:hidden`}
-                              >
-                                Store Number
-                              </label>
-                              {storeHistory.history.length > 0 && (
-                                <datalist id={`storeNumber-history`}>
-                                  {storeHistory.history.map((item, index) => (
-                                    <option key={index} value={item} />
-                                  ))}
-                                </datalist>
-                              )}
-                            </div>
-                          );
-                        }}
-                      />
-                      {errors.storeNumber && (
-                        <p className="mt-1 text-sm text-red-500">{errors.storeNumber.message}</p>
-                      )}
-                    </div>
-                  </>
-                )}      
-
-                {watch("showName") && (
-                  <div className="relative">
-                    <Controller
-                      name="businessName"
-                      control={control}
-                      render={({ field }) => {
-                        const businessHistory = useInputHistory('businessName');
-                        
-                        return (
-                          <div className="relative">
-                            <Input
-                              id="name"
-                              type="text"
-                              value={field.value || ""}
-                              onChange={(e) => {
-                                field.onChange(e.target.value.toUpperCase());
-                              }}
-                              onBlur={() => {
-                                if (field.value) {
-                                  businessHistory.addToHistory(field.value);
-                                }
-                              }}
-                              className="w-full p-3 border border-gray-600 md:border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold bg-black text-white md:bg-white md:text-black peer"
-                              placeholder=" "
-                              list={`businessName-history`}
-                            />
-                            <label 
-                              htmlFor="name" 
-                              className={`absolute left-3 transition-all pointer-events-none bg-black px-1 ${
-                                field.value
-                                  ? "-top-2 text-xs text-green-500 bg-black"
-                                  : "top-1/2 -translate-y-1/2 text-base text-gray-400 peer-focus:-top-2 peer-focus:text-xs peer-focus:text-green-500 peer-focus:bg-black"
-                              } md:hidden`}
-                            >
-                              Merchant Name
-                            </label>
-                            {businessHistory.history.length > 0 && (
-                              <datalist id={`businessName-history`}>
-                                {businessHistory.history.map((item, index) => (
-                                  <option key={index} value={item} />
-                                ))}
-                              </datalist>
-                            )}
-                          </div>
-                        );
-                      }}
-                    />
-                    {errors.businessName && (
-                      <p className="mt-1 text-sm text-red-500">{errors.businessName.message}</p>
-                    )}
-                  </div>
-                )}   
-              </form>
-            </CardContent>
-          </Card>
+                  )}   
+                </form>
+              </CardContent>
+            </Card>
+          </div>
+          
         </div>
         {/* Second Column - Customize + Preview */}
-          <div className="w-full md:w-1/2 flex flex-col gap-6">
+          <div className="w-full md:w-1/2 flex flex-col gap-6 w-full overflow-x-auto">
             {/* Customize poster section - now full width */}
             <Card className="relative bg-[#0a0a23] md:bg-white border border-green-500 rounded-md px-4 pt-8 pb-4 w-full">
               {/* Floating label on Card border */}
@@ -1844,7 +1847,7 @@ return (
                     A Preview of your poster
                   </p>
                 </div>
-                <div className="w-full flex flex-col items-center justify-center">
+                <div className="w-full flex flex-col items-center justify-center overflow-x-auto">
                   {/* Poster Container */}            
                   <div className="w-full max-w-lg">
                     {/* QR Code Component */}
