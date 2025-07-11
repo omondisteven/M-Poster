@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { CheckIcon, ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 // import { GithubIcon, LockIcon, } from "lucide-react";
 import { motion } from "framer-motion";
-import { ColorPicker } from "@/components/ui/color-picker";
+// import { ColorPicker } from "@/components/ui/color-picker";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -1737,41 +1737,65 @@ return (
           {/* Color Picker - full width */}
             <div className="relative border border-gray-500 rounded-md p-4 mb-4 mt-2 w-full">
               <div className="absolute -top-3 left-4 bg-gray-600 px-2 text-sm text-white">
-                  Pick Poster Color
+                Pick Poster Color
               </div>
-              <div className="flex items-center gap-x-1">
+
+              <div className="flex flex-wrap items-end gap-x-1 gap-y-1">
+                {/* Standard color buttons */}
                 {colorOptions.map((color) => (
-                <button
-                    key={color.value}
-                    type="button"
-                    className={`w-8 h-8 min-w-8 min-h-8 shrink-0 rounded-full border-2 flex items-center justify-center  ${
-                    selectedColor === color.value
-                        ? "border-gray-300 md:border-gray-800"
-                        : "border-transparent"
-                    } ${color.class}`}
-                    onClick={() => setValue("selectedColor", color.value)}
-                    aria-label={`Select ${color.name} color`}
-                >
-                    {selectedColor === color.value && (
-                    <CheckIcon className="h-5 w-5 text-white" />
-                    )}
-                </button>
-                ))}
-                <div className="flex items-center">
-                    <Controller
-                        name="selectedColor"
-                        control={control}
-                        render={({ field }) => (
-                        <ColorPicker
-                            value={field.value}
-                            onChange={(value) => field.onChange(value)}
-                            className="size-8 rounded-full"
-                        />
-                        )}
-                    />
-                   <span className="ml-2 text-xs text-gray-300 bg-[#0a0a23] md:text-gray-500">Custom</span>
+                  <div key={color.value} className="flex flex-col items-center w-9">
+                    <button
+                      type="button"
+                      className={`w-8 h-8 min-w-8 min-h-8 shrink-0 rounded-full border-2 flex items-center justify-center ${
+                        selectedColor === color.value
+                          ? "border-gray-300 md:border-gray-800"
+                          : "border-transparent"
+                      } ${color.class}`}
+                      onClick={() => setValue("selectedColor", color.value)}
+                      aria-label={`Select ${color.name} color`}
+                    >
+                      {selectedColor === color.value && (
+                        <CheckIcon className="h-5 w-5 text-white" />
+                      )}
+                    </button>
+                    {/* Optional empty caption space for alignment (if needed) */}
+                    <span className="invisible text-xs">.</span>
                   </div>
-              </div>                
+                ))}
+
+                {/* Custom picker + caption */}
+                <div className="flex flex-col items-center w-9">
+                  <Controller
+                    name="selectedColor"
+                    control={control}
+                    render={({ field }) => (
+                      <div
+                        className="size-8 rounded-full border-2 border-white overflow-hidden cursor-pointer"
+                        style={{
+                          backgroundImage: `conic-gradient(
+                            red 0deg 45deg,
+                            orange 45deg 90deg,
+                            yellow 90deg 135deg,
+                            green 135deg 180deg,
+                            cyan 180deg 225deg,
+                            blue 225deg 270deg,
+                            indigo 270deg 315deg,
+                            violet 315deg 360deg
+                          )`
+                        }}
+                        onClick={() => {
+                          const input = document.createElement("input");
+                          input.type = "color";
+                          input.value = field.value;
+                          input.onchange = (e) => field.onChange((e.target as HTMLInputElement).value);
+                          input.click();
+                        }}
+                      />
+                    )}
+                  />
+                  <span className="text-xs text-gray-300 md:text-gray-500 mt-[2px]">Custom</span>
+                </div>
+              </div>
             </div>
             {/* Template selector subsection - full width */}
               <div className="relative border border-gray-500 rounded-md p-4 mb-4 mt-2 w-full">
