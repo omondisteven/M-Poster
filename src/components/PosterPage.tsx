@@ -1188,7 +1188,7 @@ function PosterPage() {
   };
 
 return (
-    <div className="flex flex-col bg-[#0a0a23] md:bg-gray-100 w-full max-w-[100vw] overflow-x-hidden">
+    <div className="flex flex-col bg-[#0a0a23] md:bg-gray-100 w-full max-w-[100vw] overflow-x-auto">
       <div className="flex-1 flex flex-col md:flex-row flex-wrap px-4 py-4 sm:py-8 md:py-0 sm:px-6 lg:px-8 gap-8 relative z-10">
         {/* Left Column - App Info */}
         <div className="w-full lg:w-1/2 flex flex-col md:py-12 md:px-4 lg:px-8">
@@ -1746,7 +1746,7 @@ return (
                       <button
                         key={color.value}
                         type="button"
-                        className={`size-8 rounded-full border-2 flex items-center justify-center ${
+                        className={`w-8 h-8 min-w-8 min-h-8 shrink-0 rounded-full border-2 flex items-center justify-center  ${
                           selectedColor === color.value
                             ? "border-gray-300 md:border-gray-800"
                             : "border-transparent"
@@ -1793,7 +1793,7 @@ return (
                     </div>
 
                     <ScrollArea className="w-full h-[170px] rounded-lg">
-                      <div className="flex space-x-4 px-8 py-1 min-w-max">
+                      <div className="flex space-x-4 px-8 py-1 min-w-max flex-nowrap">
                         {templates.map((template) => (
                           <div
                             key={template.slug}

@@ -40,7 +40,7 @@ export const Route = createRootRoute({
       : "settings";
 
     return (
-      <div className="min-h-screen flex flex-col bg-[#0a0a23] md:bg-gray-100 relative overflow-hidden">
+      <div className="min-h-screen flex flex-col bg-[#0a0a23] md:bg-gray-100 relative overflow-x-auto overflow-y-auto">
         {/* Dotted background pattern */}
         <div
           className="absolute h-full w-full inset-0 pointer-events-none"
