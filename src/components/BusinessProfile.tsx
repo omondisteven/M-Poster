@@ -227,7 +227,7 @@ export default function BusinessProfile() {
               {activeFields.map(field => (
                 <div key={field.id} className="flex flex-col relative">
                   <div className="flex justify-between items-center">
-                    <label htmlFor={field.id} className={`font-medium ${field.required ? "text-red-600" : "text-white md:text-black"}`}>
+                    <label htmlFor={field.id} className={`font-medium ${field.required ? "text-red-600" : "text-gray-300 md:text-black"}`}>
                       {field.label}{field.required && " *"}
                     </label>
                     {field.id !== 'name' && (
@@ -236,7 +236,7 @@ export default function BusinessProfile() {
                         onClick={() => removeField(field.id)}
                         className="text-gray-400 hover:text-red-500 p-1"
                       >
-                        <X className="w-4 h-4" />
+                        <X className="w-4 h-4 text-blue-300 md:text-black" />
                       </button>
                     )}
                   </div>
@@ -245,7 +245,7 @@ export default function BusinessProfile() {
                       id={field.id}
                       ref={el => { inputRefs.current[field.id] = el }}
                       placeholder={field.placeholder}
-                      className="p-2 border border-gray-600 md:border-gray-300 rounded bg-black text-white md:bg-white md:text-black focus:bg-black focus:text-white md:focus:bg-white md:focus:text-black"
+                      className="p-2 border border-gray-600 md:border-gray-300 rounded bg-[#0a0a23] text-white md:bg-white md:text-black focus:bg-[#0a0a23] focus:text-white md:focus:bg-white md:focus:text-black"
                       required={field.required}
                     />
                   ) : (
@@ -264,7 +264,7 @@ export default function BusinessProfile() {
                         }}
                         list={`recent-${field.id}`}
                         placeholder={field.placeholder}
-                        className="p-2 border border-gray-600 md:border-gray-300 rounded bg-black text-white md:bg-white md:text-black focus:bg-black focus:text-white md:focus:bg-white md:focus:text-black"
+                        className="p-2 border border-gray-600 md:border-gray-300 rounded bg-[#0a0a23] text-white md:bg-white md:text-black focus:bg-[#0a0a23] focus:text-white md:focus:bg-white md:focus:text-black"
                         required={field.required}
                       />
                       <datalist id={`recent-${field.id}`}>
@@ -360,7 +360,7 @@ export default function BusinessProfile() {
                 E-Business Card Preview
               </p>
             </div>
-            <div className="bg-blue-50 p-4 rounded-lg border-4 border-[#2f363d] shadow-md w-full">
+            <div className="bg-black p-4 rounded-lg border-4 border-[#2f363d] shadow-md w-full">
               {formData ? (
                 <>
                   <div 
@@ -381,11 +381,11 @@ export default function BusinessProfile() {
 
                   <div className="space-y-2">
                     <div className="text-center mb-4">
-                      <h1 className="text-2xl font-bold text-[#2f363d] hover:text-[#170370] transition-colors">
+                      <h1 className="text-2xl font-bold text-white md:text-[#2f363d] hover:text-[#170370] transition-colors">
                         {formData.name}
                       </h1>
                       {formData.title && (
-                        <h2 className="text-lg text-gray-700 hover:text-[#170370] transition-colors">
+                        <h2 className="text-lg text-gray-300 md:text-gray-700 hover:text-[#170370] transition-colors">
                           {formData.title}
                         </h2>
                       )}
@@ -396,15 +396,15 @@ export default function BusinessProfile() {
                       <>
                         <div className="h-[1px] bg-gray-200 mx-2 my-1"></div>
                         <div className="group pl-2 border-l-4 border-gray-500 hover:border-l-8 hover:border-[#170370] hover:bg-[rgba(23,3,112,0.05)] transition-all">
-                          <div className="text-xs uppercase font-bold text-gray-500 group-hover:text-[#170370] transition-colors pl-2">
+                          <div className="text-xs uppercase font-bold text-gray-300 md:text-gray-500 group-hover:text-[#170370] transition-colors pl-2">
                             Telephone
                           </div>
                           <div className="flex justify-between items-center">
-                            <p className="group-hover:text-[#170370] transition-colors pl-2 py-1">
+                            <p className="text-white md:text-black group-hover:text-[#170370] transition-colors pl-2 py-1">
                               {formData.phone}
                             </p>
                             <a href={`tel:${formData.phone}`} className="p-2 hover:scale-125 transition-transform">
-                              <Phone className="w-5 h-5" />
+                              <Phone className="w-5 h-5 text-blue-300 md:text-black" />
                             </a>
                           </div>
                         </div>
@@ -416,15 +416,15 @@ export default function BusinessProfile() {
                       <>
                         <div className="h-[1px] bg-gray-200 mx-2 my-1 group-hover:bg-[rgba(23,3,112,0.2)]"></div>
                         <div className="group pl-2 border-l-4 border-gray-500 hover:border-l-8 hover:border-[#170370] hover:bg-[rgba(23,3,112,0.05)] transition-all">
-                          <div className="text-xs uppercase font-bold text-gray-500 group-hover:text-[#170370] transition-colors pl-2">
+                          <div className="text-xs uppercase font-bold text-gray-300 md:text-gray-500 group-hover:text-[#170370] transition-colors pl-2">
                             Email
                           </div>
                           <div className="flex justify-between items-center">
-                            <p className="group-hover:text-[#170370] transition-colors pl-2 py-1">
+                            <p className="text-white md:text-black group-hover:text-[#170370] transition-colors pl-2 py-1">
                               {formData.email}
                             </p>
                             <a href={`mailto:${formData.email}`} className="p-2 hover:scale-125 transition-transform">
-                              <Mail className="w-5 h-5" />
+                              <Mail className="w-5 h-5 text-blue-300 md:text-black" />
                             </a>
                           </div>
                         </div>
@@ -436,11 +436,11 @@ export default function BusinessProfile() {
                       <>
                         <div className="h-[1px] bg-gray-200 mx-2 my-1"></div>
                         <div className="group pl-2 border-l-4 border-gray-500 hover:border-l-8 hover:border-[#170370] hover:bg-[rgba(23,3,112,0.05)] transition-all">
-                          <div className="text-xs uppercase font-bold text-gray-500 group-hover:text-[#170370] transition-colors pl-2">
+                          <div className="text-xs uppercase font-bold text-gray-300 md:text-gray-500 group-hover:text-[#170370] transition-colors pl-2">
                             Address
                           </div>
                           <div className="flex justify-between items-center">
-                            <p className="group-hover:text-[#170370] transition-colors pl-2 py-1">
+                            <p className="text-white md:text-black group-hover:text-[#170370] transition-colors pl-2 py-1">
                               {formData.address}
                             </p>
                             <a 
@@ -448,7 +448,7 @@ export default function BusinessProfile() {
                               target="_blank" 
                               className="p-2 hover:scale-125 transition-transform"
                             >
-                              <MapPin className="w-5 h-5" />
+                              <MapPin className="w-5 h-5 text-blue-300 md:text-black" />
                             </a>
                           </div>
                         </div>
@@ -460,15 +460,15 @@ export default function BusinessProfile() {
                       <>
                         <div className="h-[1px] bg-gray-200 mx-2 my-1"></div>
                         <div className="group pl-2 border-l-4 border-gray-500 hover:border-l-8 hover:border-[#170370] hover:bg-[rgba(23,3,112,0.05)] transition-all">
-                          <div className="text-xs uppercase font-bold text-gray-500 group-hover:text-[#170370] transition-colors pl-2">
+                          <div className="text-xs uppercase font-bold text-gray-300 md:text-gray-500 group-hover:text-[#170370] transition-colors pl-2">
                             Website
                           </div>
                           <div className="flex justify-between items-center">
-                            <p className="group-hover:text-[#170370] transition-colors pl-2 py-1">
+                            <p className="text-white md:text-black group-hover:text-[#170370] transition-colors pl-2 py-1">
                               {formData.website}
                             </p>
                             <a href={formData.website} target="_blank" className="p-2 hover:scale-125 transition-transform">
-                              <Globe className="w-5 h-5" />
+                              <Globe className="w-5 h-5 text-blue-300 md:text-black" />
                             </a>
                           </div>
                         </div>
@@ -480,11 +480,11 @@ export default function BusinessProfile() {
                       <>
                         <div className="h-[1px] bg-gray-200 mx-2 my-1"></div>
                         <div className="group pl-2 border-l-4 border-gray-500 hover:border-l-8 hover:border-[#170370] hover:bg-[rgba(23,3,112,0.05)] transition-all">
-                          <div className="text-xs uppercase font-bold text-gray-500 group-hover:text-[#170370] transition-colors pl-2">
+                          <div className="text-xs uppercase font-bold text-gray-300 md:text-gray-500 group-hover:text-[#170370] transition-colors pl-2">
                             WhatsApp
                           </div>
                           <div className="flex justify-between items-center">
-                            <p className="group-hover:text-[#170370] transition-colors pl-2 py-1">
+                            <p className="text-white md:text-black group-hover:text-[#170370] transition-colors pl-2 py-1">
                               {formData.whatsappnumber}
                             </p>
                             <a 
@@ -492,7 +492,7 @@ export default function BusinessProfile() {
                               onClick={(e) => handleWhatsAppClick(formData.whatsappnumber!, e)}
                               className="p-2 hover:scale-125 transition-transform"
                             >
-                              <FaWhatsapp className="w-4 h-4 mr-1 text-green-500" />
+                              <FaWhatsapp className="w-4 h-4 mr-1 text-blue-300 md:text-green-500" />
                             </a>
                           </div>
                         </div>
@@ -504,11 +504,11 @@ export default function BusinessProfile() {
                       <>
                         <div className="h-[1px] bg-gray-200 mx-2 my-1"></div>
                         <div className="group pl-2 border-l-4 border-gray-500 hover:border-l-8 hover:border-[#170370] hover:bg-[rgba(23,3,112,0.05)] transition-all">
-                          <div className="text-xs uppercase font-bold text-gray-500 group-hover:text-[#170370] transition-colors pl-2">
+                          <div className="text-xs uppercase font-bold text-gray-300 md:text-gray-500 group-hover:text-[#170370] transition-colors pl-2">
                             Description
                           </div>
                           <div className="flex justify-between items-center">
-                            <p className="group-hover:text-[#170370] transition-colors pl-2 py-1">
+                            <p className="text-white md:text-black group-hover:text-[#170370] transition-colors pl-2 py-1">
                               {formData.comment}
                             </p>
                           </div>
@@ -528,7 +528,7 @@ export default function BusinessProfile() {
                         className="p-2 hover:bg-gray-100"
                         title="Share Contact"
                       >
-                        <Share2 className="w-5 h-5" />
+                        <Share2 className="w-5 h-5 text-blue-300 md:text-black" />
                       </Button>
                     ) : (
                       <Button 
@@ -538,7 +538,7 @@ export default function BusinessProfile() {
                         className="p-2 hover:bg-gray-100"
                         title="Copy Link"
                       >
-                        <Copy className="w-5 h-5" />
+                        <Copy className="w-5 h-5 text-blue-300 md:text-black" />
                       </Button>
                     )}
                     
@@ -554,7 +554,7 @@ export default function BusinessProfile() {
                   </div>
                 </>
               ) : (
-                <div className="flex flex-col items-center justify-center p-8 text-center text-gray-500">
+                <div className="flex flex-col items-center justify-center p-8 text-center text-gray-300 md:text-gray-500">
                   <div className="mb-4 w-full p-4">
                     <QRCode 
                       value="placeholder" 
