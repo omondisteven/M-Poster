@@ -96,7 +96,11 @@ export const Route = createRootRoute({
         )}
 
         {/* Tab content */}
-        <main className={`flex flex-col px-4 ${isMobile ? 'pt-[90px] pb-20' : 'pb-10'} overflow-auto max-h-screen`}>
+        <main
+            className={`flex flex-col px-4 ${
+              isMobile ? 'pt-[110px] pb-20' : 'pt-[90px] pb-10'
+            } overflow-auto max-h-screen`}
+          >
           <Outlet />
           {import.meta.env.DEV && <TanStackRouterDevtools />}
         </main>
