@@ -212,60 +212,81 @@ export default function BusinessProfile() {
   );
 
   return (
-    <div className="p-4 flex flex-col lg:flex-row gap-4 md:gap-8 bg-[#0a0a23] md:bg-transparent w-full max-w-[100vw] overflow-x-hidden">
-      {/* Left: Entry Form */}      
-      <div className="w-full lg:w-[70%] min-w-0"> {/* Add min-w-0 to prevent flex item overflow */}
-        <h2 className="text-xl font-bold text-white md:text-black pb-8">E-Business Card</h2>
-        <Card className="relative bg-[#0a0a23] md:bg-gray-100 border border-green-500 rounded-md px-4 pt-8 pb-4">
-          <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#0a0a23] md:bg-gray-100 px-4 text-center">
-              <p className="text-sm text-gray-300 md:text-gray-600 whitespace-nowrap">
+    <div
+      className={`p-4 flex flex-col lg:flex-row gap-4 md:gap-8 w-full max-w-[100vw] overflow-x-hidden
+      dark:bg-[#0a0a23] text-white : "bg-gray-50 text-gray-900"}`}>
+      {/* Left Section: Form */}
+      <div className="w-full lg:w-[70%] min-w-0">
+        <h2 className="text-xl font-bold pb-8 text-gray-900 dark:text-white">
+          E-Business Card
+        </h2>
+
+        <Card className="relative bg-white dark:bg-[#0a0a23] border border-gray-300 dark:border-green-500 rounded-md px-4 pt-8 pb-4">
+          <div className="absolute -top-4 left-1/2 -translate-x-1/2 flex items-center w-full justify-center">
+            <div className="flex items-center w-full px-4">
+              <span className="px-3 bg-white dark:bg-[#0a0a23] text-gray-700 dark:text-gray-300 font-semibold">
                 Select to fill in Contact Details
-              </p>
+              </span>
             </div>
+          </div>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid gap-4">
-              {activeFields.map(field => (
+              {activeFields.map((field) => (
                 <div key={field.id} className="flex flex-col relative">
                   <div className="flex justify-between items-center">
-                    <label htmlFor={field.id} className={`font-medium ${field.required ? "text-red-600" : "text-gray-300 md:text-black"}`}>
-                      {field.label}{field.required && " *"}
+                    <label
+                      htmlFor={field.id}
+                      className={`font-medium ${
+                        field.required
+                          ? "text-red-600"
+                          : "text-gray-300 dark: text-gray-800"
+                      }`}
+                    >
+                      {field.label}
+                      {field.required && " *"}
                     </label>
-                    {field.id !== 'name' && (
+                    {/* Remove Field Button */}
+                    {field.id !== "name" && (
                       <button
                         type="button"
                         onClick={() => removeField(field.id)}
                         className="text-gray-400 hover:text-red-500 p-1"
                       >
-                        <X className="w-4 h-4 text-blue-300 md:text-black" />
+                        <X className={`w-4 h-4 dark:text-gray-300 : "text-gray-600"}`} />
                       </button>
                     )}
                   </div>
+                  {/* Input or Textarea */}
                   {["comment", "promo1", "promo2"].includes(field.id) ? (
                     <textarea
                       id={field.id}
-                      ref={el => { inputRefs.current[field.id] = el }}
+                      ref={(el) => {
+                        inputRefs.current[field.id] = el;
+                      }}
                       placeholder={field.placeholder}
-                      className="p-2 border border-gray-600 md:border-gray-300 rounded bg-[#0a0a23] text-white md:bg-white md:text-black focus:bg-[#0a0a23] focus:text-white md:focus:bg-white md:focus:text-black"
+                      className={`p-2 rounded border focus:ring-2 focus:ring-green-500
+                      bg-[#0a0a23] text-white border-gray-600 : "bg-white text-black border-gray-300"}`}
                       required={field.required}
                     />
                   ) : (
                     <>
                       <input
                         id={field.id}
-                        ref={el => { inputRefs.current[field.id] = el; }}
-                        type="text"
-                        inputMode={["phone", "whatsappnumber"].includes(field.id) ? "numeric" : "text"}
-                        pattern={["phone", "whatsappnumber"].includes(field.id) ? "[0-9\\- ]*" : undefined}
-                        onInput={(e) => {
-                          if (["phone", "whatsappnumber"].includes(field.id)) {
-                            const value = (e.target as HTMLInputElement).value;
-                            (e.target as HTMLInputElement).value = value.replace(/[^\d\- ]/g, '');
-                          }
+                        ref={(el) => {
+                          inputRefs.current[field.id] = el;
                         }}
-                        list={`recent-${field.id}`}
+                        type="text"
+                        inputMode={
+                          ["phone", "whatsappnumber"].includes(field.id) ? "numeric" : "text"
+                        }
+                        pattern={
+                          ["phone", "whatsappnumber"].includes(field.id) ? "[0-9\\- ]*" : undefined
+                        }
                         placeholder={field.placeholder}
-                        className="p-2 border border-gray-600 md:border-gray-300 rounded bg-[#0a0a23] text-white md:bg-white md:text-black focus:bg-[#0a0a23] focus:text-white md:focus:bg-white md:focus:text-black"
+                        className={`p-2 rounded border focus:ring-2 focus:ring-green-500
+                        dark:bg-[#0a0a23] text-white border-gray-600 : "bg-white text-black border-gray-300"}`}
                         required={field.required}
+                        list={`recent-${field.id}`}
                       />
                       <datalist id={`recent-${field.id}`}>
                         {getRecentEntries(field.id).map((entry, idx) => (
@@ -277,7 +298,6 @@ export default function BusinessProfile() {
                 </div>
               ))}
             </div>
-
             {/* Mobile layout - Reset and Add Fields buttons */}
             <div className="md:hidden flex flex-col space-y-4">
               <div className="flex gap-2">
@@ -285,24 +305,29 @@ export default function BusinessProfile() {
                   <Button
                     type="button"
                     onClick={() => setShowFieldDropdown(!showFieldDropdown)}
-                    className="flex-1 bg-blue-500 text-white hover:bg-blue-600"
-                  >
+                    className={`flex-1 ${
+                     "bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-500 text-white hover:bg-blue-600"
+                }`}
+              >
                     +Add Fields
                   </Button>
                 )}
                 <Button 
                   type="button"
                   onClick={resetForm}
-                  className="flex-1 bg-blue-500 text-white hover:bg-blue-600"
+                  className={`flex-1 ${
+                  "bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-500 text-white hover:bg-blue-600"
+                }`}
                 >
                   --Reset
                 </Button>
-                
               </div>
               <hr className="border-t border-gray-300" />
               <Button 
                 type="submit"
-                className="w-full bg-green-600 hover:bg-green-700 text-white"
+                className={`flex-1 ${
+                    "bg-green-700 text-white hover:bg-green-800 dark:bg-green-600 text-white hover:bg-green-700"
+                }`}
               >
                 Create Contact Card
               </Button>
@@ -335,13 +360,13 @@ export default function BusinessProfile() {
             </div>
 
             {showFieldDropdown && (
-              <div className="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded shadow-lg">
+              <div className="absolute z-10 mt-1 w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded shadow-lg">
                 {availableFields.map(field => (
                   <button
                     key={field.id}
                     type="button"
                     onClick={() => addField(field.id)}
-                    className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                    className="block w-full text-left px-4 py-2 text-gray-800 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700"
                   >
                     {field.label}
                   </button>
@@ -354,225 +379,225 @@ export default function BusinessProfile() {
       
       {/* Right side - Qr/Contact */}
       <div className="lg:w-[30%]" ref={qrSectionRef}>
-        <Card className="relative bg-[#0a0a23] md:bg-gray-100 border border-green-500 rounded-md px-4 pt-8 pb-4">
-          <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#0a0a23] md:bg-gray-100 px-4 text-center">
-              <p className="text-sm text-gray-300 md:text-gray-600 whitespace-nowrap">
-                E-Business Card Preview
-              </p>
-            </div>
-            <div className="bg-black p-4 rounded-lg border-4 border-[#2f363d] shadow-md w-full">
-              {formData ? (
-                <>
-                  <div 
-                    ref={qrRef} 
-                    className="flex justify-center mb-4 w-full p-4 bg-white"
+        <Card className="relative rounded-md px-4 pt-8 pb-4 bg-white dark:bg-[#0a0a23] border border-gray-300 dark:border-green-500">
+          <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 text-center bg-white dark:bg-[#0a0a23] relative">
+            <span className="font-semibold text-gray-700 dark:text-gray-300 relative">
+              E-Business Card Preview
+            </span>
+          </div>
+          <div className="p-4 rounded-lg border-4 shadow-md bg-gray-100 dark:bg-black border-gray-300 dark:border-[#2f363d]">
+            {formData ? (
+              <>
+                <div 
+                  ref={qrRef} 
+                  className="flex justify-center mb-4 w-full p-4 bg-white"
                   >
-                    <a href={window.location.href} className="w-full">
-                      <QRCode 
-                        value={JSON.stringify(formData)} 
-                        size={256}
-                        style={{ height: "auto", maxWidth: "100%", width: "100%" }}
-                        bgColor="transparent"
-                      />
-                    </a>
-                  </div>
-
-                  <hr className="border-t border-gray-300 my-2" />
-
-                  <div className="space-y-2">
-                    <div className="text-center mb-4">
-                      <h1 className="text-2xl font-bold text-white md:text-[#2f363d] hover:text-[#170370] transition-colors">
-                        {formData.name}
-                      </h1>
-                      {formData.title && (
-                        <h2 className="text-lg text-gray-300 md:text-gray-700 hover:text-[#170370] transition-colors">
-                          {formData.title}
-                        </h2>
-                      )}
-                    </div>
-
-                    {/* Phone */}
-                    {formData.phone && (
-                      <>
-                        <div className="h-[1px] bg-gray-200 mx-2 my-1"></div>
-                        <div className="group pl-2 border-l-4 border-gray-500 hover:border-l-8 hover:border-[#170370] hover:bg-[rgba(23,3,112,0.05)] transition-all">
-                          <div className="text-xs uppercase font-bold text-gray-300 md:text-gray-500 group-hover:text-[#170370] transition-colors pl-2">
-                            Telephone
-                          </div>
-                          <div className="flex justify-between items-center">
-                            <p className="text-white md:text-black group-hover:text-[#170370] transition-colors pl-2 py-1">
-                              {formData.phone}
-                            </p>
-                            <a href={`tel:${formData.phone}`} className="p-2 hover:scale-125 transition-transform">
-                              <Phone className="w-5 h-5 text-blue-300 md:text-black" />
-                            </a>
-                          </div>
-                        </div>
-                      </>
-                    )}
-
-                    {/* Email */}
-                    {formData.email && (
-                      <>
-                        <div className="h-[1px] bg-gray-200 mx-2 my-1 group-hover:bg-[rgba(23,3,112,0.2)]"></div>
-                        <div className="group pl-2 border-l-4 border-gray-500 hover:border-l-8 hover:border-[#170370] hover:bg-[rgba(23,3,112,0.05)] transition-all">
-                          <div className="text-xs uppercase font-bold text-gray-300 md:text-gray-500 group-hover:text-[#170370] transition-colors pl-2">
-                            Email
-                          </div>
-                          <div className="flex justify-between items-center">
-                            <p className="text-white md:text-black group-hover:text-[#170370] transition-colors pl-2 py-1">
-                              {formData.email}
-                            </p>
-                            <a href={`mailto:${formData.email}`} className="p-2 hover:scale-125 transition-transform">
-                              <Mail className="w-5 h-5 text-blue-300 md:text-black" />
-                            </a>
-                          </div>
-                        </div>
-                      </>
-                    )}
-
-                    {/* Address */}
-                    {formData.address && (
-                      <>
-                        <div className="h-[1px] bg-gray-200 mx-2 my-1"></div>
-                        <div className="group pl-2 border-l-4 border-gray-500 hover:border-l-8 hover:border-[#170370] hover:bg-[rgba(23,3,112,0.05)] transition-all">
-                          <div className="text-xs uppercase font-bold text-gray-300 md:text-gray-500 group-hover:text-[#170370] transition-colors pl-2">
-                            Address
-                          </div>
-                          <div className="flex justify-between items-center">
-                            <p className="text-white md:text-black group-hover:text-[#170370] transition-colors pl-2 py-1">
-                              {formData.address}
-                            </p>
-                            <a 
-                              href={`https://www.openstreetmap.org/search?query=${encodeURIComponent(formData.address)}`} 
-                              target="_blank" 
-                              className="p-2 hover:scale-125 transition-transform"
-                            >
-                              <MapPin className="w-5 h-5 text-blue-300 md:text-black" />
-                            </a>
-                          </div>
-                        </div>
-                      </>
-                    )}
-
-                    {/* Website */}
-                    {formData.website && (
-                      <>
-                        <div className="h-[1px] bg-gray-200 mx-2 my-1"></div>
-                        <div className="group pl-2 border-l-4 border-gray-500 hover:border-l-8 hover:border-[#170370] hover:bg-[rgba(23,3,112,0.05)] transition-all">
-                          <div className="text-xs uppercase font-bold text-gray-300 md:text-gray-500 group-hover:text-[#170370] transition-colors pl-2">
-                            Website
-                          </div>
-                          <div className="flex justify-between items-center">
-                            <p className="text-white md:text-black group-hover:text-[#170370] transition-colors pl-2 py-1">
-                              {formData.website}
-                            </p>
-                            <a href={formData.website} target="_blank" className="p-2 hover:scale-125 transition-transform">
-                              <Globe className="w-5 h-5 text-blue-300 md:text-black" />
-                            </a>
-                          </div>
-                        </div>
-                      </>
-                    )}
-
-                    {/* WhatsApp */}
-                    {formData.whatsappnumber && (
-                      <>
-                        <div className="h-[1px] bg-gray-200 mx-2 my-1"></div>
-                        <div className="group pl-2 border-l-4 border-gray-500 hover:border-l-8 hover:border-[#170370] hover:bg-[rgba(23,3,112,0.05)] transition-all">
-                          <div className="text-xs uppercase font-bold text-gray-300 md:text-gray-500 group-hover:text-[#170370] transition-colors pl-2">
-                            WhatsApp
-                          </div>
-                          <div className="flex justify-between items-center">
-                            <p className="text-white md:text-black group-hover:text-[#170370] transition-colors pl-2 py-1">
-                              {formData.whatsappnumber}
-                            </p>
-                            <a 
-                              href="#" 
-                              onClick={(e) => handleWhatsAppClick(formData.whatsappnumber!, e)}
-                              className="p-2 hover:scale-125 transition-transform"
-                            >
-                              <FaWhatsapp className="w-4 h-4 mr-1 text-blue-300 md:text-green-500" />
-                            </a>
-                          </div>
-                        </div>
-                      </>
-                    )}
-
-                    {/* Comment */}
-                    {formData.comment && (
-                      <>
-                        <div className="h-[1px] bg-gray-200 mx-2 my-1"></div>
-                        <div className="group pl-2 border-l-4 border-gray-500 hover:border-l-8 hover:border-[#170370] hover:bg-[rgba(23,3,112,0.05)] transition-all">
-                          <div className="text-xs uppercase font-bold text-gray-300 md:text-gray-500 group-hover:text-[#170370] transition-colors pl-2">
-                            Description
-                          </div>
-                          <div className="flex justify-between items-center">
-                            <p className="text-white md:text-black group-hover:text-[#170370] transition-colors pl-2 py-1">
-                              {formData.comment}
-                            </p>
-                          </div>
-                        </div>
-                      </>
-                    )}
-                  </div>
-
-                  <hr className="border-t border-gray-300 my-4" />
-
-                  <div className="flex justify-end gap-2">                
-                    {'share' in navigator && typeof navigator.share === 'function' ? (
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        onClick={shareQR}
-                        className="p-2 hover:bg-gray-100"
-                        title="Share Contact"
-                      >
-                        <Share2 className="w-5 h-5 text-blue-300 md:text-black" />
-                      </Button>
-                    ) : (
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        onClick={copyLink}
-                        className="p-2 hover:bg-gray-100"
-                        title="Copy Link"
-                      >
-                        <Copy className="w-5 h-5 text-blue-300 md:text-black" />
-                      </Button>
-                    )}
-                    
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={downloadVCard}
-                      className="p-2 bg-red-500 text-white hover:bg-red-600"
-                      title="Download Contact"
-                    >
-                      <Download className="w-5 h-5" />
-                    </Button>
-                  </div>
-                </>
-              ) : (
-                <div className="flex flex-col items-center justify-center p-8 text-center text-gray-300 md:text-gray-500">
-                  <div className="mb-4 w-full p-4">
+                  <a href={window.location.href} className="w-full">
                     <QRCode 
-                      value="placeholder" 
+                      value={JSON.stringify(formData)} 
                       size={256}
                       style={{ height: "auto", maxWidth: "100%", width: "100%" }}
                       bgColor="transparent"
-                      fgColor="#e5e7eb"
                     />
-                  </div>
-                  <p className="text-lg font-medium">
-                    Your Contact Card and QR code will appear here...
-                  </p>
-                  <p className="text-sm mt-2">
-                    Fill out the form and click "Create Contact Card" to generate your personalized QR code.
-                  </p>
+                  </a>
                 </div>
-              )}
-            </div>
+
+                <hr className="border-t border-gray-300 my-2" />
+
+                <div className="space-y-2">
+                  <div className="text-center mb-4">
+                    <h1 className={`text-2xl font-bold dark:text-white : "text-[#2f363d]"} hover:text-[#170370] transition-colors`}>
+                      {formData.name}
+                    </h1>
+                    {formData.title && (
+                      <h2 className={`text-lg dark:text-gray-300 : "text-gray-700"} hover:text-[#170370] transition-colors`}>
+                        {formData.title}
+                      </h2>
+                    )}
+                  </div>
+
+                  {/* Phone */}
+                  {formData.phone && (
+                    <>
+                      <div className="h-[1px] bg-gray-200 mx-2 my-1"></div>
+                      <div className="group pl-2 border-l-4 border-gray-500 hover:border-l-8 hover:border-[#170370] hover:bg-[rgba(23,3,112,0.05)] transition-all">
+                        <div className={`text-xs uppercase font-bold text-gray-300 : "text-gray-500"} group-hover:text-[#170370] transition-colors pl-2`}>
+                          Telephone
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <p className={`dark:text-white : "text-black"} group-hover:text-[#170370] transition-colors pl-2 py-1`}>
+                            {formData.phone}
+                          </p>
+                          <a href={`tel:${formData.phone}`} className="p-2 hover:scale-125 transition-transform">
+                            <Phone className={`w-5 h-5 dark:text-blue-300 : "text-black"}`} />
+                          </a>
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  {/* Email */}
+                  {formData.email && (
+                    <>
+                      <div className="h-[1px] bg-gray-200 mx-2 my-1 group-hover:bg-[rgba(23,3,112,0.2)]"></div>
+                      <div className="group pl-2 border-l-4 border-gray-500 hover:border-l-8 hover:border-[#170370] hover:bg-[rgba(23,3,112,0.05)] transition-all">
+                        <div className={`text-xs uppercase font-bold dark:text-gray-300 : "text-gray-500"} group-hover:text-[#170370] transition-colors pl-2`}>
+                          Email
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <p className={`dark:text-white : "text-black"} group-hover:text-[#170370] transition-colors pl-2 py-1`}>
+                            {formData.email}
+                          </p>
+                          <a href={`mailto:${formData.email}`} className="p-2 hover:scale-125 transition-transform">
+                            <Mail className={`w-5 h-5 dark:text-blue-300 : "text-black"}`} />
+                          </a>
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  {/* Address */}
+                  {formData.address && (
+                    <>
+                      <div className="h-[1px] bg-gray-200 mx-2 my-1"></div>
+                      <div className="group pl-2 border-l-4 border-gray-500 hover:border-l-8 hover:border-[#170370] hover:bg-[rgba(23,3,112,0.05)] transition-all">
+                        <div className={`text-xs uppercase font-bold dark:text-gray-300 : "text-gray-500"} group-hover:text-[#170370] transition-colors pl-2`}>
+                          Address
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <p className={`dark:text-white : "text-black"} group-hover:text-[#170370] transition-colors pl-2 py-1`}>
+                            {formData.address}
+                          </p>
+                          <a 
+                            href={`https://www.openstreetmap.org/search?query=${encodeURIComponent(formData.address)}`} 
+                            target="_blank" 
+                            className="p-2 hover:scale-125 transition-transform"
+                          >
+                            <MapPin className={`w-5 h-5 dark:text-blue-300 : "text-black"}`} />
+                          </a>
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  {/* Website */}
+                  {formData.website && (
+                    <>
+                      <div className="h-[1px] bg-gray-200 mx-2 my-1"></div>
+                      <div className="group pl-2 border-l-4 border-gray-500 hover:border-l-8 hover:border-[#170370] hover:bg-[rgba(23,3,112,0.05)] transition-all">
+                        <div className={`text-xs uppercase font-bold dark:text-gray-300 : "text-gray-500"} group-hover:text-[#170370] transition-colors pl-2`}>
+                          Website
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <p className={`dark:text-white : "text-black"} group-hover:text-[#170370] transition-colors pl-2 py-1`}>
+                            {formData.website}
+                          </p>
+                          <a href={formData.website} target="_blank" className="p-2 hover:scale-125 transition-transform">
+                            <Globe className={`w-5 h-5 dark:text-blue-300 : "text-black"}`} />
+                          </a>
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  {/* WhatsApp */}
+                  {formData.whatsappnumber && (
+                    <>
+                      <div className="h-[1px] bg-gray-200 mx-2 my-1"></div>
+                      <div className="group pl-2 border-l-4 border-gray-500 hover:border-l-8 hover:border-[#170370] hover:bg-[rgba(23,3,112,0.05)] transition-all">
+                        <div className={`text-xs uppercase font-bold dark:text-gray-300 : "text-gray-500"} group-hover:text-[#170370] transition-colors pl-2`}>
+                          WhatsApp
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <p className={`dark:text-white : "text-black"} group-hover:text-[#170370] transition-colors pl-2 py-1`}>
+                            {formData.whatsappnumber}
+                          </p>
+                          <a 
+                            href="#" 
+                            onClick={(e) => handleWhatsAppClick(formData.whatsappnumber!, e)}
+                            className="p-2 hover:scale-125 transition-transform"
+                          >
+                            <FaWhatsapp className={`w-4 h-4 mr-1 dark:text-blue-300 : "text-green-500"}`} />
+                          </a>
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  {/* Comment */}
+                  {formData.comment && (
+                    <>
+                      <div className="h-[1px] bg-gray-200 mx-2 my-1"></div>
+                      <div className="group pl-2 border-l-4 border-gray-500 hover:border-l-8 hover:border-[#170370] hover:bg-[rgba(23,3,112,0.05)] transition-all">
+                        <div className={`text-xs uppercase font-bold dark:text-gray-300 : "text-gray-500"} group-hover:text-[#170370] transition-colors pl-2`}>
+                          Description
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <p className={`dark:text-white : "text-black"} group-hover:text-[#170370] transition-colors pl-2 py-1`}>
+                            {formData.comment}
+                          </p>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                <hr className="border-t border-gray-300 my-4" />
+
+                <div className="flex justify-end gap-2">                
+                  {'share' in navigator && typeof navigator.share === 'function' ? (
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={shareQR}
+                      className="p-2 hover:bg-gray-100"
+                      title="Share Contact"
+                    >
+                      <Share2 className={`w-5 h-5 dark:text-blue-300 : "text-black"}`} />
+                    </Button>
+                  ) : (
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={copyLink}
+                      className="p-2 hover:bg-gray-100"
+                      title="Copy Link"
+                    >
+                      <Copy className={`w-5 h-5 dark:text-blue-300 : "text-black"}`} />
+                    </Button>
+                  )}
+                  
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={downloadVCard}
+                    className="p-2 bg-red-500 text-white hover:bg-red-600"
+                    title="Download Contact"
+                  >
+                    <Download className="w-5 h-5" />
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <div className={`flex flex-col items-center justify-center p-8 text-center dark:text-gray-300 : "text-gray-500"}`}>
+                <div className="mb-4 w-full p-4">
+                  <QRCode 
+                    value="placeholder" 
+                    size={256}
+                    style={{ height: "auto", maxWidth: "100%", width: "100%" }}
+                    bgColor="transparent"
+                    fgColor="#e5e7eb"
+                  />
+                </div>
+                <p className="text-lg font-medium">
+                  Your Contact Card and QR code will appear here...
+                </p>
+                <p className="text-sm mt-2">
+                  Fill out the form and click "Create Contact Card" to generate your personalized QR code.
+                </p>
+              </div>
+            )}
+          </div>
         </Card>
         
         {/* Download/Share QR Buttons */}

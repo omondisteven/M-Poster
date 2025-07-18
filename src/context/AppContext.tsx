@@ -1,4 +1,3 @@
-// /src/context/AppContext.tsx
 import type { FormData } from "@/@types/Data";
 import { TRANSACTION_TYPE } from "@/@types/TransactionType";
 import useLocalStorage from "@/hooks/useLocalStorage";
@@ -51,19 +50,54 @@ const defaultData: FormData = {
 export interface AppContextType {
   data: FormData;
   setData: (data: Partial<FormData>) => void;
+  darkMode: boolean;
+  setDarkMode: (value: boolean) => void;
   contactCard?: QCard;
   setContactCard?: (card: QCard) => void;
 }
 
 export const AppContext = createContext<AppContextType | null>(null);
 
+// Helper function to detect mobile devices
+const isMobileDevice = () => /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
 export const AppProvider = ({ children }: { children: React.ReactNode }) => {
   const [db, saveDb] = useLocalStorage<FormData>(PESAQR_DB, defaultData);
   const [data, setData] = useState<FormData>({ ...defaultData, ...db });
   const [contactCard, setContactCard] = useState<QCard | undefined>(undefined);
-  // const [loading, setLoading] = useState(true);
 
   const userId = "current_user_id"; // Replace with actual user ID
+
+  // Dark mode state with mobile detection
+  const [darkMode, setDarkMode] = useState<boolean>(() => {
+    // Default to dark mode on mobile
+    if (isMobileDevice()) return true;
+    
+    // Check localStorage for saved preference
+    const savedPreference = localStorage.getItem("darkMode");
+    if (savedPreference !== null) {
+      return savedPreference === "true";
+    }
+    
+    // Fallback to system preference for desktop
+    return window.matchMedia("(prefers-color-scheme: dark)").matches;
+  });
+
+  // Apply dark/light theme globally
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add("dark");
+      document.documentElement.setAttribute("data-theme", "dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+      document.documentElement.setAttribute("data-theme", "light");
+    }
+    
+    // Only save to localStorage if not on mobile (since mobile defaults to dark)
+    if (!isMobileDevice()) {
+      localStorage.setItem("darkMode", darkMode.toString());
+    }
+  }, [darkMode]);
 
   // Load Data from DB
   useEffect(() => {
@@ -76,12 +110,10 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
       try {
         const savedValues = await getDefaultValues(userId);
         if (savedValues) {
-          setData(prev => ({ ...prev, ...savedValues }));
+          setData((prev) => ({ ...prev, ...savedValues }));
         }
       } catch (error) {
         console.error("Error loading default values:", error);
-      } finally {
-        // setLoading(false);
       }
     };
 
@@ -99,7 +131,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
   const updateData = async (newData: Partial<FormData>) => {
     const updatedData = { ...data, ...newData };
     setData(updatedData);
-    
+
     try {
       await setDefaultValues(userId, {
         paybillNumber: updatedData.paybillNumber ?? "",
@@ -109,20 +141,24 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
         storeNumber: updatedData.storeNumber ?? "",
         phoneNumber: updatedData.phoneNumber ?? "",
         type: updatedData.type ?? TRANSACTION_TYPE.SEND_MONEY,
-        color: updatedData.color ?? colors.green[600]
+        color: updatedData.color ?? colors.green[600],
       });
-
     } catch (error) {
       console.error("Error saving default values:", error);
     }
   };
 
-  // if (loading) {
-  //   return <div>Loading...</div>; // Or your loading component
-  // }
-
   return (
-    <AppContext.Provider value={{ data, setData: updateData, contactCard, setContactCard }}>
+    <AppContext.Provider
+      value={{ 
+        data, 
+        setData: updateData, 
+        darkMode, 
+        setDarkMode, 
+        contactCard, 
+        setContactCard 
+      }}
+    >
       {children}
     </AppContext.Provider>
   );
