@@ -34,26 +34,38 @@ declare module '@tanstack/react-router' {
 
 // Render the app
 const rootElement = document.getElementById('app')
-if (rootElement && !rootElement.innerHTML) {
-  const root = ReactDOM.createRoot(rootElement)
-  root.render(
-    <StrictMode>
-      <AppProvider>
-        <RouterProvider router={router} />
-      </AppProvider>
-      <Toaster 
-        position="top-center"
-        toastOptions={{
-          duration: 4000,
-          style: {
-            background: '#363636',
-            color: '#fff',
-          },
-        }}
-      />
-    </StrictMode>,
-  )
-  
+  if (rootElement && !rootElement.innerHTML) {
+    const root = ReactDOM.createRoot(rootElement)
+    root.render(
+      <StrictMode>
+        <AppProvider>
+          <RouterProvider router={router} />
+        </AppProvider>
+        <Toaster 
+          position="top-center"
+          toastOptions={{
+            duration: 4000,
+            style: {
+              background: '#363636',
+              color: '#fff',
+            },
+          }}
+        />
+      </StrictMode>,
+    )
+    // Add this at the end of the file, before reportWebVitals()
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js').then(
+        (registration) => {
+          console.log('ServiceWorker registration successful');
+        },
+        (err) => {
+          console.log('ServiceWorker registration failed: ', err);
+        }
+      );
+    });
+  }
 }
 
 reportWebVitals()

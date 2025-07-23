@@ -1,11 +1,9 @@
 //src/components/PosterPage.tsx
 import { createFileRoute } from "@tanstack/react-router";
-import { useRef, useState, useEffect, } from "react";
+import { useRef, useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { CheckIcon, ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
-// import { GithubIcon, LockIcon, } from "lucide-react";
 import { motion } from "framer-motion";
-// import { ColorPicker } from "@/components/ui/color-picker";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -18,10 +16,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { createRoot } from 'react-dom/client';
 import QrSvg from "@wojtekmaj/react-qr-svg";
 import { generateQRCode } from "@/utils/helpers";
-import { useAppContext,  } from "@/context/AppContext";
+import { useAppContext } from "@/context/AppContext";
 import { TRANSACTION_TYPE } from "@/@types/TransactionType";
 import { HiOutlineDownload, HiOutlineShare } from "react-icons/hi";
 import { AsYouType } from 'libphonenumber-js';
+import { useNetworkStatus } from "@/hooks/useNetworkStatus";
 
 // Define zod schema for validation
 const formSchema = z.object({
@@ -45,7 +44,7 @@ const formSchema = z.object({
     
     return isValidFormat && hasMinDigits;
   }, {
-    message: ""
+    message: "Invalid phone number format"
   }).optional().or(z.literal('')),
   businessName: z.string().optional().or(z.literal('')),
   paybillNumber: z.string().optional().or(z.literal('')),
@@ -64,74 +63,18 @@ const formSchema = z.object({
     if (data.showName && !data.businessName?.trim()) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: "",
+        message: "Business name is required",
         path: ["businessName"],
       });
     }
 
     // Validate based on transaction type
-    switch (data.title) {
-      case "Send Money":
-        if (!data.phoneNumber?.trim() || data.phoneNumber.trim().length < 10) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: "",
-            path: ["phoneNumber"],
-          });
-        }
-        break;
-      
-      case "Pay Bill":
-        if (!data.paybillNumber?.trim()) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: "",
-            path: ["paybillNumber"],
-          });
-        }
-        if (!data.accountNumber?.trim()) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: "",
-            path: ["accountNumber"],
-          });
-        }
-        break;
-      
-      case "Buy Goods":
-        if (!data.tillNumber?.trim()) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: "",
-            path: ["tillNumber"],
-          });
-        }
-        break;
-      
-      case "Withdraw Money":
-        if (!data.agentNumber?.trim()) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: "",
-            path: ["agentNumber"],
-          });
-        }
-        if (!data.storeNumber?.trim()) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: "",
-            path: ["storeNumber"],
-          });
-        }
-        break;
-    }
-    // Update validation to use TRANSACTION_TYPE
     switch (data.type) {
       case TRANSACTION_TYPE.SEND_MONEY:
         if (!data.phoneNumber?.trim()) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            message: "",
+            message: "Phone number is required",
             path: ["phoneNumber"],
           });
         }
@@ -141,14 +84,14 @@ const formSchema = z.object({
         if (!data.paybillNumber?.trim()) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            message: "",
+            message: "Paybill number is required",
             path: ["paybillNumber"],
           });
         }
         if (!data.accountNumber?.trim()) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            message: "",
+            message: "Account number is required",
             path: ["accountNumber"],
           });
         }
@@ -158,7 +101,7 @@ const formSchema = z.object({
         if (!data.tillNumber?.trim()) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            message: "",
+            message: "Till number is required",
             path: ["tillNumber"],
           });
         }
@@ -168,14 +111,14 @@ const formSchema = z.object({
         if (!data.agentNumber?.trim()) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            message: "",
+            message: "Agent number is required",
             path: ["agentNumber"],
           });
         }
         if (!data.storeNumber?.trim()) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            message: "",
+            message: "Store number is required",
             path: ["storeNumber"],
           });
         }
@@ -208,7 +151,8 @@ interface FormValues {
 export const Route = createFileRoute("/poster/")({
   component: PosterPage,
 });
-// Add this utility function at the top of the file (after imports)
+
+// Utility function for input history
 const useInputHistory = (key: string) => {
   const [history, setHistory] = useState<string[]>([]);
 
@@ -280,14 +224,18 @@ function drawFittedText(
   ctx.fillText(text, x, yTop + maxHeight / 2); // Center vertically
 }
 
-
 function PosterPage() {
+  const isOnline = useNetworkStatus();
   const [qrGenerationMethod, setQrGenerationMethod] = useState<"mpesa" | "push">("push");
   const [previewQrData, setPreviewQrData] = useState("");
-
   const { data } = useAppContext();
   const posterRef = useRef<HTMLDivElement>(null);
   const [selectedTemplate, setSelectedTemplate] = useState(templates[0]);
+  
+  // Offline state management
+  const [isWorkingOffline, setIsWorkingOffline] = useState(false);
+  // const [offlineData, setOfflineData] = useState<Partial<FormData>>({});
+  const [offlineData, setOfflineData] = useState<Partial<FormValues>>({});
   
   const { control, handleSubmit, watch, setValue, formState: { errors, isValid }, trigger } = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -311,6 +259,21 @@ function PosterPage() {
     },
     mode: "onChange",
   });
+
+  // Handle offline state
+  useEffect(() => {
+    if (!isOnline) {
+      setIsWorkingOffline(true);
+      // Load any locally cached data for offline use
+      const cachedData = localStorage.getItem('offlinePosterData');
+      if (cachedData) {
+        setOfflineData(JSON.parse(cachedData));
+      }
+    } else {
+      setIsWorkingOffline(false);
+    }
+  }, [isOnline]);
+
   // Load default values when type changes
   useEffect(() => {
     const loadDefaultValues = async () => {
@@ -324,28 +287,50 @@ function PosterPage() {
       setValue("agentNumber", "");
       setValue("storeNumber", "");
 
-      // Set values from Firestore based on current type
-      switch (currentType) {
-        case TRANSACTION_TYPE.SEND_MONEY:
-          if (data.phoneNumber) setValue("phoneNumber", data.phoneNumber);
-          break;
-        case TRANSACTION_TYPE.PAYBILL:
-          if (data.paybillNumber) setValue("paybillNumber", data.paybillNumber);
-          if (data.accountNumber) setValue("accountNumber", data.accountNumber);
-          break;
-        case TRANSACTION_TYPE.TILL_NUMBER:
-          if (data.tillNumber) setValue("tillNumber", data.tillNumber);
-          break;
-        case TRANSACTION_TYPE.AGENT:
-          if (data.agentNumber) setValue("agentNumber", data.agentNumber);
-          if (data.storeNumber) setValue("storeNumber", data.storeNumber);
-          break;
+      // Set values from appropriate source based on online status
+      if (isOnline) {
+        // Online - use Firestore data
+        switch (currentType) {
+          case TRANSACTION_TYPE.SEND_MONEY:
+            if (data.phoneNumber) setValue("phoneNumber", data.phoneNumber);
+            break;
+          case TRANSACTION_TYPE.PAYBILL:
+            if (data.paybillNumber) setValue("paybillNumber", data.paybillNumber);
+            if (data.accountNumber) setValue("accountNumber", data.accountNumber);
+            break;
+          case TRANSACTION_TYPE.TILL_NUMBER:
+            if (data.tillNumber) setValue("tillNumber", data.tillNumber);
+            break;
+          case TRANSACTION_TYPE.AGENT:
+            if (data.agentNumber) setValue("agentNumber", data.agentNumber);
+            if (data.storeNumber) setValue("storeNumber", data.storeNumber);
+            break;
+        }
+      } else {
+        // Offline - use locally cached data
+        switch (currentType) {
+          case TRANSACTION_TYPE.SEND_MONEY:
+            if (offlineData.phoneNumber) setValue("phoneNumber", offlineData.phoneNumber);
+            break;
+          case TRANSACTION_TYPE.PAYBILL:
+            if (offlineData.paybillNumber) setValue("paybillNumber", offlineData.paybillNumber);
+            if (offlineData.accountNumber) setValue("accountNumber", offlineData.accountNumber);
+            break;
+          case TRANSACTION_TYPE.TILL_NUMBER:
+            if (offlineData.tillNumber) setValue("tillNumber", offlineData.tillNumber);
+            break;
+          case TRANSACTION_TYPE.AGENT:
+            if (offlineData.agentNumber) setValue("agentNumber", offlineData.agentNumber);
+            if (offlineData.storeNumber) setValue("storeNumber", offlineData.storeNumber);
+            break;
+        }
       }
     };
 
     loadDefaultValues();
-  }, [watch("type"), data, setValue]);
+  }, [watch("type"), data, offlineData, isOnline, setValue]);
   
+  // Watch form values
   const phoneNumber = watch("phoneNumber");
   const businessName = watch("businessName");
   const selectedColor = watch("selectedColor");
@@ -362,7 +347,7 @@ function PosterPage() {
   const agentNumberLabel = watch("agentNumberLabel");
   const storeNumberLabel = watch("storeNumberLabel");
 
-  // Add this useEffect to update the preview QR data
+  // Update QR preview data with offline consideration
   useEffect(() => {
     const updatePreviewQr = async () => {
       const formData = {
@@ -373,9 +358,7 @@ function PosterPage() {
         tillNumber: watch("tillNumber"),
         agentNumber: watch("agentNumber"),
         storeNumber: watch("storeNumber"),
-        businessName: watch("businessName"), // Add name to the form data
-        // Include business profile data
-        // businessName: data.businessName,
+        businessName: watch("businessName"),
         businessTitle: data.businessTitle,
         businessEmail: data.businessEmail,
         businessPhone: data.businessPhone,
@@ -385,13 +368,28 @@ function PosterPage() {
         businessWhatsapp: data.businessWhatsapp,
         businessPromo1: data.businessPromo1,
         businessPromo2: data.businessPromo2,
-
       };
     
       if (qrGenerationMethod === "mpesa") {
         setPreviewQrData(generateQRCode(formData) || "");
       } else {
-        // For preview, create the same structure but don't make API calls
+        // For offline mode, use a simpler QR code that can be processed locally
+        if (!isOnline) {
+          const offlineQrData = {
+            type: formData.type,
+            phoneNumber: formData.phoneNumber,
+            paybillNumber: formData.paybillNumber,
+            accountNumber: formData.accountNumber,
+            tillNumber: formData.tillNumber,
+            agentNumber: formData.agentNumber,
+            storeNumber: formData.storeNumber,
+            businessName: formData.businessName
+          };
+          setPreviewQrData(JSON.stringify(offlineQrData));
+          return;
+        }
+        
+        // Online mode - use the full QR generation
         let qrData = {};
         switch (formData.type) {
           case TRANSACTION_TYPE.SEND_MONEY:
@@ -399,8 +397,6 @@ function PosterPage() {
               TransactionType: "SendMoney",
               RecepientPhoneNumber: formData.phoneNumber,
               PhoneNumber: "254",
-              // businessName: formData.businessName, // Add name to the data
-              // Business data
               BusinessName: formData.businessName,
               BusinessTitle: formData.businessTitle,
               BusinessEmail: formData.businessEmail,
@@ -419,8 +415,6 @@ function PosterPage() {
               PaybillNumber: formData.paybillNumber,
               AccountNumber: formData.accountNumber,
               PhoneNumber: "254",
-              // Name: formData.name, // Add name to the data
-              // Business data
               BusinessName: formData.businessName,
               BusinessTitle: formData.businessTitle,
               BusinessEmail: formData.businessEmail,
@@ -438,18 +432,16 @@ function PosterPage() {
               TransactionType: "BuyGoods",
               TillNumber: formData.tillNumber,
               PhoneNumber: "254",
-              businessName: formData.businessName, // Add name to the data
-              // Include business profile data
-              // businessName: data.businessName,
-              businessTitle: data.businessTitle,
-              businessEmail: data.businessEmail,
-              businessPhone: data.businessPhone,
-              businessWebsite: data.businessWebsite,
-              businessComment: data.businessComment,
-              businessAddress: data.businessAddress,
-              businessWhatsapp: data.businessWhatsapp,
-              businessPromo1: data.businessPromo1,
-              businessPromo2: data.businessPromo2,
+              BusinessName: formData.businessName,
+              BusinessTitle: formData.businessTitle,
+              BusinessEmail: formData.businessEmail,
+              BusinessPhone: formData.businessPhone,
+              BusinessWebsite: formData.businessWebsite,
+              BusinessAddress: formData.businessAddress,
+              BusinessWhatsapp: formData.businessWhatsapp,
+              BusinessPromo1: formData.businessPromo1,
+              BusinessPromo2: formData.businessPromo2,
+              BusinessComment: formData.businessComment,
             };
             break;
           case TRANSACTION_TYPE.AGENT:
@@ -458,8 +450,6 @@ function PosterPage() {
               AgentId: formData.agentNumber,
               StoreNumber: formData.storeNumber,
               PhoneNumber: "254",
-              // Name: formData.name, // Add name to the data
-              // Business data
               BusinessName: formData.businessName,
               BusinessTitle: formData.businessTitle,
               BusinessEmail: formData.businessEmail,
@@ -478,14 +468,11 @@ function PosterPage() {
         // Double encode the data to ensure special characters are preserved
         const encodedData = encodeURIComponent(encodeURIComponent(jsonString));
         setPreviewQrData(`https://e-biz-stk-prompt-page.vercel.app/?data=${encodedData}`);
-        // setPreviewQrData(`http://localhost:3000/?data=${encodedData}`);
       }
     };
-      updatePreviewQr();
-    }, [qrGenerationMethod, watch("type"), watch("phoneNumber"), watch("paybillNumber"), 
-        watch("accountNumber"), watch("tillNumber"), watch("agentNumber"), 
-        watch("storeNumber"), watch("businessName")]); // Add watch("name") to dependencies    
-   
+    updatePreviewQr();
+  }, [qrGenerationMethod, watch(), data, isOnline]);
+
   const generateDownloadQrData = async (): Promise<string> => {
     const formData = {
       type: watch("type"),
@@ -507,24 +494,38 @@ function PosterPage() {
       businessPromo2: data.businessPromo2,
     };
 
-    let qrData = {};
+    // In offline mode, return a simplified version of the data
+    if (!isOnline) {
+      const offlineQrData = {
+        type: formData.type,
+        phoneNumber: formData.phoneNumber,
+        paybillNumber: formData.paybillNumber,
+        accountNumber: formData.accountNumber,
+        tillNumber: formData.tillNumber,
+        agentNumber: formData.agentNumber,
+        storeNumber: formData.storeNumber,
+        businessName: formData.businessName
+      };
+      return JSON.stringify(offlineQrData);
+    }
 
+    let qrData = {};
     switch (formData.type) {
       case TRANSACTION_TYPE.SEND_MONEY:
         qrData = {
           TransactionType: "SendMoney",
           RecepientPhoneNumber: formData.phoneNumber,
           PhoneNumber: "254",
-          businessName: formData.businessName,
-          businessTitle: formData.businessTitle,
-          businessEmail: formData.businessEmail,
-          businessPhone: formData.businessPhone,
-          businessWebsite: formData.businessWebsite,
-          businessAddress: formData.businessAddress,
-          businessWhatsapp: formData.businessWhatsapp,
-          businessPromo1: formData.businessPromo1,
-          businessPromo2: formData.businessPromo2,
-          businessComment: formData.businessComment,
+          BusinessName: formData.businessName,
+          BusinessTitle: formData.businessTitle,
+          BusinessEmail: formData.businessEmail,
+          BusinessPhone: formData.businessPhone,
+          BusinessWebsite: formData.businessWebsite,
+          BusinessAddress: formData.businessAddress,
+          BusinessWhatsapp: formData.businessWhatsapp,
+          BusinessPromo1: formData.businessPromo1,
+          BusinessPromo2: formData.businessPromo2,
+          BusinessComment: formData.businessComment,
         };
         break;
       case TRANSACTION_TYPE.PAYBILL:
@@ -533,16 +534,16 @@ function PosterPage() {
           PaybillNumber: formData.paybillNumber,
           AccountNumber: formData.accountNumber,
           PhoneNumber: "254",
-          businessName: formData.businessName,
-          businessTitle: formData.businessTitle,
-          businessEmail: formData.businessEmail,
-          businessPhone: formData.businessPhone,
-          businessWebsite: formData.businessWebsite,
-          businessAddress: formData.businessAddress,
-          businessWhatsapp: formData.businessWhatsapp,
-          businessPromo1: formData.businessPromo1,
-          businessPromo2: formData.businessPromo2,
-          businessComment: formData.businessComment,
+          BusinessName: formData.businessName,
+          BusinessTitle: formData.businessTitle,
+          BusinessEmail: formData.businessEmail,
+          BusinessPhone: formData.businessPhone,
+          BusinessWebsite: formData.businessWebsite,
+          BusinessAddress: formData.businessAddress,
+          BusinessWhatsapp: formData.businessWhatsapp,
+          BusinessPromo1: formData.businessPromo1,
+          BusinessPromo2: formData.businessPromo2,
+          BusinessComment: formData.businessComment,
         };
         break;
       case TRANSACTION_TYPE.TILL_NUMBER:
@@ -550,16 +551,16 @@ function PosterPage() {
           TransactionType: "BuyGoods",
           TillNumber: formData.tillNumber,
           PhoneNumber: "254",
-          businessName: formData.businessName,
-          businessTitle: formData.businessTitle,
-          businessEmail: formData.businessEmail,
-          businessPhone: formData.businessPhone,
-          businessWebsite: formData.businessWebsite,
-          businessAddress: formData.businessAddress,
-          businessWhatsapp: formData.businessWhatsapp,
-          businessPromo1: formData.businessPromo1,
-          businessPromo2: formData.businessPromo2,
-          businessComment: formData.businessComment,
+          BusinessName: formData.businessName,
+          BusinessTitle: formData.businessTitle,
+          BusinessEmail: formData.businessEmail,
+          BusinessPhone: formData.businessPhone,
+          BusinessWebsite: formData.businessWebsite,
+          BusinessAddress: formData.businessAddress,
+          BusinessWhatsapp: formData.businessWhatsapp,
+          BusinessPromo1: formData.businessPromo1,
+          BusinessPromo2: formData.businessPromo2,
+          BusinessComment: formData.businessComment,
         };
         break;
       case TRANSACTION_TYPE.AGENT:
@@ -568,16 +569,16 @@ function PosterPage() {
           AgentId: formData.agentNumber,
           StoreNumber: formData.storeNumber,
           PhoneNumber: "254",
-          businessName: formData.businessName,
-          businessTitle: formData.businessTitle,
-          businessEmail: formData.businessEmail,
-          businessPhone: formData.businessPhone,
-          businessWebsite: formData.businessWebsite,
-          businessAddress: formData.businessAddress,
-          businessWhatsapp: formData.businessWhatsapp,
-          businessPromo1: formData.businessPromo1,
-          businessPromo2: formData.businessPromo2,
-          businessComment: formData.businessComment,
+          BusinessName: formData.businessName,
+          BusinessTitle: formData.businessTitle,
+          BusinessEmail: formData.businessEmail,
+          BusinessPhone: formData.businessPhone,
+          BusinessWebsite: formData.businessWebsite,
+          BusinessAddress: formData.businessAddress,
+          BusinessWhatsapp: formData.businessWhatsapp,
+          BusinessPromo1: formData.businessPromo1,
+          BusinessPromo2: formData.businessPromo2,
+          BusinessComment: formData.businessComment,
         };
         break;
     }
@@ -585,20 +586,20 @@ function PosterPage() {
     try {
       // 1. Stringify the data
       const json = JSON.stringify(qrData);
-      console.log("Original JSON:", json); // Debug log
       
       // 2. URI encode to handle special characters
       const uriEncoded = encodeURIComponent(json);
-      console.log("URI Encoded:", uriEncoded); // Debug log
       
       // 3. Convert to Base64 for URL safety
       const base64Encoded = btoa(unescape(uriEncoded));
-      console.log("Base64 Encoded:", base64Encoded); // Debug log
       
       // 4. Create the URL
       const originalUrl = `https://e-biz-stk-prompt-page.vercel.app/?data=${base64Encoded}`;
-      // const originalUrl = `http://localhost:3000/?data=${base64Encoded}`;
-      console.log("Generated URL:", originalUrl); // Debug log
+
+      // In offline mode, skip the TinyURL creation
+      if (isWorkingOffline) {
+        return originalUrl;
+      }
 
       // Create TinyURL
       const response = await fetch(`https://api.tinyurl.com/create`, {
@@ -622,67 +623,7 @@ function PosterPage() {
     }
   };
 
-  // Add this effect to trigger validation when title changes
-  useEffect(() => {
-    // Reset validation for all fields
-    trigger();
-    
-    // Clear fields that aren't relevant for the current transaction type
-    if (title !== "Send Money") {
-      setValue("phoneNumber", "");
-    }
-    if (title !== "Pay Bill") {
-      setValue("paybillNumber", "");
-      setValue("accountNumber", "");
-    }
-    if (title !== "Buy Goods") {
-      setValue("tillNumber", "");
-    }
-    if (title !== "Withdraw Money") {
-      setValue("agentNumber", "");
-      setValue("storeNumber", "");
-    }
-  }, [title, setValue, trigger]);
-  
-  
-
-  const colorOptions = [
-    { name: "Green", value: "#16a34a", class: "bg-green-600" },
-    { name: "Rose", value: "#be123c", class: "bg-rose-700" },
-    { name: "Yellow", value: "#F7C50C", class: "bg-[#F7C50C]" },
-    { name: "Blue", value: "#1B398E", class: "bg-blue-800" },
-  ];
-
-  const formatPhoneNumber = (value: string): string => {
-    // Remove all non-digit characters except leading + and spaces
-    const cleanedValue = value.replace(/[^\d+ ]/g, '');
-    
-    // Use AsYouType formatter for real-time formatting
-    const formatter = new AsYouType();
-    
-    // Feed the input character by character to get proper formatting
-    cleanedValue.split('').forEach(char => formatter.input(char));
-    
-    // Get the formatted number
-    const formattedNumber = formatter.getNumber();
-    
-    if (formattedNumber) {
-      // Return in national format if it's a local number (starts with 0)
-      if (formattedNumber.number.startsWith('+2540')) {
-        return formattedNumber.formatNational();
-      }
-      // Return in international format if it's a full international number
-      return formattedNumber.formatInternational();
-    }
-    
-    // Fallback - return the cleaned value with preserved spaces
-    return cleanedValue;
-  };
-
-  const onSubmit = handleSubmit(async () => {
-    await handleDownload();
-  });
-
+  // Handle download with offline support
   const handleDownload = async () => {
     if (!posterRef.current) return;
 
@@ -690,7 +631,8 @@ function PosterPage() {
       await document.fonts.ready;
       await document.fonts.load("bold 20px Inter");
 
-      const format = await new Promise<"png" | "jpg" | "pdf" | null>((resolve) => {
+      // In offline mode, skip the format selection dialog
+      const format = isWorkingOffline ? "png" : await new Promise<"png" | "jpg" | "pdf" | null>((resolve) => {
         const modal = document.createElement('div');
         modal.style.position = 'fixed';
         modal.style.top = '0';
@@ -943,22 +885,138 @@ function PosterPage() {
         document.body.removeChild(link);
       }
 
+      // For offline mode, store the current form data
+      if (isWorkingOffline) {
+        const currentData = {
+          phoneNumber: watch("phoneNumber"),
+          paybillNumber: watch("paybillNumber"),
+          accountNumber: watch("accountNumber"),
+          tillNumber: watch("tillNumber"),
+          agentNumber: watch("agentNumber"),
+          storeNumber: watch("storeNumber"),
+          businessName: watch("businessName"),
+          type: watch("type")
+        };
+        localStorage.setItem('offlinePosterData', JSON.stringify(currentData));
+      }
+
     } catch (error) {
       console.error("Error generating poster:", error);
-      alert("Failed to generate download. Try again.");
+      alert(isWorkingOffline 
+        ? "Poster generated offline. Data saved for next session." 
+        : "Failed to generate download. Try again.");
     }
   };
+
+  // Handle share with offline support
+  const handleShare = async () => {
+    try {
+      if (!posterRef.current) return;
+  
+      const qrData = await generateDownloadQrData();
+      if (!qrData) throw new Error("Invalid QR code data");
+  
+      let shareMessage = `M-Pesa Payment Poster - ${title}\n`;
+      let shareUrl = qrData;
+  
+      if (qrGenerationMethod === "push" && !isWorkingOffline) {
+        // Online push STK
+        shareMessage = `Scan or visit this link to make an M-Pesa payment:`;
+      } else {
+        // Offline mode or M-Pesa App
+        shareMessage += `Type: ${title}\n`;
+        
+        switch (title) {
+          case "Send Money":
+            shareMessage += `Phone: ${phoneNumber}\n`;
+            break;
+          case "Pay Bill":
+            shareMessage += `Paybill: ${paybillNumber}\nAccount: ${accountNumber}\n`;
+            break;
+          case "Buy Goods":
+            shareMessage += `Till Number: ${tillNumber}\n`;
+            break;
+          case "Withdraw Money":
+            shareMessage += `Agent: ${agentNumber}\nStore: ${storeNumber}\n`;
+            break;
+        }
+  
+        if (showName && businessName) {
+          shareMessage += `Name: ${businessName}\n`;
+        }
+  
+        shareMessage += isWorkingOffline 
+          ? `Scan the QR code with an offline QR scanner`
+          : `Scan the QR code to make payment`;
+      }
+  
+      if (navigator.share) {
+        await navigator.share({
+          title: `M-Pesa ${title} Poster`,
+          text: shareMessage,
+          url: shareUrl.includes('http') ? shareUrl : undefined,
+        });
+      } else {
+        // Fallback for desktop browsers
+        const textArea = document.createElement('textarea');
+        textArea.value = shareMessage + (isWorkingOffline 
+          ? `\n\nOffline QR Data:\n${qrData}`
+          : `\n\nPayment Link:\n${shareUrl}`);
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        alert(isWorkingOffline 
+          ? 'Offline payment details copied to clipboard!'
+          : 'Payment details copied to clipboard!');
+      }
+    } catch (error) {
+      console.error('Error sharing:', error);
+      alert(isWorkingOffline
+        ? 'Offline sharing failed. Please save or screenshot the poster.'
+        : 'Sharing failed. Please try downloading instead.');
+    }
+  };
+
+  const formatPhoneNumber = (value: string): string => {
+    // Remove all non-digit characters except leading + and spaces
+    const cleanedValue = value.replace(/[^\d+ ]/g, '');
+    
+    // Use AsYouType formatter for real-time formatting
+    const formatter = new AsYouType();
+    
+    // Feed the input character by character to get proper formatting
+    cleanedValue.split('').forEach(char => formatter.input(char));
+    
+    // Get the formatted number
+    const formattedNumber = formatter.getNumber();
+    
+    if (formattedNumber) {
+      // Return in national format if it's a local number (starts with 0)
+      if (formattedNumber.number.startsWith('+2540')) {
+        return formattedNumber.formatNational();
+      }
+      // Return in international format if it's a full international number
+      return formattedNumber.formatInternational();
+    }
+    
+    // Fallback - return the cleaned value with preserved spaces
+    return cleanedValue;
+  };
+
+  const onSubmit = handleSubmit(async () => {
+    await handleDownload();
+  });
 
   // Helper functions for the preview
   function getGridTemplateRows(title: string, showName: boolean): string {
     const sectionCount = getSectionCount(title, showName);
-    return `repeat(${sectionCount}, minmax(80px, 1fr))`; // Each section gets equal space, minimum 80px
+    return `repeat(${sectionCount}, minmax(80px, 1fr))`;
   }
 
-  // Helper function to calculate poster height based on visible sections
   function calculatePosterMinHeight(title: string, showName: boolean): string {
     const sectionCount = getSectionCount(title, showName);
-    return `${sectionCount * 80}px`; // Minimum height based on section count
+    return `${sectionCount * 80}px`;
   }
 
   function getSectionCount(title: string, showName: boolean): number {
@@ -975,7 +1033,6 @@ function PosterPage() {
     return count;
   }
 
-  // Updated renderMiddleSections to use the new color logic
   function renderMiddleSections(title: string, _color: string, showName: boolean) {
     const sections = [];
     const sectionColors = getSectionColors(title, showName);
@@ -1010,14 +1067,12 @@ function PosterPage() {
   function renderSectionContent(title: string, sectionIndex: number, isWhite: boolean) {
     const textColor = isWhite ? "#000000" : "#ffffff";
     
-    // Common text styles for labels
     const labelStyles = {
       color: textColor,
       fontSize: "clamp(0.875rem, 3vw, 1.125rem)",
       lineHeight: "1.2"
     };
 
-    // Common text styles for values
     const valueStyles = {
       color: textColor,
       fontSize: "clamp(1.25rem, 4vw, 2rem)",
@@ -1102,15 +1157,12 @@ function PosterPage() {
     }
   }
 
-  // Helper function to determine section colors
   function getSectionColors(title: string, showName: boolean): string[] {
     const sectionCount = getSectionCount(title, showName);
     const colors = [];
     
-    // First section is always green
     colors.push(selectedColor);
     
-    // Alternate colors for subsequent sections
     for (let i = 1; i < sectionCount; i++) {
       colors.push(colors[i-1] === selectedColor ? "#ffffff" : selectedColor);
     }
@@ -1118,905 +1170,1648 @@ function PosterPage() {
     return colors;
   }
 
-  const handleShare = async () => {
-    try {
-      if (!posterRef.current) return;
-  
-      // Generate the QR data
-      const qrData = await generateDownloadQrData();
-      if (!qrData) {
-        throw new Error("Invalid QR code data");
-      }
-  
-      // Create a shareable message - different behavior for Push STK vs M-Pesa App
-      let shareMessage = `M-Pesa Payment Poster - ${title}\n`;
-      let shareUrl = qrData;
-  
-      if (qrGenerationMethod === "push") {
-        // For Push STK, we only share the URL
-        if (qrData.includes('http')) {
-          shareUrl = qrData;
-          shareMessage = `Scan or visit this link to make an M-Pesa payment:`;
-        } else {
-          // Fallback if we don't have a URL (shouldn't happen with Push STK)
-          shareUrl = qrData;
-          shareMessage = `Scan this QR code to make an M-Pesa payment`;
-        }
-      } else {
-        // For M-Pesa App QR codes, include all the details
-        switch (title) {
-          case "Send Money":
-            shareMessage += `Phone: ${phoneNumber}\n`;
-            break;
-          case "Pay Bill":
-            shareMessage += `Paybill: ${paybillNumber}\nAccount: ${accountNumber}\n`;
-            break;
-          case "Buy Goods":
-            shareMessage += `Till Number: ${tillNumber}\n`;
-            break;
-          case "Withdraw Money":
-            shareMessage += `Agent: ${agentNumber}\nStore: ${storeNumber}\n`;
-            break;
-        }
-  
-        if (showName && businessName) {
-          shareMessage += `Name: ${businessName}\n`;
-        }
-  
-        shareMessage += `Scan the QR code to make payment`;
-      }
-  
-      // Check if Web Share API is available (mobile devices)
-      if (navigator.share) {
-        await navigator.share({
-          title: `M-Pesa ${title} Poster`,
-          text: shareMessage,
-          url: shareUrl.includes('http') ? shareUrl : undefined,
-        });
-      } else {
-        // Fallback for desktop browsers
-        if (shareUrl.includes('http')) {
-          // For URL-based QR codes (always the case with Push STK)
-          if (qrGenerationMethod === "push") {
-            // Just copy the URL to clipboard for Push STK
-            navigator.clipboard.writeText(shareUrl)
-              .then(() => alert('Payment link copied to clipboard!'))
-              .catch(() => alert('Failed to copy link'));
-          } else {
-            // Open in new tab for M-Pesa App
-            window.open(shareUrl, '_blank');
-          }
-        } else {
-          // For raw data QR codes (M-Pesa App)
-          const textArea = document.createElement('textarea');
-          textArea.value = shareMessage + `\n\nQR Code Data:\n${qrData}`;
-          document.body.appendChild(textArea);
-          textArea.select();
-          document.execCommand('copy');
-          document.body.removeChild(textArea);
-          alert('Payment details copied to clipboard!');
-        }
-      }
-    } catch (error) {
-      console.error('Error sharing:', error);
-      // Fallback if sharing fails
-      alert('Sharing failed. Please try downloading instead.');
-    }
-  };
+  const colorOptions = [
+    { name: "Green", value: "#16a34a", class: "bg-green-600" },
+    { name: "Rose", value: "#be123c", class: "bg-rose-700" },
+    { name: "Yellow", value: "#F7C50C", class: "bg-[#F7C50C]" },
+    { name: "Blue", value: "#1B398E", class: "bg-blue-800" },
+  ];
 
-return (
-  <div className={`flex flex-col dark:bg-[#0a0a23] : "bg-gray-100"} w-full max-w-[100vw]`}>
-    <div className="flex-1 flex flex-col md:flex-row gap-8 px-4 py-4 sm:py-8 sm:px-6 lg:px-8 relative z-10 ">
-      {/* Left Column: Make + Customize */}
-      <div className="w-full md:w-1/2 flex flex-col gap-6">
-        {/* Make Your Poster Card */}
-        <Card className="relative bg-white dark:bg-[#0a0a23] border border-green-500 rounded-md px-2 sm:px-3 pt-6 pb-3 w-full">
-          <CardTitle className="absolute -top-3 left-1/2 -translate-x-1/2 px-2 sm:px-3 text-center bg-white dark:bg-[#0a0a23]">
-            <p className="font-handwriting text-xl text-gray-700 dark:text-white whitespace-nowrap relative">
-              Make Your M-Pesa Poster
-              {/* Horizontal line with gap behind text */}
-            </p>
-            <div className="text-center italic text-gray-500 dark:text-gray-300 text-xs mt-1">
-              Download It, Share It, Stick it!
-            </div>
-          </CardTitle>
-          <CardContent className="pt-14">
-            <form onSubmit={onSubmit} className="space-y-4">
-              {/* Radio buttons */}
-              <div className={`relative border dark:border-gray-500 : "border-gray-300"} rounded-md p-2 mb-4`}>
-                <div className={`absolute -top-3 left-4 dark:bg-gray-600 : "bg-gray-200"} px-2 text-sm font-medium dark:text-white : "text-gray-800"}`}>
-                  Generate QR Code for:
-                </div>
-                <div className="flex space-x-4 mt-2">
-                  <label className="flex items-center space-x-2">
-                    <input
-                      type="radio"
-                      className="form-radio h-4 w-4 text-green-600"
-                      checked={qrGenerationMethod === "push"}
-                      onChange={() => setQrGenerationMethod("push")}
-                    />
-                    <span className={`dark:text-white : "text-black"} mt-3`}>Push STK</span>
-                  </label>
-                  <label className="flex items-center space-x-2">
-                    <input
-                      type="radio"
-                      className="form-radio h-4 w-4 text-green-600"
-                      checked={qrGenerationMethod === "mpesa"}
-                      onChange={() => setQrGenerationMethod("mpesa")}
-                    />
-                    <span className={`dark:text-white : "text-black"} mt-3`}>M-Pesa App</span>
-                  </label>
-                </div>
+  // Add offline notification banner
+  if (!isOnline) {
+    return (
+      <div className="flex flex-col dark:bg-[#0a0a23] bg-gray-100 w-full max-w-[100vw]">
+        <div className="p-4 text-center">
+          <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-4">
+            <p>You are currently offline. Working with locally saved data.</p>
+            <p className="text-sm mt-1">Some features may be limited.</p>
+          </div>
+          
+          {/* Render the poster form in offline mode */}
+          <div className="flex-1 flex flex-col md:flex-row gap-8 px-4 py-4 sm:py-8 sm:px-6 lg:px-8 relative z-10">
+            {/* Left Column: Make + Customize */}
+            <div className="w-full md:w-1/2 flex flex-col gap-6">
+              {/* Make Your Poster Card */}
+              <Card className="relative bg-white dark:bg-[#0a0a23] border border-green-500 rounded-md px-2 sm:px-3 pt-6 pb-3 w-full">
+                <CardTitle className="absolute -top-3 left-1/2 -translate-x-1/2 px-2 sm:px-3 text-center bg-white dark:bg-[#0a0a23]">
+                  <p className="font-handwriting text-xl text-gray-700 dark:text-white whitespace-nowrap relative">
+                    Make Your M-Pesa Poster (Offline)
+                  </p>
+                  <div className="text-center italic text-gray-500 dark:text-gray-300 text-xs mt-1">
+                    Download It, Share It, Stick it!
+                  </div>
+                </CardTitle>
+                <CardContent className="pt-14">
+                  <form onSubmit={onSubmit} className="space-y-4">
+                    {/* Radio buttons */}
+                    <div className={`relative border dark:border-gray-500 border-gray-300 rounded-md p-2 mb-4`}>
+                      <div className={`absolute -top-3 left-4 dark:bg-gray-600 bg-gray-200 px-2 text-sm font-medium dark:text-white text-gray-800`}>
+                        Generate QR Code for:
+                      </div>
+                      <div className="flex space-x-4 mt-2">
+                        <label className="flex items-center space-x-2">
+                          <input
+                            type="radio"
+                            className="form-radio h-4 w-4 text-green-600"
+                            checked={qrGenerationMethod === "push"}
+                            onChange={() => setQrGenerationMethod("push")}
+                          />
+                          <span className={`dark:text-white text-black mt-3`}>Push STK</span>
+                        </label>
+                        <label className="flex items-center space-x-2">
+                          <input
+                            type="radio"
+                            className="form-radio h-4 w-4 text-green-600"
+                            checked={qrGenerationMethod === "mpesa"}
+                            onChange={() => setQrGenerationMethod("mpesa")}
+                          />
+                          <span className={`dark:text-white text-black mt-3`}>M-Pesa App</span>
+                        </label>
+                      </div>
 
-                <p className="text-xs italic text-green-500 mt-3">
-                  {qrGenerationMethod === "push"
-                    ? "QR Code will initiate an M-Pesa payment"
-                    : "QR Code will open the M-Pesa app"}
-                </p>
-              </div>
+                      <p className="text-xs italic text-green-500 mt-3">
+                        {qrGenerationMethod === "push"
+                          ? "QR Code will initiate an M-Pesa payment"
+                          : "QR Code will open the M-Pesa app"}
+                      </p>
+                    </div>
 
-              {/* Show Name Checkbox and Name Input */}
-              <div className="flex items-center space-x-2 mb-2 pb-2">
-                <Controller
-                  name="showName"
-                  control={control}
-                  render={({ field }) => (
-                    <Checkbox
-                      id="showName"
-                      checked={field.value}
-                      onCheckedChange={(checked: boolean) => {
-                        field.onChange(checked);
-                      }}
-                      className={`dark:text-white border-white : "text-black border-gray-300"}`}
-                    />
-                  )}
-                />
-                <label
-                  htmlFor="showName"
-                  className={`text-sm font-small leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 dark:text-white : "text-black"}`}
-                >
-                  Include Merchant Name
-                </label>
-              </div>               
+                    {/* Show Name Checkbox and Name Input */}
+                    <div className="flex items-center space-x-2 mb-2 pb-2">
+                      <Controller
+                        name="showName"
+                        control={control}
+                        render={({ field }) => (
+                          <Checkbox
+                            id="showName"
+                            checked={field.value}
+                            onCheckedChange={(checked: boolean) => {
+                              field.onChange(checked);
+                            }}
+                            className={`dark:text-white border-white text-black border-gray-300`}
+                          />
+                        )}
+                      />
+                      <label
+                        htmlFor="showName"
+                        className={`text-sm font-small leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 dark:text-white text-black`}
+                      >
+                        Include Merchant Name
+                      </label>
+                    </div>               
 
-              {/* Transaction Type Selector */}
-              <div className="relative">
-                <label 
-                  htmlFor="type" 
-                  className={`hidden md:block text-sm font-medium dark:text-white : "text-gray-700"} mb-1`}
-                >
-                  Transaction Type
-                </label>
-                <Controller
-                  name="type"
-                  control={control}
-                  render={({ field }) => (
-                    <Select 
-                      onValueChange={(value: TRANSACTION_TYPE) => {
-                        field.onChange(value);
-                        // Update the title for display purposes
-                        switch(value) {
-                          case TRANSACTION_TYPE.SEND_MONEY:
-                            setValue("title", "Send Money");
-                            break;
-                          case TRANSACTION_TYPE.PAYBILL:
-                            setValue("title", "Pay Bill");
-                            break;
-                          case TRANSACTION_TYPE.TILL_NUMBER:
-                            setValue("title", "Buy Goods");
-                            break;
-                          case TRANSACTION_TYPE.AGENT:
-                            setValue("title", "Withdraw Money");
-                            break;
-                        }
-                        // Clear irrelevant fields when type changes
-                        setValue("phoneNumber", "");
-                        setValue("paybillNumber", "");
-                        setValue("accountNumber", "");
-                        setValue("tillNumber", "");
-                        setValue("agentNumber", "");
-                        setValue("storeNumber", "");
-                        trigger();
-                      }}
-                      value={field.value}
-                    >
-                      <SelectTrigger className={`w-full p-3 border dark:border-gray-600 : "border-gray-300"} rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold dark:bg-black text-white : "bg-white text-black"} peer`}>
-                        <SelectValue placeholder=" " />
-                      </SelectTrigger>
+                    {/* Transaction Type Selector */}
+                    <div className="relative">
                       <label 
                         htmlFor="type" 
-                        className={`absolute left-3 transition-all pointer-events-none dark:bg-black : "bg-white"} px-1 ${
-                          field.value
-                            ? "-top-2 text-xs text-green-500"
-                            : "top-1/2 -translate-y-1/2 text-base text-gray-400 peer-focus:-top-2 peer-focus:text-xs peer-focus:text-green-500"
-                        } md:hidden`}
+                        className={`hidden md:block text-sm font-medium dark:text-white text-gray-700 mb-1`}
                       >
                         Transaction Type
                       </label>
-                      <SelectContent className={`dark:bg-[#0a0a23] text-white : "bg-white text-black"}`}>                          
-                        <SelectItem value={TRANSACTION_TYPE.PAYBILL}>Pay Bill</SelectItem>
-                        <SelectItem value={TRANSACTION_TYPE.TILL_NUMBER}>Buy Goods</SelectItem>
-                        <SelectItem value={TRANSACTION_TYPE.AGENT}>Withdraw Money</SelectItem>
-                        <SelectItem value={TRANSACTION_TYPE.SEND_MONEY}>Send Money</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  )}
-                />
-                {errors.type && (
-                  <p className="mt-1 text-sm text-red-500">{errors.type.message}</p>
-                )}
-              </div>
-                  
-              {/* Send Money Fields */}
-              {watch("type") === TRANSACTION_TYPE.SEND_MONEY && (
-                <div className="relative">
-                  <Controller
-                    name="phoneNumber"
-                    control={control}
-                    render={({ field }) => {
-                      const phoneHistory = useInputHistory('phoneNumber');
-                      
-                      return (
-                        <div className="relative">
-                          <Input
-                            id="phone"
-                            type="tel"
-                            value={field.value || ""}
-                            onChange={(e) => {
-                              const formatted = formatPhoneNumber(e.target.value);
-                              field.onChange(formatted);
-                            }}
-                            onBlur={() => {
-                              if (field.value) {
-                                phoneHistory.addToHistory(field.value);
-                              }
-                            }}
-                            className={`w-full p-3 border dark:border-gray-600 : "border-gray-300"} rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold dark:bg-black text-white : "bg-white text-black"} peer`}
-                            placeholder=" "
-                            list={`phoneNumber-history`}
-                          />
-                          <label 
-                            htmlFor="phone" 
-                            className={`absolute left-3 transition-all pointer-events-none dark:bg-black : "bg-white"} px-1 ${
-                              field.value
-                                ? "-top-2 text-xs text-green-500"
-                                : "top-1/2 -translate-y-1/2 text-base text-gray-400 peer-focus:-top-2 peer-focus:text-xs peer-focus:text-green-500"
-                            } md:hidden`}
-                          >
-                            Phone Number
-                          </label>
-                          {phoneHistory.history.length > 0 && (
-                            <datalist id={`phoneNumber-history`}>
-                              {phoneHistory.history.map((item, index) => (
-                                <option key={index} value={item} />
-                              ))}
-                            </datalist>
-                          )}
-                        </div>
-                      );
-                    }}
-                  />
-                  {errors.phoneNumber && (
-                    <p className="mt-1 text-sm text-red-500">{errors.phoneNumber.message}</p>
-                  )}
-                </div>
-              )}
-
-              {/* Pay Bill Fields */}
-              {watch("type") === TRANSACTION_TYPE.PAYBILL && (
-                <>
-                  <div className="relative">
-                    <Controller
-                      name="paybillNumber"
-                      control={control}
-                      render={({ field }) => {
-                        const paybillHistory = useInputHistory('paybillNumber');
-                        
-                        return (
-                          <div className="relative">
-                            <Input
-                              id="paybillNumber"
-                              type="text"
-                              inputMode="numeric"
-                              value={field.value || ""}
-                              onChange={(e) => {
-                                const value = e.target.value.replace(/\D/g, "");
-                                field.onChange(value);
-                              }}
-                              onBlur={() => {
-                                if (field.value) {
-                                  paybillHistory.addToHistory(field.value);
-                                }
-                              }}
-                              className={`w-full p-3 border dark:border-gray-600 : "border-gray-300"} rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold dark:bg-black text-white : "bg-white text-black"} peer`}
-                              placeholder=" "
-                              list={`paybillNumber-history`}
-                            />
-                            <label 
-                              htmlFor="paybillNumber" 
-                              className={`absolute left-3 transition-all pointer-events-none dark:bg-black : "bg-white"} px-1 ${
-                                field.value
-                                  ? "-top-2 text-xs text-green-500"
-                                  : "top-1/2 -translate-y-1/2 text-base text-gray-400 peer-focus:-top-2 peer-focus:text-xs peer-focus:text-green-500"
-                              } md:hidden`}
-                            >
-                              Business Number
-                            </label>
-                            {paybillHistory.history.length > 0 && (
-                              <datalist id={`paybillNumber-history`}>
-                                {paybillHistory.history.map((item, index) => (
-                                  <option key={index} value={item} />
-                                ))}
-                              </datalist>
-                            )}
-                          </div>
-                        );
-                      }}
-                    />
-                    {errors.paybillNumber && (
-                      <p className="mt-1 text-sm text-red-500">{errors.paybillNumber.message}</p>
-                    )}
-                  </div>
-                  <div className="relative">
-                    <Controller
-                      name="accountNumber"
-                      control={control}
-                      render={({ field }) => {
-                        const accountHistory = useInputHistory('accountNumber');
-                        
-                        return (
-                          <div className="relative">
-                            <Input
-                              id="accountNumber"
-                              type="text"
-                              value={field.value || ""}
-                              onChange={field.onChange}
-                              onBlur={() => {
-                                if (field.value) {
-                                  accountHistory.addToHistory(field.value);
-                                }
-                              }}
-                              className={`w-full p-3 border dark:border-gray-600 : "border-gray-300"} rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold dark:bg-black text-white : "bg-white text-black"} peer`}
-                              placeholder=" "
-                              list={`accountNumber-history`}
-                            />
-                            <label 
-                              htmlFor="accountNumber" 
-                              className={`absolute left-3 transition-all pointer-events-none dark:bg-black : "bg-white"} px-1 ${
-                                field.value
-                                  ? "-top-2 text-xs text-green-500"
-                                  : "top-1/2 -translate-y-1/2 text-base text-gray-400 peer-focus:-top-2 peer-focus:text-xs peer-focus:text-green-500"
-                              } md:hidden`}
-                            >
-                              Account Number
-                            </label>
-                            {accountHistory.history.length > 0 && (
-                              <datalist id={`accountNumber-history`}>
-                                {accountHistory.history.map((item, index) => (
-                                  <option key={index} value={item} />
-                                ))}
-                              </datalist>
-                            )}
-                          </div>
-                        );
-                      }}
-                    />
-                    {errors.accountNumber && (
-                      <p className="mt-1 text-sm text-red-500">{errors.accountNumber.message}</p>
-                    )}
-                  </div>
-                </>
-              )}
-
-              {/* Buy Goods (Till Number) Fields */}
-              {watch("type") === TRANSACTION_TYPE.TILL_NUMBER && (
-                <div className="relative">
-                  <Controller
-                    name="tillNumber"
-                    control={control}
-                    render={({ field }) => {
-                      const tillHistory = useInputHistory('tillNumber');
-                      
-                      return (
-                        <div className="relative">
-                          <Input
-                            id="tillNumber"
-                            type="text"
-                            inputMode="numeric"
-                            value={field.value || ""}
-                            onChange={(e) => {
-                              const value = e.target.value.replace(/\D/g, "");
+                      <Controller
+                        name="type"
+                        control={control}
+                        render={({ field }) => (
+                          <Select 
+                            onValueChange={(value: TRANSACTION_TYPE) => {
                               field.onChange(value);
-                            }}
-                            onBlur={() => {
-                              if (field.value) {
-                                tillHistory.addToHistory(field.value);
+                              switch(value) {
+                                case TRANSACTION_TYPE.SEND_MONEY:
+                                  setValue("title", "Send Money");
+                                  break;
+                                case TRANSACTION_TYPE.PAYBILL:
+                                  setValue("title", "Pay Bill");
+                                  break;
+                                case TRANSACTION_TYPE.TILL_NUMBER:
+                                  setValue("title", "Buy Goods");
+                                  break;
+                                case TRANSACTION_TYPE.AGENT:
+                                  setValue("title", "Withdraw Money");
+                                  break;
                               }
+                              setValue("phoneNumber", "");
+                              setValue("paybillNumber", "");
+                              setValue("accountNumber", "");
+                              setValue("tillNumber", "");
+                              setValue("agentNumber", "");
+                              setValue("storeNumber", "");
+                              trigger();
                             }}
-                            className={`w-full p-3 border dark:border-gray-600 : "border-gray-300"} rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold dark:bg-black text-white : "bg-white text-black"} peer`}
-                            placeholder=" "
-                            list={`tillNumber-history`}
-                          />
-                          <label 
-                            htmlFor="tillNumber" 
-                            className={`absolute left-3 transition-all pointer-events-none dark:bg-black : "bg-white"} px-1 ${
-                              field.value
-                                ? "-top-2 text-xs text-green-500"
-                                : "top-1/2 -translate-y-1/2 text-base text-gray-400 peer-focus:-top-2 peer-focus:text-xs peer-focus:text-green-500"
-                            } md:hidden`}
+                            value={field.value}
                           >
-                            Till Number
-                          </label>
-                          {tillHistory.history.length > 0 && (
-                            <datalist id={`tillNumber-history`}>
-                              {tillHistory.history.map((item, index) => (
-                                <option key={index} value={item} />
-                              ))}
-                            </datalist>
-                          )}
-                        </div>
-                      );
-                    }}
-                  />
-                  {errors.tillNumber && (
-                    <p className="mt-1 text-sm text-red-500">{errors.tillNumber.message}</p>
-                  )}
-                </div>
-              )}
-
-              {/* Withdraw Money (Agent) Fields */}
-              {watch("type") === TRANSACTION_TYPE.AGENT && (
-                <>
-                  <div className="relative">
-                    <Controller
-                      name="agentNumber"
-                      control={control}
-                      render={({ field }) => {
-                        const agentHistory = useInputHistory('agentNumber');
-                        
-                        return (
-                          <div className="relative">
-                            <Input
-                              id="agentNumber"
-                              type="text"
-                              inputMode="numeric"
-                              value={field.value || ""}
-                              onChange={(e) => {
-                                const value = e.target.value.replace(/\D/g, "");
-                                field.onChange(value);
-                              }}
-                              onBlur={() => {
-                                if (field.value) {
-                                  agentHistory.addToHistory(field.value);
-                                }
-                              }}
-                              className={`w-full p-3 border dark:border-gray-600 : "border-gray-300"} rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold dark:bg-black text-white : "bg-white text-black"} peer`}
-                              placeholder=" "
-                              list={`agentNumber-history`}
-                            />
+                            <SelectTrigger className={`w-full p-3 border dark:border-gray-600 border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold dark:bg-black text-white bg-white text-black peer`}>
+                              <SelectValue placeholder=" " />
+                            </SelectTrigger>
                             <label 
-                              htmlFor="agentNumber" 
-                              className={`absolute left-3 transition-all pointer-events-none dark:bg-black : "bg-white"} px-1 ${
+                              htmlFor="type" 
+                              className={`absolute left-3 transition-all pointer-events-none dark:bg-black bg-white px-1 ${
                                 field.value
                                   ? "-top-2 text-xs text-green-500"
                                   : "top-1/2 -translate-y-1/2 text-base text-gray-400 peer-focus:-top-2 peer-focus:text-xs peer-focus:text-green-500"
                               } md:hidden`}
                             >
-                              Agent Number
+                              Transaction Type
                             </label>
-                            {agentHistory.history.length > 0 && (
-                              <datalist id={`agentNumber-history`}>
-                                {agentHistory.history.map((item, index) => (
-                                  <option key={index} value={item} />
-                                ))}
-                              </datalist>
-                            )}
-                          </div>
-                        );
-                      }}
-                    />
-                    {errors.agentNumber && (
-                      <p className="mt-1 text-sm text-red-500">{errors.agentNumber.message}</p>
-                    )}
-                  </div>
-                  <div className="relative">
-                    <Controller
-                      name="storeNumber"
-                      control={control}
-                      render={({ field }) => {
-                        const storeHistory = useInputHistory('storeNumber');
-                        
-                        return (
-                          <div className="relative">
-                            <Input
-                              id="storeNumber"
-                              type="text"
-                              value={field.value || ""}
-                              onChange={field.onChange}
-                              onBlur={() => {
-                                if (field.value) {
-                                  storeHistory.addToHistory(field.value);
-                                }
-                              }}
-                              className={`w-full p-3 border dark:border-gray-600 : "border-gray-300"} rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold dark:bg-black text-white : "bg-white text-black"} peer`}
-                              placeholder=" "
-                              list={`storeNumber-history`}
-                            />
-                            <label 
-                              htmlFor="storeNumber" 
-                              className={`absolute left-3 transition-all pointer-events-none dark:bg-black : "bg-white"} px-1 ${
-                                field.value
-                                  ? "-top-2 text-xs text-green-500"
-                                  : "top-1/2 -translate-y-1/2 text-base text-gray-400 peer-focus:-top-2 peer-focus:text-xs peer-focus:text-green-500"
-                              } md:hidden`}
-                            >
-                              Store Number
-                            </label>
-                            {storeHistory.history.length > 0 && (
-                              <datalist id={`storeNumber-history`}>
-                                {storeHistory.history.map((item, index) => (
-                                  <option key={index} value={item} />
-                                ))}
-                              </datalist>
-                            )}
-                          </div>
-                        );
-                      }}
-                    />
-                    {errors.storeNumber && (
-                      <p className="mt-1 text-sm text-red-500">{errors.storeNumber.message}</p>
-                    )}
-                  </div>
-                </>
-              )}      
-
-              {watch("showName") && (
-                <div className="relative">
-                  <Controller
-                    name="businessName"
-                    control={control}
-                    render={({ field }) => {
-                      const businessHistory = useInputHistory('businessName');
-                      
-                      return (
-                        <div className="relative">
-                          <Input
-                            id="name"
-                            type="text"
-                            value={field.value || ""}
-                            onChange={(e) => {
-                              field.onChange(e.target.value.toUpperCase());
-                            }}
-                            onBlur={() => {
-                              if (field.value) {
-                                businessHistory.addToHistory(field.value);
-                              }
-                            }}
-                            className={`w-full p-3 border dark:border-gray-600 : "border-gray-300"} rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold dark:bg-black text-white : "bg-white text-black"} peer`}
-                            placeholder=" "
-                            list={`businessName-history`}
-                          />
-                          <label 
-                            htmlFor="name" 
-                            className={`absolute left-3 transition-all pointer-events-none dark:bg-black : "bg-white"} px-1 ${
-                              field.value
-                                ? "-top-2 text-xs text-green-500"
-                                : "top-1/2 -translate-y-1/2 text-base text-gray-400 peer-focus:-top-2 peer-focus:text-xs peer-focus:text-green-500"
-                            } md:hidden`}
-                          >
-                            Merchant Name
-                          </label>
-                          {businessHistory.history.length > 0 && (
-                            <datalist id={`businessName-history`}>
-                              {businessHistory.history.map((item, index) => (
-                                <option key={index} value={item} />
-                              ))}
-                            </datalist>
-                          )}
-                        </div>
-                      );
-                    }}
-                  />
-                  {errors.businessName && (
-                    <p className="mt-1 text-sm text-red-500">{errors.businessName.message}</p>
-                  )}
-                </div>
-              )}   
-            </form>
-          </CardContent>
-        </Card>
-        {/* Customize Poster Card */}
-        <Card className="relative bg-white dark:bg-[#0a0a23] border border-green-500 rounded-md px-2 sm:px-3 pt-6 pb-3 w-full">
-          <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-2 sm:px-3 text-center bg-white dark:bg-[#0a0a23]">
-            <p className="font-handwriting text-xl text-gray-700 dark:text-white whitespace-nowrap relative">
-              Customize your Poster
-            </p>
-          </div>
-          {/* Color Picker - full width */}
-            <div className="relative border border-gray-500 rounded-md p-4 mb-4 mt-2 w-full">
-              <div className="absolute -top-3 left-4 bg-gray-600 px-2 text-sm text-white">
-                Pick Poster Color
-              </div>
-
-              <div className="flex flex-wrap items-end gap-x-1 gap-y-1">
-                {/* Standard color buttons */}
-                {colorOptions.map((color) => (
-                  <div key={color.value} className="flex flex-col items-center w-9">
-                    <button
-                      type="button"
-                      className={`w-8 h-8 min-w-8 min-h-8 shrink-0 rounded-full border-2 flex items-center justify-center ${
-                        selectedColor === color.value
-                          ? "border-gray-300 md:border-gray-800"
-                          : "border-transparent"
-                      } ${color.class}`}
-                      onClick={() => setValue("selectedColor", color.value)}
-                      aria-label={`Select ${color.name} color`}
-                    >
-                      {selectedColor === color.value && (
-                        <CheckIcon className="h-5 w-5 text-white" />
+                            <SelectContent className={`dark:bg-[#0a0a23] text-white bg-white text-black`}>                          
+                              <SelectItem value={TRANSACTION_TYPE.PAYBILL}>Pay Bill</SelectItem>
+                              <SelectItem value={TRANSACTION_TYPE.TILL_NUMBER}>Buy Goods</SelectItem>
+                              <SelectItem value={TRANSACTION_TYPE.AGENT}>Withdraw Money</SelectItem>
+                              <SelectItem value={TRANSACTION_TYPE.SEND_MONEY}>Send Money</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        )}
+                      />
+                      {errors.type && (
+                        <p className="mt-1 text-sm text-red-500">{errors.type.message}</p>
                       )}
-                    </button>
-                    {/* Optional empty caption space for alignment (if needed) */}
-                    <span className="invisible text-xs">.</span>
-                  </div>
-                ))}
+                    </div>
+                        
+                    {/* Send Money Fields */}
+                    {watch("type") === TRANSACTION_TYPE.SEND_MONEY && (
+                      <div className="relative">
+                        <Controller
+                          name="phoneNumber"
+                          control={control}
+                          render={({ field }) => {
+                            const phoneHistory = useInputHistory('phoneNumber');
+                            
+                            return (
+                              <div className="relative">
+                                <Input
+                                  id="phone"
+                                  type="tel"
+                                  value={field.value || ""}
+                                  onChange={(e) => {
+                                    const formatted = formatPhoneNumber(e.target.value);
+                                    field.onChange(formatted);
+                                  }}
+                                  onBlur={() => {
+                                    if (field.value) {
+                                      phoneHistory.addToHistory(field.value);
+                                    }
+                                  }}
+                                  className={`w-full p-3 border dark:border-gray-600 border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold dark:bg-black text-white bg-white text-black peer`}
+                                  placeholder=" "
+                                  list={`phoneNumber-history`}
+                                />
+                                <label 
+                                  htmlFor="phone" 
+                                  className={`absolute left-3 transition-all pointer-events-none dark:bg-black bg-white px-1 ${
+                                    field.value
+                                      ? "-top-2 text-xs text-green-500"
+                                      : "top-1/2 -translate-y-1/2 text-base text-gray-400 peer-focus:-top-2 peer-focus:text-xs peer-focus:text-green-500"
+                                  } md:hidden`}
+                                >
+                                  Phone Number
+                                </label>
+                                {phoneHistory.history.length > 0 && (
+                                  <datalist id={`phoneNumber-history`}>
+                                    {phoneHistory.history.map((item, index) => (
+                                      <option key={index} value={item} />
+                                    ))}
+                                  </datalist>
+                                )}
+                              </div>
+                            );
+                          }}
+                        />
+                        {errors.phoneNumber && (
+                          <p className="mt-1 text-sm text-red-500">{errors.phoneNumber.message}</p>
+                        )}
+                      </div>
+                    )}
 
-                {/* Custom picker + caption */}
-                <div className="flex flex-col items-center w-9">
+                    {/* Pay Bill Fields */}
+                    {watch("type") === TRANSACTION_TYPE.PAYBILL && (
+                      <>
+                        <div className="relative">
+                          <Controller
+                            name="paybillNumber"
+                            control={control}
+                            render={({ field }) => {
+                              const paybillHistory = useInputHistory('paybillNumber');
+                              
+                              return (
+                                <div className="relative">
+                                  <Input
+                                    id="paybillNumber"
+                                    type="text"
+                                    inputMode="numeric"
+                                    value={field.value || ""}
+                                    onChange={(e) => {
+                                      const value = e.target.value.replace(/\D/g, "");
+                                      field.onChange(value);
+                                    }}
+                                    onBlur={() => {
+                                      if (field.value) {
+                                        paybillHistory.addToHistory(field.value);
+                                      }
+                                    }}
+                                    className={`w-full p-3 border dark:border-gray-600 border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold dark:bg-black text-white bg-white text-black peer`}
+                                    placeholder=" "
+                                    list={`paybillNumber-history`}
+                                  />
+                                  <label 
+                                    htmlFor="paybillNumber" 
+                                    className={`absolute left-3 transition-all pointer-events-none dark:bg-black bg-white px-1 ${
+                                      field.value
+                                        ? "-top-2 text-xs text-green-500"
+                                        : "top-1/2 -translate-y-1/2 text-base text-gray-400 peer-focus:-top-2 peer-focus:text-xs peer-focus:text-green-500"
+                                    } md:hidden`}
+                                  >
+                                    Business Number
+                                  </label>
+                                  {paybillHistory.history.length > 0 && (
+                                    <datalist id={`paybillNumber-history`}>
+                                      {paybillHistory.history.map((item, index) => (
+                                        <option key={index} value={item} />
+                                      ))}
+                                    </datalist>
+                                  )}
+                                </div>
+                              );
+                            }}
+                          />
+                          {errors.paybillNumber && (
+                            <p className="mt-1 text-sm text-red-500">{errors.paybillNumber.message}</p>
+                          )}
+                        </div>
+                        <div className="relative">
+                          <Controller
+                            name="accountNumber"
+                            control={control}
+                            render={({ field }) => {
+                              const accountHistory = useInputHistory('accountNumber');
+                              
+                              return (
+                                <div className="relative">
+                                  <Input
+                                    id="accountNumber"
+                                    type="text"
+                                    value={field.value || ""}
+                                    onChange={field.onChange}
+                                    onBlur={() => {
+                                      if (field.value) {
+                                        accountHistory.addToHistory(field.value);
+                                      }
+                                    }}
+                                    className={`w-full p-3 border dark:border-gray-600 border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold dark:bg-black text-white bg-white text-black peer`}
+                                    placeholder=" "
+                                    list={`accountNumber-history`}
+                                  />
+                                  <label 
+                                    htmlFor="accountNumber" 
+                                    className={`absolute left-3 transition-all pointer-events-none dark:bg-black bg-white px-1 ${
+                                      field.value
+                                        ? "-top-2 text-xs text-green-500"
+                                        : "top-1/2 -translate-y-1/2 text-base text-gray-400 peer-focus:-top-2 peer-focus:text-xs peer-focus:text-green-500"
+                                    } md:hidden`}
+                                  >
+                                    Account Number
+                                  </label>
+                                  {accountHistory.history.length > 0 && (
+                                    <datalist id={`accountNumber-history`}>
+                                      {accountHistory.history.map((item, index) => (
+                                        <option key={index} value={item} />
+                                      ))}
+                                    </datalist>
+                                  )}
+                                </div>
+                              );
+                            }}
+                          />
+                          {errors.accountNumber && (
+                            <p className="mt-1 text-sm text-red-500">{errors.accountNumber.message}</p>
+                          )}
+                        </div>
+                      </>
+                    )}
+
+                    {/* Buy Goods (Till Number) Fields */}
+                    {watch("type") === TRANSACTION_TYPE.TILL_NUMBER && (
+                      <div className="relative">
+                        <Controller
+                          name="tillNumber"
+                          control={control}
+                          render={({ field }) => {
+                            const tillHistory = useInputHistory('tillNumber');
+                            
+                            return (
+                              <div className="relative">
+                                <Input
+                                  id="tillNumber"
+                                  type="text"
+                                  inputMode="numeric"
+                                  value={field.value || ""}
+                                  onChange={(e) => {
+                                    const value = e.target.value.replace(/\D/g, "");
+                                    field.onChange(value);
+                                  }}
+                                  onBlur={() => {
+                                    if (field.value) {
+                                      tillHistory.addToHistory(field.value);
+                                    }
+                                  }}
+                                  className={`w-full p-3 border dark:border-gray-600 border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold dark:bg-black text-white bg-white text-black peer`}
+                                  placeholder=" "
+                                  list={`tillNumber-history`}
+                                />
+                                <label 
+                                  htmlFor="tillNumber" 
+                                  className={`absolute left-3 transition-all pointer-events-none dark:bg-black bg-white px-1 ${
+                                    field.value
+                                      ? "-top-2 text-xs text-green-500"
+                                      : "top-1/2 -translate-y-1/2 text-base text-gray-400 peer-focus:-top-2 peer-focus:text-xs peer-focus:text-green-500"
+                                  } md:hidden`}
+                                >
+                                  Till Number
+                                </label>
+                                {tillHistory.history.length > 0 && (
+                                  <datalist id={`tillNumber-history`}>
+                                    {tillHistory.history.map((item, index) => (
+                                      <option key={index} value={item} />
+                                    ))}
+                                  </datalist>
+                                )}
+                              </div>
+                            );
+                          }}
+                        />
+                        {errors.tillNumber && (
+                          <p className="mt-1 text-sm text-red-500">{errors.tillNumber.message}</p>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Withdraw Money (Agent) Fields */}
+                    {watch("type") === TRANSACTION_TYPE.AGENT && (
+                      <>
+                        <div className="relative">
+                          <Controller
+                            name="agentNumber"
+                            control={control}
+                            render={({ field }) => {
+                              const agentHistory = useInputHistory('agentNumber');
+                              
+                              return (
+                                <div className="relative">
+                                  <Input
+                                    id="agentNumber"
+                                    type="text"
+                                    inputMode="numeric"
+                                    value={field.value || ""}
+                                    onChange={(e) => {
+                                      const value = e.target.value.replace(/\D/g, "");
+                                      field.onChange(value);
+                                    }}
+                                    onBlur={() => {
+                                      if (field.value) {
+                                        agentHistory.addToHistory(field.value);
+                                      }
+                                    }}
+                                    className={`w-full p-3 border dark:border-gray-600 border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold dark:bg-black text-white bg-white text-black peer`}
+                                    placeholder=" "
+                                    list={`agentNumber-history`}
+                                  />
+                                  <label 
+                                    htmlFor="agentNumber" 
+                                    className={`absolute left-3 transition-all pointer-events-none dark:bg-black bg-white px-1 ${
+                                      field.value
+                                        ? "-top-2 text-xs text-green-500"
+                                        : "top-1/2 -translate-y-1/2 text-base text-gray-400 peer-focus:-top-2 peer-focus:text-xs peer-focus:text-green-500"
+                                    } md:hidden`}
+                                  >
+                                    Agent Number
+                                  </label>
+                                  {agentHistory.history.length > 0 && (
+                                    <datalist id={`agentNumber-history`}>
+                                      {agentHistory.history.map((item, index) => (
+                                        <option key={index} value={item} />
+                                      ))}
+                                    </datalist>
+                                  )}
+                                </div>
+                              );
+                            }}
+                          />
+                          {errors.agentNumber && (
+                            <p className="mt-1 text-sm text-red-500">{errors.agentNumber.message}</p>
+                          )}
+                        </div>
+                        <div className="relative">
+                          <Controller
+                            name="storeNumber"
+                            control={control}
+                            render={({ field }) => {
+                              const storeHistory = useInputHistory('storeNumber');
+                              
+                              return (
+                                <div className="relative">
+                                  <Input
+                                    id="storeNumber"
+                                    type="text"
+                                    value={field.value || ""}
+                                    onChange={field.onChange}
+                                    onBlur={() => {
+                                      if (field.value) {
+                                        storeHistory.addToHistory(field.value);
+                                      }
+                                    }}
+                                    className={`w-full p-3 border dark:border-gray-600 border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold dark:bg-black text-white bg-white text-black peer`}
+                                    placeholder=" "
+                                    list={`storeNumber-history`}
+                                  />
+                                  <label 
+                                    htmlFor="storeNumber" 
+                                    className={`absolute left-3 transition-all pointer-events-none dark:bg-black bg-white px-1 ${
+                                      field.value
+                                        ? "-top-2 text-xs text-green-500"
+                                        : "top-1/2 -translate-y-1/2 text-base text-gray-400 peer-focus:-top-2 peer-focus:text-xs peer-focus:text-green-500"
+                                    } md:hidden`}
+                                  >
+                                    Store Number
+                                  </label>
+                                  {storeHistory.history.length > 0 && (
+                                    <datalist id={`storeNumber-history`}>
+                                      {storeHistory.history.map((item, index) => (
+                                        <option key={index} value={item} />
+                                      ))}
+                                    </datalist>
+                                  )}
+                                </div>
+                              );
+                            }}
+                          />
+                          {errors.storeNumber && (
+                            <p className="mt-1 text-sm text-red-500">{errors.storeNumber.message}</p>
+                          )}
+                        </div>
+                      </>
+                    )}      
+
+                    {watch("showName") && (
+                      <div className="relative">
+                        <Controller
+                          name="businessName"
+                          control={control}
+                          render={({ field }) => {
+                            const businessHistory = useInputHistory('businessName');
+                            
+                            return (
+                              <div className="relative">
+                                <Input
+                                  id="name"
+                                  type="text"
+                                  value={field.value || ""}
+                                  onChange={(e) => {
+                                    field.onChange(e.target.value.toUpperCase());
+                                  }}
+                                  onBlur={() => {
+                                    if (field.value) {
+                                      businessHistory.addToHistory(field.value);
+                                    }
+                                  }}
+                                  className={`w-full p-3 border dark:border-gray-600 border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold dark:bg-black text-white bg-white text-black peer`}
+                                  placeholder=" "
+                                  list={`businessName-history`}
+                                />
+                                <label 
+                                  htmlFor="name" 
+                                  className={`absolute left-3 transition-all pointer-events-none dark:bg-black bg-white px-1 ${
+                                    field.value
+                                      ? "-top-2 text-xs text-green-500"
+                                      : "top-1/2 -translate-y-1/2 text-base text-gray-400 peer-focus:-top-2 peer-focus:text-xs peer-focus:text-green-500"
+                                  } md:hidden`}
+                                >
+                                  Merchant Name
+                                </label>
+                                {businessHistory.history.length > 0 && (
+                                  <datalist id={`businessName-history`}>
+                                    {businessHistory.history.map((item, index) => (
+                                      <option key={index} value={item} />
+                                    ))}
+                                  </datalist>
+                                )}
+                              </div>
+                            );
+                          }}
+                        />
+                        {errors.businessName && (
+                          <p className="mt-1 text-sm text-red-500">{errors.businessName.message}</p>
+                        )}
+                      </div>
+                    )}   
+                  </form>
+                </CardContent>
+              </Card>
+              {/* Customize Poster Card */}
+              <Card className="relative bg-white dark:bg-[#0a0a23] border border-green-500 rounded-md px-2 sm:px-3 pt-6 pb-3 w-full">
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-2 sm:px-3 text-center bg-white dark:bg-[#0a0a23]">
+                  <p className="font-handwriting text-xl text-gray-700 dark:text-white whitespace-nowrap relative">
+                    Customize your Poster
+                  </p>
+                </div>
+                {/* Color Picker - full width */}
+                  <div className="relative border border-gray-500 rounded-md p-4 mb-4 mt-2 w-full">
+                    <div className="absolute -top-3 left-4 bg-gray-600 px-2 text-sm text-white">
+                      Pick Poster Color
+                    </div>
+
+                    <div className="flex flex-wrap items-end gap-x-1 gap-y-1">
+                      {/* Standard color buttons */}
+                      {colorOptions.map((color) => (
+                        <div key={color.value} className="flex flex-col items-center w-9">
+                          <button
+                            type="button"
+                            className={`w-8 h-8 min-w-8 min-h-8 shrink-0 rounded-full border-2 flex items-center justify-center ${
+                              selectedColor === color.value
+                                ? "border-gray-300 md:border-gray-800"
+                                : "border-transparent"
+                            } ${color.class}`}
+                            onClick={() => setValue("selectedColor", color.value)}
+                            aria-label={`Select ${color.name} color`}
+                          >
+                            {selectedColor === color.value && (
+                              <CheckIcon className="h-5 w-5 text-white" />
+                            )}
+                          </button>
+                          {/* Optional empty caption space for alignment (if needed) */}
+                          <span className="invisible text-xs">.</span>
+                        </div>
+                      ))}
+
+                      {/* Custom picker + caption */}
+                      <div className="flex flex-col items-center w-9">
+                        <Controller
+                          name="selectedColor"
+                          control={control}
+                          render={({ field }) => (
+                            <div
+                              className="size-8 rounded-full border-2 border-white overflow-hidden cursor-pointer"
+                              style={{
+                                backgroundImage: `conic-gradient(
+                                  red 0deg 45deg,
+                                  orange 45deg 90deg,
+                                  yellow 90deg 135deg,
+                                  green 135deg 180deg,
+                                  cyan 180deg 225deg,
+                                  blue 225deg 270deg,
+                                  indigo 270deg 315deg,
+                                  violet 315deg 360deg
+                                )`
+                              }}
+                              onClick={() => {
+                                const input = document.createElement("input");
+                                input.type = "color";
+                                input.value = field.value;
+                                input.onchange = (e) => field.onChange((e.target as HTMLInputElement).value);
+                                input.click();
+                              }}
+                            />
+                          )}
+                        />
+                        <span className="text-xs text-gray-300 md:text-gray-500 mt-[2px]">Custom</span>
+                      </div>
+                    </div>
+                  </div>
+                  {/* Template selector subsection - full width */}
+                    <div className="relative border border-gray-500 rounded-md p-4 mb-4 mt-2 w-full">
+                      <div className="absolute -top-3 left-4 bg-gray-600 px-2 text-sm text-white">
+                          Select a Template
+                      </div>
+                      <div className="relative w-full rounded-xl overflow-hidden">
+                          {/* Left scroll indicator */}
+                          <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-[#0a0a23] md:from-gray-100 to-transparent z-10 pointer-events-none flex items-center justify-start pl-1">
+                          <ChevronLeftIcon className="h-6 w-6 text-gray-300 md:text-gray-500 animate-pulse" />
+                          </div>
+
+                          {/* Right scroll indicator */}
+                          <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-[#0a0a23] md:from-gray-100 to-transparent z-10 pointer-events-none flex items-center justify-end pr-1">
+                          <ChevronRightIcon className="h-6 w-6 text-gray-300 md:text-gray-500 animate-pulse" />
+                          </div>
+
+                          <ScrollArea className="w-full h-[170px] rounded-lg">
+                          <div className="flex space-x-4 px-8 py-1 min-w-max flex-nowrap">
+                              {templates.map((template) => (
+                              <div
+                                  key={template.slug}
+                                  onClick={() => setSelectedTemplate(template)}
+                                  className={`p-3 rounded-lg cursor-pointer transition-all w-[160px] h-[150px] flex flex-col ${
+                                  selectedTemplate.slug === template.slug
+                                      ? "bg-gray-800 text-white ring-2 ring-green-500"
+                                      : "bg-[#1a1a3a] hover:bg-[#2a2a4a] md:bg-white md:hover:bg-gray-100 border border-gray-700 md:border-gray-200"
+                                  }`}
+                              >
+                                  <div className="font-medium truncate">
+                                  {template.name}
+                                  </div>
+                                  <div className="text-xs mt-1 line-clamp-2 flex-grow text-gray-300 md:text-gray-800">
+                                  {template.description}
+                                  </div>
+                                  <div
+                                  className={`text-xs mt-1 font-semibold ${
+                                      selectedTemplate.slug === template.slug
+                                      ? "text-green-300"
+                                      : "text-green-400 md:text-green-600"
+                                  }`}
+                                  >
+                                  {template.size.label}
+                                  </div>
+                                  <div
+                                  className={`text-xs mt-1 ${
+                                      selectedTemplate.slug === template.slug
+                                      ? "text-gray-300"
+                                      : "text-gray-400 md:text-gray-500"
+                                  }`}
+                                  >
+                                  {template.size.width}×{template.size.height}px
+                                  </div>
+                              </div>
+                              ))}
+                          </div>
+                          <ScrollBar orientation="horizontal" />
+                          </ScrollArea>
+                      </div>
+                    </div>  
+              </Card>
+            </div>
+            
+            {/* Right Column: Poster Preview */}
+            <div className="w-full md:w-1/2 flex flex-col">
+              <form onSubmit={onSubmit} className="space-y-4 w-full">
+                <Card className="relative bg-white dark:bg-[#0a0a23] border border-green-500 rounded-md px-2 sm:px-3 pt-6 pb-3 w-full">
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-2 sm:px-3 text-center bg-white dark:bg-[#0a0a23]">
+                    <p className="font-handwriting text-xl text-gray-700 dark:text-white whitespace-nowrap relative">
+                      A Preview of your Poster
+                    </p>
+                  </div>
+                  <div className="w-full flex flex-col items-center justify-center overflow-x-auto">
+                    {/* Poster Container */}
+                    <div className="w-full max-w-lg">
+                      {/* QR Code Block */}
+                      <div className="w-full flex justify-center">
+                          <div
+                          className="bg-white border-l-8 border-r-8 border-t-0 border-gray-800 flex flex-col w-full"
+                          style={{
+                              maxWidth: `${selectedTemplate.size.width}px`,
+                          }}
+                          >
+                          {/* Header Section */}
+                          <div
+                              className="w-full flex items-center justify-center py-4 px-2"
+                              style={{
+                              backgroundColor: selectedColor,
+                              borderTop: "8px solid #1a2335",
+                              minHeight: "70px",
+                              borderBottom: "8px solid #1a2335",
+                              }}
+                          >
+                              <p
+                              className="text-center font-bold text-white whitespace-nowrap w-full overflow-hidden break-words px-2"
+                              style={{
+                                  fontSize: "clamp(1.25rem, 4vw, 2rem)",
+                              }}
+                              >
+                              SCAN TO PAY!
+                              </p>
+                          </div>
+
+                          {/* QR Code Section */}
+                          <div className="w-full p-3" style={{ aspectRatio: "1/1" }}>
+                              {previewQrData ? (
+                              <QrSvg
+                                  value={previewQrData}
+                                  className="qr-code-svg w-full h-full"
+                                  fgColor="#000000"
+                              />
+                              ) : (
+                              <div className="flex items-center justify-center h-full text-gray-500">
+                                  Generating QR code...
+                              </div>
+                              )}
+                          </div>
+                          </div>
+                      </div>
+
+                      {/* Poster Grid Section */}
+                      <div
+                          id="poster"
+                          ref={posterRef}
+                          className="grid bg-white w-full shadow-lg overflow-hidden border-8 border-gray-800"
+                          style={{
+                          gridTemplateRows: getGridTemplateRows(title, showName),
+                          aspectRatio: `${selectedTemplate.size.width} / ${selectedTemplate.size.height}`,
+                          height: '1200',
+                          minHeight: calculatePosterMinHeight(title, showName),
+                          }}
+                      >
+                          {/* Title Section */}
+                          <div 
+                              className="flex flex-col items-center justify-center px-2" 
+                              style={{ 
+                              backgroundColor: selectedColor,
+                              minHeight: "80px",
+                              padding: "0.5rem 0"
+                              }}>
+                          <div 
+                              className="font-bold w-full py-1 text-center text-white"
+                              style={{ fontSize: "clamp(0.875rem, 3vw, 1.125rem)" }}
+                          >
+                              Transaction
+                          </div>
+                          <h2 
+                              className="font-bold text-white text-center px-2 w-full break-words"
+                              style={{ fontSize: "clamp(1.25rem, 4vw, 1.75rem)" }}
+                          >
+                              {title.toUpperCase()}
+                          </h2>
+                          </div>
+
+                          {/* Middle Sections */}
+                          {renderMiddleSections(title, selectedColor, showName)}
+
+                          {/* Optional Name Section */}
+                          {showName && (
+                          <div
+                              className="flex flex-col items-center justify-center px-2"
+                              style={{
+                              backgroundColor: getSectionColors(title, showName)[getSectionCount(title, showName) - 1],
+                              minHeight: "80px",
+                              padding: "0.5rem 0",
+                              borderTop: "8px solid #1a2335"
+                              }}
+                          >
+                              <div 
+                              className="font-bold w-full py-1 text-center"
+                              style={{ 
+                                  color: getSectionColors(title, showName)[getSectionCount(title, showName) - 1] === selectedColor ? "#ffffff" : "#000000",
+                                  fontSize: "clamp(0.875rem, 3vw, 1.125rem)"
+                              }}
+                              >
+                              Business Name
+                              </div>
+                              <div 
+                              className="font-bold text-center px-2 w-full break-words"
+                              style={{ 
+                                  color: getSectionColors(title, showName)[getSectionCount(title, showName) - 1] === selectedColor ? "#ffffff" : "#000000",
+                                  fontSize: "clamp(1rem, 4vw, 1.5rem)"
+                              }}
+                              >
+                              {businessName || "NELSON ANANGWE"}
+                              </div>
+                          </div>
+                          )}
+                      </div>
+                      </div>
+                  </div>
+
+                  {/* Share & Download Buttons */}
+                  <div className="flex flex-row mt-4 w-full gap-2 items-center">
+                    <div className="flex flex-row mt-4 w-full gap-2 items-center">
+                          <motion.div whileHover={{ scale: 1.03 }} className="flex-1 min-w-[120px]">
+                            <Button
+                              type="button"
+                              onClick={handleShare}
+                              className="w-full bg-blue-600 text-white text-sm font-bold py-4 px-2 rounded-lg hover:bg-blue-700 transition-colors duration-200 disabled:opacity-50"
+                              disabled={!isValid}
+                            >
+                              <HiOutlineShare className="size-5 mr-1" />
+                              <span>Share</span>
+                            </Button>
+                          </motion.div>
+                          <motion.div whileHover={{ scale: 1.03 }} className="flex-1 min-w-[120px]">
+                            <Button
+                              type="submit"
+                              className="w-full bg-gray-800 text-white text-sm font-bold py-4 px-2 rounded-lg hover:bg-gray-700 transition-colors duration-200 disabled:opacity-50"
+                              disabled={!isValid}
+                            >
+                              <HiOutlineDownload className="size-5 mr-1" />
+                              <span>Download</span>
+                            </Button>
+                          </motion.div>
+                        </div>
+                  </div>
+                </Card>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Normal online rendering
+  return (
+    <div className={`flex flex-col dark:bg-[#0a0a23] bg-gray-100 w-full max-w-[100vw]`}>
+      <div className="flex-1 flex flex-col md:flex-row gap-8 px-4 py-4 sm:py-8 sm:px-6 lg:px-8 relative z-10 ">
+        {/* Left Column: Make + Customize */}
+        <div className="w-full md:w-1/2 flex flex-col gap-6">
+          {/* Make Your Poster Card */}
+          <Card className="relative bg-white dark:bg-[#0a0a23] border border-green-500 rounded-md px-2 sm:px-3 pt-6 pb-3 w-full">
+            <CardTitle className="absolute -top-3 left-1/2 -translate-x-1/2 px-2 sm:px-3 text-center bg-white dark:bg-[#0a0a23]">
+              <p className="font-handwriting text-xl text-gray-700 dark:text-white whitespace-nowrap relative">
+                Make Your M-Pesa Poster
+              </p>
+              <div className="text-center italic text-gray-500 dark:text-gray-300 text-xs mt-1">
+                Download It, Share It, Stick it!
+              </div>
+            </CardTitle>
+            <CardContent className="pt-14">
+              <form onSubmit={onSubmit} className="space-y-4">
+                {/* Radio buttons */}
+                <div className={`relative border dark:border-gray-500 border-gray-300 rounded-md p-2 mb-4`}>
+                  <div className={`absolute -top-3 left-4 dark:bg-gray-600 bg-gray-200 px-2 text-sm font-medium dark:text-white text-gray-800`}>
+                    Generate QR Code for:
+                  </div>
+                  <div className="flex space-x-4 mt-2">
+                    <label className="flex items-center space-x-2">
+                      <input
+                        type="radio"
+                        className="form-radio h-4 w-4 text-green-600"
+                        checked={qrGenerationMethod === "push"}
+                        onChange={() => setQrGenerationMethod("push")}
+                      />
+                      <span className={`dark:text-white text-black mt-3`}>Push STK</span>
+                    </label>
+                    <label className="flex items-center space-x-2">
+                      <input
+                        type="radio"
+                        className="form-radio h-4 w-4 text-green-600"
+                        checked={qrGenerationMethod === "mpesa"}
+                        onChange={() => setQrGenerationMethod("mpesa")}
+                      />
+                      <span className={`dark:text-white text-black mt-3`}>M-Pesa App</span>
+                    </label>
+                  </div>
+
+                  <p className="text-xs italic text-green-500 mt-3">
+                    {qrGenerationMethod === "push"
+                      ? "QR Code will initiate an M-Pesa payment"
+                      : "QR Code will open the M-Pesa app"}
+                  </p>
+                </div>
+
+                {/* Show Name Checkbox and Name Input */}
+                <div className="flex items-center space-x-2 mb-2 pb-2">
                   <Controller
-                    name="selectedColor"
+                    name="showName"
                     control={control}
                     render={({ field }) => (
-                      <div
-                        className="size-8 rounded-full border-2 border-white overflow-hidden cursor-pointer"
-                        style={{
-                          backgroundImage: `conic-gradient(
-                            red 0deg 45deg,
-                            orange 45deg 90deg,
-                            yellow 90deg 135deg,
-                            green 135deg 180deg,
-                            cyan 180deg 225deg,
-                            blue 225deg 270deg,
-                            indigo 270deg 315deg,
-                            violet 315deg 360deg
-                          )`
+                      <Checkbox
+                        id="showName"
+                        checked={field.value}
+                        onCheckedChange={(checked: boolean) => {
+                          field.onChange(checked);
                         }}
-                        onClick={() => {
-                          const input = document.createElement("input");
-                          input.type = "color";
-                          input.value = field.value;
-                          input.onchange = (e) => field.onChange((e.target as HTMLInputElement).value);
-                          input.click();
-                        }}
+                        className={`dark:text-white border-white text-black border-gray-300`}
                       />
                     )}
                   />
-                  <span className="text-xs text-gray-300 md:text-gray-500 mt-[2px]">Custom</span>
-                </div>
-              </div>
-            </div>
-            {/* Template selector subsection - full width */}
-              <div className="relative border border-gray-500 rounded-md p-4 mb-4 mt-2 w-full">
-                <div className="absolute -top-3 left-4 bg-gray-600 px-2 text-sm text-white">
-                    Select a Template
-                </div>
-                <div className="relative w-full rounded-xl overflow-hidden">
-                    {/* Left scroll indicator */}
-                    <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-[#0a0a23] md:from-gray-100 to-transparent z-10 pointer-events-none flex items-center justify-start pl-1">
-                    <ChevronLeftIcon className="h-6 w-6 text-gray-300 md:text-gray-500 animate-pulse" />
-                    </div>
+                  <label
+                    htmlFor="showName"
+                    className={`text-sm font-small leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 dark:text-white text-black`}
+                  >
+                    Include Merchant Name
+                  </label>
+                </div>               
 
-                    {/* Right scroll indicator */}
-                    <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-[#0a0a23] md:from-gray-100 to-transparent z-10 pointer-events-none flex items-center justify-end pr-1">
-                    <ChevronRightIcon className="h-6 w-6 text-gray-300 md:text-gray-500 animate-pulse" />
-                    </div>
-
-                    <ScrollArea className="w-full h-[170px] rounded-lg">
-                    <div className="flex space-x-4 px-8 py-1 min-w-max flex-nowrap">
-                        {templates.map((template) => (
-                        <div
-                            key={template.slug}
-                            onClick={() => setSelectedTemplate(template)}
-                            className={`p-3 rounded-lg cursor-pointer transition-all w-[160px] h-[150px] flex flex-col ${
-                            selectedTemplate.slug === template.slug
-                                ? "bg-gray-800 text-white ring-2 ring-green-500"
-                                : "bg-[#1a1a3a] hover:bg-[#2a2a4a] md:bg-white md:hover:bg-gray-100 border border-gray-700 md:border-gray-200"
-                            }`}
+                {/* Transaction Type Selector */}
+                <div className="relative">
+                  <label 
+                    htmlFor="type" 
+                    className={`hidden md:block text-sm font-medium dark:text-white text-gray-700 mb-1`}
+                  >
+                    Transaction Type
+                  </label>
+                  <Controller
+                    name="type"
+                    control={control}
+                    render={({ field }) => (
+                      <Select 
+                        onValueChange={(value: TRANSACTION_TYPE) => {
+                          field.onChange(value);
+                          switch(value) {
+                            case TRANSACTION_TYPE.SEND_MONEY:
+                              setValue("title", "Send Money");
+                              break;
+                            case TRANSACTION_TYPE.PAYBILL:
+                              setValue("title", "Pay Bill");
+                              break;
+                            case TRANSACTION_TYPE.TILL_NUMBER:
+                              setValue("title", "Buy Goods");
+                              break;
+                            case TRANSACTION_TYPE.AGENT:
+                              setValue("title", "Withdraw Money");
+                              break;
+                          }
+                          setValue("phoneNumber", "");
+                          setValue("paybillNumber", "");
+                          setValue("accountNumber", "");
+                          setValue("tillNumber", "");
+                          setValue("agentNumber", "");
+                          setValue("storeNumber", "");
+                          trigger();
+                        }}
+                        value={field.value}
+                      >
+                        <SelectTrigger className={`w-full p-3 border dark:border-gray-600 border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold dark:bg-black text-white bg-white text-black peer`}>
+                          <SelectValue placeholder=" " />
+                        </SelectTrigger>
+                        <label 
+                          htmlFor="type" 
+                          className={`absolute left-3 transition-all pointer-events-none dark:bg-black bg-white px-1 ${
+                            field.value
+                              ? "-top-2 text-xs text-green-500"
+                              : "top-1/2 -translate-y-1/2 text-base text-gray-400 peer-focus:-top-2 peer-focus:text-xs peer-focus:text-green-500"
+                          } md:hidden`}
                         >
-                            <div className="font-medium truncate">
-                            {template.name}
-                            </div>
-                            <div className="text-xs mt-1 line-clamp-2 flex-grow text-gray-300 md:text-gray-800">
-                            {template.description}
-                            </div>
-                            <div
-                            className={`text-xs mt-1 font-semibold ${
-                                selectedTemplate.slug === template.slug
-                                ? "text-green-300"
-                                : "text-green-400 md:text-green-600"
-                            }`}
-                            >
-                            {template.size.label}
-                            </div>
-                            <div
-                            className={`text-xs mt-1 ${
-                                selectedTemplate.slug === template.slug
-                                ? "text-gray-300"
-                                : "text-gray-400 md:text-gray-500"
-                            }`}
-                            >
-                            {template.size.width}×{template.size.height}px
-                            </div>
-                        </div>
-                        ))}
-                    </div>
-                    <ScrollBar orientation="horizontal" />
-                    </ScrollArea>
+                          Transaction Type
+                        </label>
+                        <SelectContent className={`dark:bg-[#0a0a23] text-white bg-white text-black`}>                          
+                          <SelectItem value={TRANSACTION_TYPE.PAYBILL}>Pay Bill</SelectItem>
+                          <SelectItem value={TRANSACTION_TYPE.TILL_NUMBER}>Buy Goods</SelectItem>
+                          <SelectItem value={TRANSACTION_TYPE.AGENT}>Withdraw Money</SelectItem>
+                          <SelectItem value={TRANSACTION_TYPE.SEND_MONEY}>Send Money</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                  {errors.type && (
+                    <p className="mt-1 text-sm text-red-500">{errors.type.message}</p>
+                  )}
                 </div>
-              </div>  
-        </Card>
-      </div>
+                    
+                {/* Send Money Fields */}
+                {watch("type") === TRANSACTION_TYPE.SEND_MONEY && (
+                  <div className="relative">
+                    <Controller
+                      name="phoneNumber"
+                      control={control}
+                      render={({ field }) => {
+                        const phoneHistory = useInputHistory('phoneNumber');
+                        
+                        return (
+                          <div className="relative">
+                            <Input
+                              id="phone"
+                              type="tel"
+                              value={field.value || ""}
+                              onChange={(e) => {
+                                const formatted = formatPhoneNumber(e.target.value);
+                                field.onChange(formatted);
+                              }}
+                              onBlur={() => {
+                                if (field.value) {
+                                  phoneHistory.addToHistory(field.value);
+                                }
+                              }}
+                              className={`w-full p-3 border dark:border-gray-600 border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold dark:bg-black text-white bg-white text-black peer`}
+                              placeholder=" "
+                              list={`phoneNumber-history`}
+                            />
+                            <label 
+                              htmlFor="phone" 
+                              className={`absolute left-3 transition-all pointer-events-none dark:bg-black bg-white px-1 ${
+                                field.value
+                                  ? "-top-2 text-xs text-green-500"
+                                  : "top-1/2 -translate-y-1/2 text-base text-gray-400 peer-focus:-top-2 peer-focus:text-xs peer-focus:text-green-500"
+                              } md:hidden`}
+                            >
+                              Phone Number
+                            </label>
+                            {phoneHistory.history.length > 0 && (
+                              <datalist id={`phoneNumber-history`}>
+                                {phoneHistory.history.map((item, index) => (
+                                  <option key={index} value={item} />
+                                ))}
+                              </datalist>
+                            )}
+                          </div>
+                        );
+                      }}
+                    />
+                    {errors.phoneNumber && (
+                      <p className="mt-1 text-sm text-red-500">{errors.phoneNumber.message}</p>
+                    )}
+                  </div>
+                )}
 
-      {/* Right Column: Poster Preview */}
-      <div className="w-full md:w-1/2 flex flex-col">
-        <form onSubmit={onSubmit} className="space-y-4 w-full">
+                {/* Pay Bill Fields */}
+                {watch("type") === TRANSACTION_TYPE.PAYBILL && (
+                  <>
+                    <div className="relative">
+                      <Controller
+                        name="paybillNumber"
+                        control={control}
+                        render={({ field }) => {
+                          const paybillHistory = useInputHistory('paybillNumber');
+                          
+                          return (
+                            <div className="relative">
+                              <Input
+                                id="paybillNumber"
+                                type="text"
+                                inputMode="numeric"
+                                value={field.value || ""}
+                                onChange={(e) => {
+                                  const value = e.target.value.replace(/\D/g, "");
+                                  field.onChange(value);
+                                }}
+                                onBlur={() => {
+                                  if (field.value) {
+                                    paybillHistory.addToHistory(field.value);
+                                  }
+                                }}
+                                className={`w-full p-3 border dark:border-gray-600 border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold dark:bg-black text-white bg-white text-black peer`}
+                                placeholder=" "
+                                list={`paybillNumber-history`}
+                              />
+                              <label 
+                                htmlFor="paybillNumber" 
+                                className={`absolute left-3 transition-all pointer-events-none dark:bg-black bg-white px-1 ${
+                                  field.value
+                                    ? "-top-2 text-xs text-green-500"
+                                    : "top-1/2 -translate-y-1/2 text-base text-gray-400 peer-focus:-top-2 peer-focus:text-xs peer-focus:text-green-500"
+                                } md:hidden`}
+                              >
+                                Business Number
+                              </label>
+                              {paybillHistory.history.length > 0 && (
+                                <datalist id={`paybillNumber-history`}>
+                                  {paybillHistory.history.map((item, index) => (
+                                    <option key={index} value={item} />
+                                  ))}
+                                </datalist>
+                              )}
+                            </div>
+                          );
+                        }}
+                      />
+                      {errors.paybillNumber && (
+                        <p className="mt-1 text-sm text-red-500">{errors.paybillNumber.message}</p>
+                      )}
+                    </div>
+                    <div className="relative">
+                      <Controller
+                        name="accountNumber"
+                        control={control}
+                        render={({ field }) => {
+                          const accountHistory = useInputHistory('accountNumber');
+                          
+                          return (
+                            <div className="relative">
+                              <Input
+                                id="accountNumber"
+                                type="text"
+                                value={field.value || ""}
+                                onChange={field.onChange}
+                                onBlur={() => {
+                                  if (field.value) {
+                                    accountHistory.addToHistory(field.value);
+                                  }
+                                }}
+                                className={`w-full p-3 border dark:border-gray-600 border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold dark:bg-black text-white bg-white text-black peer`}
+                                placeholder=" "
+                                list={`accountNumber-history`}
+                              />
+                              <label 
+                                htmlFor="accountNumber" 
+                                className={`absolute left-3 transition-all pointer-events-none dark:bg-black bg-white px-1 ${
+                                  field.value
+                                    ? "-top-2 text-xs text-green-500"
+                                    : "top-1/2 -translate-y-1/2 text-base text-gray-400 peer-focus:-top-2 peer-focus:text-xs peer-focus:text-green-500"
+                                } md:hidden`}
+                              >
+                                Account Number
+                              </label>
+                              {accountHistory.history.length > 0 && (
+                                <datalist id={`accountNumber-history`}>
+                                  {accountHistory.history.map((item, index) => (
+                                    <option key={index} value={item} />
+                                  ))}
+                                </datalist>
+                              )}
+                            </div>
+                          );
+                        }}
+                      />
+                      {errors.accountNumber && (
+                        <p className="mt-1 text-sm text-red-500">{errors.accountNumber.message}</p>
+                      )}
+                    </div>
+                  </>
+                )}
+
+                {/* Buy Goods (Till Number) Fields */}
+                {watch("type") === TRANSACTION_TYPE.TILL_NUMBER && (
+                  <div className="relative">
+                    <Controller
+                      name="tillNumber"
+                      control={control}
+                      render={({ field }) => {
+                        const tillHistory = useInputHistory('tillNumber');
+                        
+                        return (
+                          <div className="relative">
+                            <Input
+                              id="tillNumber"
+                              type="text"
+                              inputMode="numeric"
+                              value={field.value || ""}
+                              onChange={(e) => {
+                                const value = e.target.value.replace(/\D/g, "");
+                                field.onChange(value);
+                              }}
+                              onBlur={() => {
+                                if (field.value) {
+                                  tillHistory.addToHistory(field.value);
+                                }
+                              }}
+                              className={`w-full p-3 border dark:border-gray-600 border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold dark:bg-black text-white bg-white text-black peer`}
+                              placeholder=" "
+                              list={`tillNumber-history`}
+                            />
+                            <label 
+                              htmlFor="tillNumber" 
+                              className={`absolute left-3 transition-all pointer-events-none dark:bg-black bg-white px-1 ${
+                                field.value
+                                  ? "-top-2 text-xs text-green-500"
+                                  : "top-1/2 -translate-y-1/2 text-base text-gray-400 peer-focus:-top-2 peer-focus:text-xs peer-focus:text-green-500"
+                              } md:hidden`}
+                            >
+                              Till Number
+                            </label>
+                            {tillHistory.history.length > 0 && (
+                              <datalist id={`tillNumber-history`}>
+                                {tillHistory.history.map((item, index) => (
+                                  <option key={index} value={item} />
+                                ))}
+                              </datalist>
+                            )}
+                          </div>
+                        );
+                      }}
+                    />
+                    {errors.tillNumber && (
+                      <p className="mt-1 text-sm text-red-500">{errors.tillNumber.message}</p>
+                    )}
+                  </div>
+                )}
+
+                {/* Withdraw Money (Agent) Fields */}
+                {watch("type") === TRANSACTION_TYPE.AGENT && (
+                  <>
+                    <div className="relative">
+                      <Controller
+                        name="agentNumber"
+                        control={control}
+                        render={({ field }) => {
+                          const agentHistory = useInputHistory('agentNumber');
+                          
+                          return (
+                            <div className="relative">
+                              <Input
+                                id="agentNumber"
+                                type="text"
+                                inputMode="numeric"
+                                value={field.value || ""}
+                                onChange={(e) => {
+                                  const value = e.target.value.replace(/\D/g, "");
+                                  field.onChange(value);
+                                }}
+                                onBlur={() => {
+                                  if (field.value) {
+                                    agentHistory.addToHistory(field.value);
+                                  }
+                                }}
+                                className={`w-full p-3 border dark:border-gray-600 border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold dark:bg-black text-white bg-white text-black peer`}
+                                placeholder=" "
+                                list={`agentNumber-history`}
+                              />
+                              <label 
+                                htmlFor="agentNumber" 
+                                className={`absolute left-3 transition-all pointer-events-none dark:bg-black bg-white px-1 ${
+                                  field.value
+                                    ? "-top-2 text-xs text-green-500"
+                                    : "top-1/2 -translate-y-1/2 text-base text-gray-400 peer-focus:-top-2 peer-focus:text-xs peer-focus:text-green-500"
+                                } md:hidden`}
+                              >
+                                Agent Number
+                              </label>
+                              {agentHistory.history.length > 0 && (
+                                <datalist id={`agentNumber-history`}>
+                                  {agentHistory.history.map((item, index) => (
+                                    <option key={index} value={item} />
+                                  ))}
+                                </datalist>
+                              )}
+                            </div>
+                          );
+                        }}
+                      />
+                      {errors.agentNumber && (
+                        <p className="mt-1 text-sm text-red-500">{errors.agentNumber.message}</p>
+                      )}
+                    </div>
+                    <div className="relative">
+                      <Controller
+                        name="storeNumber"
+                        control={control}
+                        render={({ field }) => {
+                          const storeHistory = useInputHistory('storeNumber');
+                          
+                          return (
+                            <div className="relative">
+                              <Input
+                                id="storeNumber"
+                                type="text"
+                                value={field.value || ""}
+                                onChange={field.onChange}
+                                onBlur={() => {
+                                  if (field.value) {
+                                    storeHistory.addToHistory(field.value);
+                                  }
+                                }}
+                                className={`w-full p-3 border dark:border-gray-600 border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold dark:bg-black text-white bg-white text-black peer`}
+                                placeholder=" "
+                                list={`storeNumber-history`}
+                              />
+                              <label 
+                                htmlFor="storeNumber" 
+                                className={`absolute left-3 transition-all pointer-events-none dark:bg-black bg-white px-1 ${
+                                  field.value
+                                    ? "-top-2 text-xs text-green-500"
+                                    : "top-1/2 -translate-y-1/2 text-base text-gray-400 peer-focus:-top-2 peer-focus:text-xs peer-focus:text-green-500"
+                                } md:hidden`}
+                              >
+                                Store Number
+                              </label>
+                              {storeHistory.history.length > 0 && (
+                                <datalist id={`storeNumber-history`}>
+                                  {storeHistory.history.map((item, index) => (
+                                    <option key={index} value={item} />
+                                  ))}
+                                </datalist>
+                              )}
+                            </div>
+                          );
+                        }}
+                      />
+                      {errors.storeNumber && (
+                        <p className="mt-1 text-sm text-red-500">{errors.storeNumber.message}</p>
+                      )}
+                    </div>
+                  </>
+                )}      
+
+                {watch("showName") && (
+                  <div className="relative">
+                    <Controller
+                      name="businessName"
+                      control={control}
+                      render={({ field }) => {
+                        const businessHistory = useInputHistory('businessName');
+                        
+                        return (
+                          <div className="relative">
+                            <Input
+                              id="name"
+                              type="text"
+                              value={field.value || ""}
+                              onChange={(e) => {
+                                field.onChange(e.target.value.toUpperCase());
+                              }}
+                              onBlur={() => {
+                                if (field.value) {
+                                  businessHistory.addToHistory(field.value);
+                                }
+                              }}
+                              className={`w-full p-3 border dark:border-gray-600 border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold dark:bg-black text-white bg-white text-black peer`}
+                              placeholder=" "
+                              list={`businessName-history`}
+                            />
+                            <label 
+                              htmlFor="name" 
+                              className={`absolute left-3 transition-all pointer-events-none dark:bg-black bg-white px-1 ${
+                                field.value
+                                  ? "-top-2 text-xs text-green-500"
+                                  : "top-1/2 -translate-y-1/2 text-base text-gray-400 peer-focus:-top-2 peer-focus:text-xs peer-focus:text-green-500"
+                              } md:hidden`}
+                            >
+                              Merchant Name
+                            </label>
+                            {businessHistory.history.length > 0 && (
+                              <datalist id={`businessName-history`}>
+                                {businessHistory.history.map((item, index) => (
+                                  <option key={index} value={item} />
+                                ))}
+                              </datalist>
+                            )}
+                          </div>
+                        );
+                      }}
+                    />
+                    {errors.businessName && (
+                      <p className="mt-1 text-sm text-red-500">{errors.businessName.message}</p>
+                    )}
+                  </div>
+                )}   
+              </form>
+            </CardContent>
+          </Card>
+          {/* Customize Poster Card */}
           <Card className="relative bg-white dark:bg-[#0a0a23] border border-green-500 rounded-md px-2 sm:px-3 pt-6 pb-3 w-full">
             <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-2 sm:px-3 text-center bg-white dark:bg-[#0a0a23]">
               <p className="font-handwriting text-xl text-gray-700 dark:text-white whitespace-nowrap relative">
-                A Preview of your Poster
+                Customize your Poster
               </p>
             </div>
-            <div className="w-full flex flex-col items-center justify-center overflow-x-auto">
-              {/* Poster Container */}
-              <div className="w-full max-w-lg">
-                {/* QR Code Block */}
-                <div className="w-full flex justify-center">
-                    <div
-                    className="bg-white border-l-8 border-r-8 border-t-0 border-gray-800 flex flex-col w-full"
-                    style={{
-                        maxWidth: `${selectedTemplate.size.width}px`,
-                    }}
-                    >
-                    {/* Header Section */}
-                    <div
-                        className="w-full flex items-center justify-center py-4 px-2"
-                        style={{
-                        backgroundColor: selectedColor,
-                        borderTop: "8px solid #1a2335",
-                        minHeight: "70px",
-                        borderBottom: "8px solid #1a2335",
-                        }}
-                    >
-                        <p
-                        className="text-center font-bold text-white whitespace-nowrap w-full overflow-hidden break-words px-2"
-                        style={{
-                            fontSize: "clamp(1.25rem, 4vw, 2rem)",
-                        }}
-                        >
-                        SCAN TO PAY!
-                        </p>
-                    </div>
-
-                    {/* QR Code Section */}
-                    <div className="w-full p-3" style={{ aspectRatio: "1/1" }}>
-                        {previewQrData ? (
-                        <QrSvg
-                            value={previewQrData}
-                            className="qr-code-svg w-full h-full"
-                            fgColor="#000000"
-                        />
-                        ) : (
-                        <div className="flex items-center justify-center h-full text-gray-500">
-                            Generating QR code...
-                        </div>
-                        )}
-                    </div>
-                    </div>
+            {/* Color Picker - full width */}
+              <div className="relative border border-gray-500 rounded-md p-4 mb-4 mt-2 w-full">
+                <div className="absolute -top-3 left-4 bg-gray-600 px-2 text-sm text-white">
+                  Pick Poster Color
                 </div>
 
-                {/* Poster Grid Section */}
-                <div
-                    id="poster"
-                    ref={posterRef}
-                    className="grid bg-white w-full shadow-lg overflow-hidden border-8 border-gray-800"
-                    style={{
-                    gridTemplateRows: getGridTemplateRows(title, showName),
-                    aspectRatio: `${selectedTemplate.size.width} / ${selectedTemplate.size.height}`,
-                    height: '1200',
-                    minHeight: calculatePosterMinHeight(title, showName),
-                    }}
-                >
-                    {/* Title Section */}
-                    <div 
-                        className="flex flex-col items-center justify-center px-2" 
-                        style={{ 
-                        backgroundColor: selectedColor,
-                        minHeight: "80px",
-                        padding: "0.5rem 0"
-                        }}>
-                    <div 
-                        className="font-bold w-full py-1 text-center text-white"
-                        style={{ fontSize: "clamp(0.875rem, 3vw, 1.125rem)" }}
-                    >
-                        Transaction
-                    </div>
-                    <h2 
-                        className="font-bold text-white text-center px-2 w-full break-words"
-                        style={{ fontSize: "clamp(1.25rem, 4vw, 1.75rem)" }}
-                    >
-                        {title.toUpperCase()}
-                    </h2>
-                    </div>
-
-                    {/* Middle Sections */}
-                    {renderMiddleSections(title, selectedColor, showName)}
-
-                    {/* Optional Name Section */}
-                    {showName && (
-                    <div
-                        className="flex flex-col items-center justify-center px-2"
-                        style={{
-                        backgroundColor: getSectionColors(title, showName)[getSectionCount(title, showName) - 1],
-                        minHeight: "80px",
-                        padding: "0.5rem 0",
-                        borderTop: "8px solid #1a2335"
-                        }}
-                    >
-                        <div 
-                        className="font-bold w-full py-1 text-center"
-                        style={{ 
-                            color: getSectionColors(title, showName)[getSectionCount(title, showName) - 1] === selectedColor ? "#ffffff" : "#000000",
-                            fontSize: "clamp(0.875rem, 3vw, 1.125rem)"
-                        }}
-                        >
-                        Business Name
-                        </div>
-                        <div 
-                        className="font-bold text-center px-2 w-full break-words"
-                        style={{ 
-                            color: getSectionColors(title, showName)[getSectionCount(title, showName) - 1] === selectedColor ? "#ffffff" : "#000000",
-                            fontSize: "clamp(1rem, 4vw, 1.5rem)"
-                        }}
-                        >
-                        {businessName || "NELSON ANANGWE"}
-                        </div>
-                    </div>
-                    )}
-                </div>
-                </div>
-            </div>
-
-            {/* Share & Download Buttons */}
-            <div className="flex flex-row mt-4 w-full gap-2 items-center">
-              <div className="flex flex-row mt-4 w-full gap-2 items-center">
-                    <motion.div whileHover={{ scale: 1.03 }} className="flex-1 min-w-[120px]">
-                      <Button
+                <div className="flex flex-wrap items-end gap-x-1 gap-y-1">
+                  {/* Standard color buttons */}
+                  {colorOptions.map((color) => (
+                    <div key={color.value} className="flex flex-col items-center w-9">
+                      <button
                         type="button"
-                        onClick={handleShare}
-                        className="w-full bg-blue-600 text-white text-sm font-bold py-4 px-2 rounded-lg hover:bg-blue-700 transition-colors duration-200 disabled:opacity-50"
-                        disabled={!isValid}
+                        className={`w-8 h-8 min-w-8 min-h-8 shrink-0 rounded-full border-2 flex items-center justify-center ${
+                          selectedColor === color.value
+                            ? "border-gray-300 md:border-gray-800"
+                            : "border-transparent"
+                        } ${color.class}`}
+                        onClick={() => setValue("selectedColor", color.value)}
+                        aria-label={`Select ${color.name} color`}
                       >
-                        <HiOutlineShare className="size-5 mr-1" />
-                        <span>Share</span>
-                      </Button>
-                    </motion.div>
-                    <motion.div whileHover={{ scale: 1.03 }} className="flex-1 min-w-[120px]">
-                      <Button
-                        type="submit"
-                        className="w-full bg-gray-800 text-white text-sm font-bold py-4 px-2 rounded-lg hover:bg-gray-700 transition-colors duration-200 disabled:opacity-50"
-                        disabled={!isValid}
-                      >
-                        <HiOutlineDownload className="size-5 mr-1" />
-                        <span>Download</span>
-                      </Button>
-                    </motion.div>
+                        {selectedColor === color.value && (
+                          <CheckIcon className="h-5 w-5 text-white" />
+                        )}
+                      </button>
+                      {/* Optional empty caption space for alignment (if needed) */}
+                      <span className="invisible text-xs">.</span>
+                    </div>
+                  ))}
+
+                  {/* Custom picker + caption */}
+                  <div className="flex flex-col items-center w-9">
+                    <Controller
+                      name="selectedColor"
+                      control={control}
+                      render={({ field }) => (
+                        <div
+                          className="size-8 rounded-full border-2 border-white overflow-hidden cursor-pointer"
+                          style={{
+                            backgroundImage: `conic-gradient(
+                              red 0deg 45deg,
+                              orange 45deg 90deg,
+                              yellow 90deg 135deg,
+                              green 135deg 180deg,
+                              cyan 180deg 225deg,
+                              blue 225deg 270deg,
+                              indigo 270deg 315deg,
+                              violet 315deg 360deg
+                            )`
+                          }}
+                          onClick={() => {
+                            const input = document.createElement("input");
+                            input.type = "color";
+                            input.value = field.value;
+                            input.onchange = (e) => field.onChange((e.target as HTMLInputElement).value);
+                            input.click();
+                          }}
+                        />
+                      )}
+                    />
+                    <span className="text-xs text-gray-300 md:text-gray-500 mt-[2px]">Custom</span>
                   </div>
-            </div>
+                </div>
+              </div>
+              {/* Template selector subsection - full width */}
+                <div className="relative border border-gray-500 rounded-md p-4 mb-4 mt-2 w-full">
+                  <div className="absolute -top-3 left-4 bg-gray-600 px-2 text-sm text-white">
+                      Select a Template
+                  </div>
+                  <div className="relative w-full rounded-xl overflow-hidden">
+                      {/* Left scroll indicator */}
+                      <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-[#0a0a23] md:from-gray-100 to-transparent z-10 pointer-events-none flex items-center justify-start pl-1">
+                      <ChevronLeftIcon className="h-6 w-6 text-gray-300 md:text-gray-500 animate-pulse" />
+                      </div>
+
+                      {/* Right scroll indicator */}
+                      <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-[#0a0a23] md:from-gray-100 to-transparent z-10 pointer-events-none flex items-center justify-end pr-1">
+                      <ChevronRightIcon className="h-6 w-6 text-gray-300 md:text-gray-500 animate-pulse" />
+                      </div>
+
+                      <ScrollArea className="w-full h-[170px] rounded-lg">
+                      <div className="flex space-x-4 px-8 py-1 min-w-max flex-nowrap">
+                          {templates.map((template) => (
+                          <div
+                              key={template.slug}
+                              onClick={() => setSelectedTemplate(template)}
+                              className={`p-3 rounded-lg cursor-pointer transition-all w-[160px] h-[150px] flex flex-col ${
+                              selectedTemplate.slug === template.slug
+                                  ? "bg-gray-800 text-white ring-2 ring-green-500"
+                                  : "bg-[#1a1a3a] hover:bg-[#2a2a4a] md:bg-white md:hover:bg-gray-100 border border-gray-700 md:border-gray-200"
+                              }`}
+                          >
+                              <div className="font-medium truncate">
+                              {template.name}
+                              </div>
+                              <div className="text-xs mt-1 line-clamp-2 flex-grow text-gray-300 md:text-gray-800">
+                              {template.description}
+                              </div>
+                              <div
+                              className={`text-xs mt-1 font-semibold ${
+                                  selectedTemplate.slug === template.slug
+                                  ? "text-green-300"
+                                  : "text-green-400 md:text-green-600"
+                              }`}
+                              >
+                              {template.size.label}
+                              </div>
+                              <div
+                              className={`text-xs mt-1 ${
+                                  selectedTemplate.slug === template.slug
+                                  ? "text-gray-300"
+                                  : "text-gray-400 md:text-gray-500"
+                              }`}
+                              >
+                              {template.size.width}×{template.size.height}px
+                              </div>
+                          </div>
+                          ))}
+                      </div>
+                      <ScrollBar orientation="horizontal" />
+                      </ScrollArea>
+                  </div>
+                </div>  
           </Card>
-        </form>
+        </div>
+
+        {/* Right Column: Poster Preview */}
+        <div className="w-full md:w-1/2 flex flex-col">
+          <form onSubmit={onSubmit} className="space-y-4 w-full">
+            <Card className="relative bg-white dark:bg-[#0a0a23] border border-green-500 rounded-md px-2 sm:px-3 pt-6 pb-3 w-full">
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-2 sm:px-3 text-center bg-white dark:bg-[#0a0a23]">
+                <p className="font-handwriting text-xl text-gray-700 dark:text-white whitespace-nowrap relative">
+                  A Preview of your Poster
+                </p>
+              </div>
+              <div className="w-full flex flex-col items-center justify-center overflow-x-auto">
+                {/* Poster Container */}
+                <div className="w-full max-w-lg">
+                  {/* QR Code Block */}
+                  <div className="w-full flex justify-center">
+                      <div
+                      className="bg-white border-l-8 border-r-8 border-t-0 border-gray-800 flex flex-col w-full"
+                      style={{
+                          maxWidth: `${selectedTemplate.size.width}px`,
+                      }}
+                      >
+                      {/* Header Section */}
+                      <div
+                          className="w-full flex items-center justify-center py-4 px-2"
+                          style={{
+                          backgroundColor: selectedColor,
+                          borderTop: "8px solid #1a2335",
+                          minHeight: "70px",
+                          borderBottom: "8px solid #1a2335",
+                          }}
+                      >
+                          <p
+                          className="text-center font-bold text-white whitespace-nowrap w-full overflow-hidden break-words px-2"
+                          style={{
+                              fontSize: "clamp(1.25rem, 4vw, 2rem)",
+                          }}
+                          >
+                          SCAN TO PAY!
+                          </p>
+                      </div>
+
+                      {/* QR Code Section */}
+                      <div className="w-full p-3" style={{ aspectRatio: "1/1" }}>
+                          {previewQrData ? (
+                          <QrSvg
+                              value={previewQrData}
+                              className="qr-code-svg w-full h-full"
+                              fgColor="#000000"
+                          />
+                          ) : (
+                          <div className="flex items-center justify-center h-full text-gray-500">
+                              Generating QR code...
+                          </div>
+                          )}
+                      </div>
+                      </div>
+                  </div>
+
+                  {/* Poster Grid Section */}
+                  <div
+                      id="poster"
+                      ref={posterRef}
+                      className="grid bg-white w-full shadow-lg overflow-hidden border-8 border-gray-800"
+                      style={{
+                      gridTemplateRows: getGridTemplateRows(title, showName),
+                      aspectRatio: `${selectedTemplate.size.width} / ${selectedTemplate.size.height}`,
+                      height: '1200',
+                      minHeight: calculatePosterMinHeight(title, showName),
+                      }}
+                  >
+                      {/* Title Section */}
+                      <div 
+                          className="flex flex-col items-center justify-center px-2" 
+                          style={{ 
+                          backgroundColor: selectedColor,
+                          minHeight: "80px",
+                          padding: "0.5rem 0"
+                          }}>
+                      <div 
+                          className="font-bold w-full py-1 text-center text-white"
+                          style={{ fontSize: "clamp(0.875rem, 3vw, 1.125rem)" }}
+                      >
+                          Transaction
+                      </div>
+                      <h2 
+                          className="font-bold text-white text-center px-2 w-full break-words"
+                          style={{ fontSize: "clamp(1.25rem, 4vw, 1.75rem)" }}
+                      >
+                          {title.toUpperCase()}
+                      </h2>
+                      </div>
+
+                      {/* Middle Sections */}
+                      {renderMiddleSections(title, selectedColor, showName)}
+
+                      {/* Optional Name Section */}
+                      {showName && (
+                      <div
+                          className="flex flex-col items-center justify-center px-2"
+                          style={{
+                          backgroundColor: getSectionColors(title, showName)[getSectionCount(title, showName) - 1],
+                          minHeight: "80px",
+                          padding: "0.5rem 0",
+                          borderTop: "8px solid #1a2335"
+                          }}
+                      >
+                          <div 
+                          className="font-bold w-full py-1 text-center"
+                          style={{ 
+                              color: getSectionColors(title, showName)[getSectionCount(title, showName) - 1] === selectedColor ? "#ffffff" : "#000000",
+                              fontSize: "clamp(0.875rem, 3vw, 1.125rem)"
+                          }}
+                          >
+                          Business Name
+                          </div>
+                          <div 
+                          className="font-bold text-center px-2 w-full break-words"
+                          style={{ 
+                              color: getSectionColors(title, showName)[getSectionCount(title, showName) - 1] === selectedColor ? "#ffffff" : "#000000",
+                              fontSize: "clamp(1rem, 4vw, 1.5rem)"
+                          }}
+                          >
+                          {businessName || "NELSON ANANGWE"}
+                          </div>
+                      </div>
+                      )}
+                  </div>
+                  </div>
+              </div>
+
+              {/* Share & Download Buttons */}
+              <div className="flex flex-row mt-4 w-full gap-2 items-center">
+                <div className="flex flex-row mt-4 w-full gap-2 items-center">
+                      <motion.div whileHover={{ scale: 1.03 }} className="flex-1 min-w-[120px]">
+                        <Button
+                          type="button"
+                          onClick={handleShare}
+                          className="w-full bg-blue-600 text-white text-sm font-bold py-4 px-2 rounded-lg hover:bg-blue-700 transition-colors duration-200 disabled:opacity-50"
+                          disabled={!isValid}
+                        >
+                          <HiOutlineShare className="size-5 mr-1" />
+                          <span>Share</span>
+                        </Button>
+                      </motion.div>
+                      <motion.div whileHover={{ scale: 1.03 }} className="flex-1 min-w-[120px]">
+                        <Button
+                          type="submit"
+                          className="w-full bg-gray-800 text-white text-sm font-bold py-4 px-2 rounded-lg hover:bg-gray-700 transition-colors duration-200 disabled:opacity-50"
+                          disabled={!isValid}
+                        >
+                          <HiOutlineDownload className="size-5 mr-1" />
+                          <span>Download</span>
+                        </Button>
+                      </motion.div>
+                    </div>
+              </div>
+            </Card>
+          </form>
+        </div>
+      </div>  
       </div>
-    </div>  
-    </div>
   );
 }
-export default PosterPage
+
+export default PosterPage;
