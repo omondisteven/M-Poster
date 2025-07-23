@@ -1,6 +1,6 @@
 // firebase.ts
 import { initializeApp } from "firebase/app";
-import { enableIndexedDbPersistence, getFirestore } from "firebase/firestore";
+import { enableIndexedDbPersistence, getFirestore, FirestoreError } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCD-eSyAlOxCWtu1KgzSLyy_F9SxCUt8FM",
@@ -16,11 +16,28 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
 
-// Enable offline persistence
-  enableIndexedDbPersistence(db).catch((err) => {
-    if (err.code === 'failed-precondition') {
-      console.log('Offline persistence can only be enabled in one tab at a time.');
-    } else if (err.code === 'unimplemented') {
-      console.log('The current browser does not support offline persistence.');
+// Enable offline persistence with async/await and better error handling
+const enablePersistence = async () => {
+  try {
+    await enableIndexedDbPersistence(db);
+    console.log('Firestore persistence enabled');
+  } catch (err) {
+    if (err instanceof Error) {
+      const firestoreError = err as FirestoreError;
+      if (firestoreError.code === 'failed-precondition') {
+        console.warn('Persistence can only be enabled in one tab at a time.');
+      } else if (firestoreError.code === 'unimplemented') {
+        console.warn('The current browser does not support offline persistence.');
+      } else {
+        console.warn('Error enabling persistence:', firestoreError);
+      }
+    } else {
+      console.warn('Unknown error enabling persistence:', err);
     }
-  });
+  }
+};
+
+// Call the persistence function immediately after initialization
+enablePersistence();
+
+export { app };
