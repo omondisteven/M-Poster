@@ -22,7 +22,7 @@ self.addEventListener('install', (event) => {
   );
 });
 
-sself.addEventListener('fetch', (event) => {
+self.addEventListener('fetch', (event) => {
   // Skip requests that are not HTTP or HTTPS (like chrome-extension:, data:, etc.)
   if (!event.request.url.startsWith('http')) {
     return;
