@@ -4,15 +4,6 @@ import { doc, getDoc, setDoc } from "firebase/firestore";
 import { TRANSACTION_TYPE } from "@/@types/TransactionType";
 // import { enableIndexedDbPersistence } from "firebase/firestore";
 
-// Enable Firestore offline persistence
-// enableIndexedDbPersistence(db).catch((err) => {
-//   if (err.code === 'failed-precondition') {
-//     console.log('Offline persistence can only be enabled in one tab at a time.');
-//   } else if (err.code === 'unimplemented') {
-//     console.log('The current browser does not support offline persistence.');
-//   }
-// });
-
 interface DefaultValues {
   paybillNumber: string;
   accountNumber: string;

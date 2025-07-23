@@ -36,16 +36,19 @@ declare module '@tanstack/react-router' {
 const registerServiceWorker = async () => {
   if ('serviceWorker' in navigator) {
     try {
-      const registration = await navigator.serviceWorker.register('/sw.js');
+      // Add version query parameter to force update
+      const registration = await navigator.serviceWorker.register('/sw.js?v=' + Date.now());
       
-      // Use the registration object
       registration.addEventListener('updatefound', () => {
         const installingWorker = registration.installing;
         if (installingWorker) {
           installingWorker.addEventListener('statechange', () => {
             if (installingWorker.state === 'installed') {
               if (navigator.serviceWorker.controller) {
+                // New content available - prompt user to refresh
                 console.log('New content is available; please refresh.');
+                // Consider adding a UI prompt here
+                window.location.reload();
               } else {
                 console.log('Content is cached for offline use.');
               }
@@ -54,7 +57,17 @@ const registerServiceWorker = async () => {
         }
       });
 
-      console.log('ServiceWorker registration successful with scope: ', registration.scope);
+      // Check for updates more frequently in development
+      const updateInterval = process.env.NODE_ENV === 'development' ? 
+        5 * 60 * 1000 : // 5 minutes in development
+        60 * 60 * 1000; // 1 hour in production
+        
+      setInterval(() => {
+        registration.update().catch(err => 
+          console.log('Service worker update check failed:', err)
+        );
+      }, updateInterval);
+      
       return registration;
     } catch (error) {
       console.error('ServiceWorker registration failed: ', error);

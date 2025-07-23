@@ -19,10 +19,29 @@ self.addEventListener('install', (event) => {
       .then((cache) => {
         return cache.addAll(ASSETS_TO_CACHE);
       })
+      .then(() => self.skipWaiting()) // Force activate new SW immediately
   );
 });
 
 self.addEventListener('fetch', (event) => {
+  // Handle dynamic imports differently
+  if (event.request.url.includes('/assets/') && event.request.url.endsWith('.js')) {
+    event.respondWith(
+      fetch(event.request)
+        .then(response => {
+          // Cache the new version
+          const responseClone = response.clone();
+          caches.open(CACHE_NAME)
+            .then(cache => cache.put(event.request, responseClone));
+          return response;
+        })
+        .catch(() => {
+          // If fetch fails, try cache but don't store the result
+          return caches.match(event.request);
+        })
+    );
+    return;
+  }
   // Skip requests that are not HTTP or HTTPS (like chrome-extension:, data:, etc.)
   if (!event.request.url.startsWith('http')) {
     return;
@@ -78,16 +97,16 @@ self.addEventListener('fetch', (event) => {
 });
 
 self.addEventListener('activate', (event) => {
-  const cacheWhitelist = [CACHE_NAME];
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
-          if (cacheWhitelist.indexOf(cacheName) === -1) {
+          // Delete all caches that don't match the current version
+          if (!cacheName.startsWith('mpesa-poster-v1-')) {
             return caches.delete(cacheName);
           }
         })
       );
-    })
+    }).then(() => self.clients.claim()) // Take control of all clients
   );
 });
