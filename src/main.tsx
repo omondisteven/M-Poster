@@ -32,40 +32,75 @@ declare module '@tanstack/react-router' {
   }
 }
 
-// Render the app
-const rootElement = document.getElementById('app')
-  if (rootElement && !rootElement.innerHTML) {
-    const root = ReactDOM.createRoot(rootElement)
-    root.render(
-      <StrictMode>
-        <AppProvider>
-          <RouterProvider router={router} />
-        </AppProvider>
-        <Toaster 
-          position="top-center"
-          toastOptions={{
-            duration: 4000,
-            style: {
-              background: '#363636',
-              color: '#fff',
-            },
-          }}
-        />
-      </StrictMode>,
-    )
-    // Add this at the end of the file, before reportWebVitals()
+// Service Worker Registration
+const registerServiceWorker = async () => {
   if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/sw.js').then(
-        (registration) => {
-          console.log('ServiceWorker registration successful');
-        },
-        (err) => {
-          console.log('ServiceWorker registration failed: ', err);
+    try {
+      const registration = await navigator.serviceWorker.register('/sw.js');
+      
+      // Use the registration object
+      registration.addEventListener('updatefound', () => {
+        const installingWorker = registration.installing;
+        if (installingWorker) {
+          installingWorker.addEventListener('statechange', () => {
+            if (installingWorker.state === 'installed') {
+              if (navigator.serviceWorker.controller) {
+                console.log('New content is available; please refresh.');
+              } else {
+                console.log('Content is cached for offline use.');
+              }
+            }
+          });
         }
-      );
+      });
+
+      console.log('ServiceWorker registration successful with scope: ', registration.scope);
+      return registration;
+    } catch (error) {
+      console.error('ServiceWorker registration failed: ', error);
+      return null;
+    }
+  }
+  return null;
+};
+
+// Render the app
+const rootElement = document.getElementById('app');
+if (rootElement && !rootElement.innerHTML) {
+  const root = ReactDOM.createRoot(rootElement);
+  root.render(
+    <StrictMode>
+      <AppProvider>
+        <RouterProvider router={router} />
+      </AppProvider>
+      <Toaster 
+        position="top-center"
+        toastOptions={{
+          duration: 4000,
+          style: {
+            background: '#363636',
+            color: '#fff',
+          },
+        }}
+      />
+    </StrictMode>,
+  );
+
+  // Register service worker after render
+  if (process.env.NODE_ENV === 'production') {
+    window.addEventListener('load', () => {
+      registerServiceWorker().then(registration => {
+        if (registration) {
+          // Periodically check for updates
+          setInterval(() => {
+            registration.update().catch(err => 
+              console.log('Service worker update check failed:', err)
+            );
+          }, 60 * 60 * 1000); // Check every hour
+        }
+      });
     });
   }
 }
 
-reportWebVitals()
+reportWebVitals();
