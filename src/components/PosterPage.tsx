@@ -69,61 +69,61 @@ const formSchema = z.object({
     }
 
     // Validate based on transaction type
-    switch (data.type) {
-      case TRANSACTION_TYPE.SEND_MONEY:
-        if (!data.phoneNumber?.trim()) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: "Phone number is required",
-            path: ["phoneNumber"],
-          });
-        }
-        break;
-      
-      case TRANSACTION_TYPE.PAYBILL:
-        if (!data.paybillNumber?.trim()) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: "Paybill number is required",
-            path: ["paybillNumber"],
-          });
-        }
-        if (!data.accountNumber?.trim()) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: "Account number is required",
-            path: ["accountNumber"],
-          });
-        }
-        break;
-      
-      case TRANSACTION_TYPE.TILL_NUMBER:
-        if (!data.tillNumber?.trim()) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: "Till number is required",
-            path: ["tillNumber"],
-          });
-        }
-        break;
-      
-      case TRANSACTION_TYPE.AGENT:
-        if (!data.agentNumber?.trim()) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: "Agent number is required",
-            path: ["agentNumber"],
-          });
-        }
-        if (!data.storeNumber?.trim()) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: "Store number is required",
-            path: ["storeNumber"],
-          });
-        }
-        break;
-    }
+    // switch (data.type) {
+    //   case TRANSACTION_TYPE.SEND_MONEY:
+    //     if (!data.phoneNumber) {
+    //       ctx.addIssue({
+    //         code: z.ZodIssueCode.custom,
+    //         message: "Phone number is required",
+    //         path: ["phoneNumber"],
+    //       });
+    //     }
+    //     break;
+
+    //   case TRANSACTION_TYPE.PAYBILL:
+    //     if (!data.paybillNumber) {
+    //       ctx.addIssue({
+    //         code: z.ZodIssueCode.custom,
+    //         message: "Paybill number is required",
+    //         path: ["paybillNumber"],
+    //       });
+    //     }
+    //     if (!data.accountNumber) {
+    //       ctx.addIssue({
+    //         code: z.ZodIssueCode.custom,
+    //         message: "Account number is required",
+    //         path: ["accountNumber"],
+    //       });
+    //     }
+    //     break;
+
+    //   case TRANSACTION_TYPE.TILL_NUMBER:
+    //     if (!data.tillNumber) {
+    //       ctx.addIssue({
+    //         code: z.ZodIssueCode.custom,
+    //         message: "Till number is required",
+    //         path: ["tillNumber"],
+    //       });
+    //     }
+    //     break;
+
+    //   case TRANSACTION_TYPE.AGENT:
+    //     if (!data.agentNumber) {
+    //       ctx.addIssue({
+    //         code: z.ZodIssueCode.custom,
+    //         message: "Agent number is required",
+    //         path: ["agentNumber"],
+    //       });
+    //     }
+    //     if (!data.storeNumber) {
+    //       ctx.addIssue({
+    //         code: z.ZodIssueCode.custom,
+    //         message: "Store number is required",
+    //         path: ["storeNumber"],
+    //       });
+    //     }
+    //     break;
+    // }
   });
 
 // Define form type
@@ -2077,12 +2077,6 @@ function PosterPage() {
 
                 {/* Transaction Type Selector */}
                 <div className="relative">
-                  <label 
-                    htmlFor="type" 
-                    className={`hidden md:block text-sm font-medium dark:text-white text-gray-700 mb-1`}
-                  >
-                    Transaction Type
-                  </label>
                   <Controller
                     name="type"
                     control={control}
@@ -2114,20 +2108,20 @@ function PosterPage() {
                         }}
                         value={field.value}
                       >
-                        <SelectTrigger className={`w-full p-3 border dark:border-gray-600 border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold dark:bg-black text-white bg-white text-black peer`}>
+                        <SelectTrigger className={`w-full p-3 border dark:border-gray-600 border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold dark:bg-black dark:text-white bg-white text-black peer`}>
                           <SelectValue placeholder=" " />
                         </SelectTrigger>
                         <label 
-                          htmlFor="type" 
-                          className={`absolute left-3 transition-all pointer-events-none dark:bg-black bg-white px-1 ${
-                            field.value
-                              ? "-top-2 text-xs text-green-500"
-                              : "top-1/2 -translate-y-1/2 text-base text-gray-400 peer-focus:-top-2 peer-focus:text-xs peer-focus:text-green-500"
-                          } md:hidden`}
-                        >
-                          Transaction Type
-                        </label>
-                        <SelectContent className={`dark:bg-[#0a0a23] text-white bg-white text-black`}>                          
+                        htmlFor="type" 
+                        className={`absolute left-3 transition-all pointer-events-none dark:bg-black : "bg-white"} px-1 ${
+                          field.value
+                            ? "-top-2 text-xs text-green-500"
+                            : "top-1/2 -translate-y-1/2 text-base text-gray-400 peer-focus:-top-2 peer-focus:text-xs peer-focus:text-green-500"
+                        }`}
+                      >
+                        Transaction Type
+                      </label>
+                        <SelectContent className={`dark:bg-[#0a0a23] text-white bg-white text-gray-400`}>                          
                           <SelectItem value={TRANSACTION_TYPE.PAYBILL}>Pay Bill</SelectItem>
                           <SelectItem value={TRANSACTION_TYPE.TILL_NUMBER}>Buy Goods</SelectItem>
                           <SelectItem value={TRANSACTION_TYPE.AGENT}>Withdraw Money</SelectItem>
@@ -2165,20 +2159,20 @@ function PosterPage() {
                                   phoneHistory.addToHistory(field.value);
                                 }
                               }}
-                              className={`w-full p-3 border dark:border-gray-600 border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold dark:bg-black text-white bg-white text-black peer`}
+                              className={`w-full p-3 border dark:border-gray-600 border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold dark:bg-black dark:text-white bg-white text-black peer`}
                               placeholder=" "
                               list={`phoneNumber-history`}
                             />
                             <label 
-                              htmlFor="phone" 
-                              className={`absolute left-3 transition-all pointer-events-none dark:bg-black bg-white px-1 ${
-                                field.value
-                                  ? "-top-2 text-xs text-green-500"
-                                  : "top-1/2 -translate-y-1/2 text-base text-gray-400 peer-focus:-top-2 peer-focus:text-xs peer-focus:text-green-500"
-                              } md:hidden`}
-                            >
-                              Phone Number
-                            </label>
+                            htmlFor="phone" 
+                            className={`absolute left-3 transition-all pointer-events-none dark:bg-black : "bg-white"} px-1 ${
+                              field.value
+                                ? "-top-2 text-xs text-green-500"
+                                : "top-1/2 -translate-y-1/2 text-base text-gray-400 peer-focus:-top-2 peer-focus:text-xs peer-focus:text-green-500"
+                            }`}
+                          >
+                            Phone Number
+                          </label>
                             {phoneHistory.history.length > 0 && (
                               <datalist id={`phoneNumber-history`}>
                                 {phoneHistory.history.map((item, index) => (
@@ -2222,17 +2216,17 @@ function PosterPage() {
                                     paybillHistory.addToHistory(field.value);
                                   }
                                 }}
-                                className={`w-full p-3 border dark:border-gray-600 border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold dark:bg-black text-white bg-white text-black peer`}
+                                className={`w-full p-3 border dark:border-gray-600 border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold dark:bg-black dark:text-white bg-white text-black peer`}
                                 placeholder=" "
                                 list={`paybillNumber-history`}
                               />
                               <label 
                                 htmlFor="paybillNumber" 
-                                className={`absolute left-3 transition-all pointer-events-none dark:bg-black bg-white px-1 ${
+                                className={`absolute left-3 transition-all pointer-events-none dark:bg-black : "bg-white"} px-1 ${
                                   field.value
                                     ? "-top-2 text-xs text-green-500"
                                     : "top-1/2 -translate-y-1/2 text-base text-gray-400 peer-focus:-top-2 peer-focus:text-xs peer-focus:text-green-500"
-                                } md:hidden`}
+                                }`}
                               >
                                 Business Number
                               </label>
@@ -2270,7 +2264,7 @@ function PosterPage() {
                                     accountHistory.addToHistory(field.value);
                                   }
                                 }}
-                                className={`w-full p-3 border dark:border-gray-600 border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold dark:bg-black text-white bg-white text-black peer`}
+                                className={`w-full p-3 border dark:border-gray-600 border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold dark:bg-black dark:text-white bg-white text-black peer`}
                                 placeholder=" "
                                 list={`accountNumber-history`}
                               />
@@ -2280,7 +2274,7 @@ function PosterPage() {
                                   field.value
                                     ? "-top-2 text-xs text-green-500"
                                     : "top-1/2 -translate-y-1/2 text-base text-gray-400 peer-focus:-top-2 peer-focus:text-xs peer-focus:text-green-500"
-                                } md:hidden`}
+                                }`}
                               >
                                 Account Number
                               </label>
@@ -2327,7 +2321,7 @@ function PosterPage() {
                                   tillHistory.addToHistory(field.value);
                                 }
                               }}
-                              className={`w-full p-3 border dark:border-gray-600 border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold dark:bg-black text-white bg-white text-black peer`}
+                              className={`w-full p-3 border dark:border-gray-600 border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold dark:bg-black dark:text-white bg-white text-black peer`}
                               placeholder=" "
                               list={`tillNumber-history`}
                             />
@@ -2337,7 +2331,7 @@ function PosterPage() {
                                 field.value
                                   ? "-top-2 text-xs text-green-500"
                                   : "top-1/2 -translate-y-1/2 text-base text-gray-400 peer-focus:-top-2 peer-focus:text-xs peer-focus:text-green-500"
-                              } md:hidden`}
+                              }`}
                             >
                               Till Number
                             </label>
@@ -2384,7 +2378,7 @@ function PosterPage() {
                                     agentHistory.addToHistory(field.value);
                                   }
                                 }}
-                                className={`w-full p-3 border dark:border-gray-600 border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold dark:bg-black text-white bg-white text-black peer`}
+                                className={`w-full p-3 border dark:border-gray-600 border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold dark:bg-black dark:text-white bg-white text-black peer`}
                                 placeholder=" "
                                 list={`agentNumber-history`}
                               />
@@ -2394,7 +2388,7 @@ function PosterPage() {
                                   field.value
                                     ? "-top-2 text-xs text-green-500"
                                     : "top-1/2 -translate-y-1/2 text-base text-gray-400 peer-focus:-top-2 peer-focus:text-xs peer-focus:text-green-500"
-                                } md:hidden`}
+                                }`}
                               >
                                 Agent Number
                               </label>
@@ -2432,7 +2426,7 @@ function PosterPage() {
                                     storeHistory.addToHistory(field.value);
                                   }
                                 }}
-                                className={`w-full p-3 border dark:border-gray-600 border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold dark:bg-black text-white bg-white text-black peer`}
+                                className={`w-full p-3 border dark:border-gray-600 border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold dark:bg-black dark:text-white bg-white text-black peer`}
                                 placeholder=" "
                                 list={`storeNumber-history`}
                               />
@@ -2442,7 +2436,7 @@ function PosterPage() {
                                   field.value
                                     ? "-top-2 text-xs text-green-500"
                                     : "top-1/2 -translate-y-1/2 text-base text-gray-400 peer-focus:-top-2 peer-focus:text-xs peer-focus:text-green-500"
-                                } md:hidden`}
+                                }`}
                               >
                                 Store Number
                               </label>
@@ -2486,7 +2480,7 @@ function PosterPage() {
                                   businessHistory.addToHistory(field.value);
                                 }
                               }}
-                              className={`w-full p-3 border dark:border-gray-600 border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold dark:bg-black text-white bg-white text-black peer`}
+                              className={`w-full p-3 border dark:border-gray-600 border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none text-lg font-semibold dark:bg-black dark:text-white bg-white text-black peer`}
                               placeholder=" "
                               list={`businessName-history`}
                             />
@@ -2496,7 +2490,7 @@ function PosterPage() {
                                 field.value
                                   ? "-top-2 text-xs text-green-500"
                                   : "top-1/2 -translate-y-1/2 text-base text-gray-400 peer-focus:-top-2 peer-focus:text-xs peer-focus:text-green-500"
-                              } md:hidden`}
+                              }`}
                             >
                               Merchant Name
                             </label>
