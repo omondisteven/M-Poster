@@ -212,184 +212,186 @@ export default function BusinessProfile() {
   );
 
   return (
-    <div className={`p-2 md:p-4 flex flex-col lg:flex-row gap-2 md:gap-8 w-full max-w-[100vw] overflow-x-hidden dark:bg-[#0a0a23] text-white`}>
+    <div
+      className={`p-4 flex flex-col lg:flex-row gap-4 md:gap-8 w-full max-w-[100vw] overflow-x-hidden
+      dark:bg-[#0a0a23] text-white : "bg-gray-50 text-gray-900"}`}>
       {/* Left Section: Form */}
       <div className="w-full lg:w-[70%] min-w-0">
-        <h2 className="text-xl font-bold pb-4 md:pb-8 text-gray-900 dark:text-white">
+        <h2 className="text-xl font-bold pb-8 text-gray-900 dark:text-white">
           E-Business Card
         </h2>
 
-        <Card className="relative bg-white dark:bg-[#0a0a23] border border-gray-300 dark:border-green-500 rounded-md px-3 md:px-4 pt-6 md:pt-8 pb-3 md:pb-4">
-          <div className="absolute -top-3 left-1/2 -translate-x-1/2 flex items-center w-full justify-center">
-            <div className="flex items-center w-full px-3 md:px-4">
-              <span className="px-2 md:px-3 bg-white dark:bg-[#0a0a23] text-gray-700 dark:text-gray-300 font-semibold text-sm md:text-base">
+        <Card className="relative bg-white dark:bg-[#0a0a23] border border-gray-300 dark:border-green-500 rounded-md px-4 pt-8 pb-4">
+          <div className="absolute -top-4 left-1/2 -translate-x-1/2 flex items-center w-full justify-center">
+            <div className="flex items-center w-full px-4">
+              <span className="px-3 bg-white dark:bg-[#0a0a23] text-gray-700 dark:text-gray-300 font-semibold">
                 Select to fill in Contact Details
               </span>
             </div>
           </div>
           <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid gap-4">
-                  {activeFields.map((field) => (
-                  <div key={field.id} className="flex flex-col relative">
-                      <div className="flex justify-between items-center">
-                      <label
-                          htmlFor={field.id}
-                          className={`font-medium ${
-                          field.required
-                              ? "text-red-600"
-                              : "text-gray-300 dark: text-gray-800"
-                          }`}
+            <div className="grid gap-4">
+              {activeFields.map((field) => (
+                <div key={field.id} className="flex flex-col relative">
+                  <div className="flex justify-between items-center">
+                    <label
+                      htmlFor={field.id}
+                      className={`font-medium ${
+                        field.required
+                          ? "text-red-600"
+                          : "text-gray-300 dark: text-gray-800"
+                      }`}
+                    >
+                      {field.label}
+                      {field.required && " *"}
+                    </label>
+                    {/* Remove Field Button */}
+                    {field.id !== "name" && (
+                      <button
+                        type="button"
+                        onClick={() => removeField(field.id)}
+                        className="text-gray-400 hover:text-red-500 p-1"
                       >
-                          {field.label}
-                          {field.required && " *"}
-                      </label>
-                      {/* Remove Field Button */}
-                      {field.id !== "name" && (
-                          <button
-                          type="button"
-                          onClick={() => removeField(field.id)}
-                          className="text-gray-400 hover:text-red-500 p-1"
-                          >
-                          <X className={`w-4 h-4 dark:text-gray-300 : "text-gray-600"}`} />
-                          </button>
-                      )}
-                      </div>
-                      {/* Input or Textarea */}
-                      {["comment", "promo1", "promo2"].includes(field.id) ? (
-                      <textarea
-                          id={field.id}
-                          ref={(el) => {
+                        <X className={`w-4 h-4 dark:text-gray-300 : "text-gray-600"}`} />
+                      </button>
+                    )}
+                  </div>
+                  {/* Input or Textarea */}
+                  {["comment", "promo1", "promo2"].includes(field.id) ? (
+                    <textarea
+                      id={field.id}
+                      ref={(el) => {
+                        inputRefs.current[field.id] = el;
+                      }}
+                      placeholder={field.placeholder}
+                      className={`p-2 rounded border focus:ring-2 focus:ring-green-500
+                      bg-[#0a0a23] text-white border-gray-600 : "bg-white text-black border-gray-300"}`}
+                      required={field.required}
+                    />
+                  ) : (
+                    <>
+                      <input
+                        id={field.id}
+                        ref={(el) => {
                           inputRefs.current[field.id] = el;
-                          }}
-                          placeholder={field.placeholder}
-                          className={`p-2 rounded border focus:ring-2 focus:ring-green-500
-                          bg-[#0a0a23] text-white border-gray-600 : "bg-white text-black border-gray-300"}`}
-                          required={field.required}
+                        }}
+                        type="text"
+                        inputMode={
+                          ["phone", "whatsappnumber"].includes(field.id) ? "numeric" : "text"
+                        }
+                        pattern={
+                          ["phone", "whatsappnumber"].includes(field.id) ? "[0-9\\- ]*" : undefined
+                        }
+                        placeholder={field.placeholder}
+                        className={`p-2 rounded border focus:ring-2 focus:ring-green-500
+                        dark:bg-[#0a0a23] text-white border-gray-600 : "bg-white text-black border-gray-300"}`}
+                        required={field.required}
+                        list={`recent-${field.id}`}
                       />
-                      ) : (
-                      <>
-                          <input
-                          id={field.id}
-                          ref={(el) => {
-                              inputRefs.current[field.id] = el;
-                          }}
-                          type="text"
-                          inputMode={
-                              ["phone", "whatsappnumber"].includes(field.id) ? "numeric" : "text"
-                          }
-                          pattern={
-                              ["phone", "whatsappnumber"].includes(field.id) ? "[0-9\\- ]*" : undefined
-                          }
-                          placeholder={field.placeholder}
-                          className={`p-2 rounded border focus:ring-2 focus:ring-green-500
-                          dark:bg-[#0a0a23] text-white border-gray-600 : "bg-white text-black border-gray-300"}`}
-                          required={field.required}
-                          list={`recent-${field.id}`}
-                          />
-                          <datalist id={`recent-${field.id}`}>
-                          {getRecentEntries(field.id).map((entry, idx) => (
-                              <option key={idx} value={entry} />
-                          ))}
-                          </datalist>
-                      </>
-                      )}
-                  </div>
-                  ))}
-              </div>
-              {/* Mobile layout - Reset and Add Fields buttons */}
-              <div className="md:hidden flex flex-col space-y-4">
-                  <div className="flex gap-2">
-                  {availableFields.length > 0 && (
-                      <Button
-                      type="button"
-                      onClick={() => setShowFieldDropdown(!showFieldDropdown)}
-                      className={`flex-1 ${
-                          "bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-500 text-white hover:bg-blue-600"
-                  }`}
-                  >
-                      +Add Fields
-                      </Button>
+                      <datalist id={`recent-${field.id}`}>
+                        {getRecentEntries(field.id).map((entry, idx) => (
+                          <option key={idx} value={entry} />
+                        ))}
+                      </datalist>
+                    </>
                   )}
-                  <Button 
-                      type="button"
-                      onClick={resetForm}
-                      className={`flex-1 ${
-                      "bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-500 text-white hover:bg-blue-600"
-                  }`}
-                  >
-                      --Reset
+                </div>
+              ))}
+            </div>
+            {/* Mobile layout - Reset and Add Fields buttons */}
+            <div className="md:hidden flex flex-col space-y-4">
+              <div className="flex gap-2">
+                {availableFields.length > 0 && (
+                  <Button
+                    type="button"
+                    onClick={() => setShowFieldDropdown(!showFieldDropdown)}
+                    className={`flex-1 ${
+                     "bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-500 text-white hover:bg-blue-600"
+                }`}
+              >
+                    +Add Fields
                   </Button>
-                  </div>
-                  <hr className="border-t border-gray-300" />
-                  <Button 
-                  type="submit"
-                  className={`flex-1 ${
-                      "bg-green-700 text-white hover:bg-green-800 dark:bg-green-600 text-white hover:bg-green-700"
-                  }`}
-                  >
-                  Create Contact Card
-                  </Button>
-              </div>
-
-              {/* Desktop layout - All buttons in one line */}
-              <div className="hidden md:flex gap-2">
-                  <Button 
+                )}
+                <Button 
                   type="button"
                   onClick={resetForm}
-                  className="flex-1 bg-blue-500 text-white hover:bg-blue-600"
-                  >
+                  className={`flex-1 ${
+                  "bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-500 text-white hover:bg-blue-600"
+                }`}
+                >
                   --Reset
-                  </Button>
-                  {availableFields.length > 0 && (
-                  <Button
-                      type="button"
-                      onClick={() => setShowFieldDropdown(!showFieldDropdown)}
-                      className="flex-1 bg-blue-500 text-white hover:bg-blue-600"
-                  >
-                      +Add Fields
-                  </Button>
-                  )}
-                  <Button 
-                  type="submit"
-                  className="flex-1 bg-green-600 hover:bg-green-700 text-white"
-                  >
-                  Create Contact Card
-                  </Button>
+                </Button>
               </div>
+              <hr className="border-t border-gray-300" />
+              <Button 
+                type="submit"
+                className={`flex-1 ${
+                    "bg-green-700 text-white hover:bg-green-800 dark:bg-green-600 text-white hover:bg-green-700"
+                }`}
+              >
+                Create Contact Card
+              </Button>
+            </div>
 
-              {showFieldDropdown && (
-                  <div className="absolute z-10 mt-1 w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded shadow-lg">
-                  {availableFields.map(field => (
-                      <button
-                      key={field.id}
-                      type="button"
-                      onClick={() => addField(field.id)}
-                      className="block w-full text-left px-4 py-2 text-gray-800 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700"
-                      >
-                      {field.label}
-                      </button>
-                  ))}
-                  </div>
+            {/* Desktop layout - All buttons in one line */}
+            <div className="hidden md:flex gap-2">
+              <Button 
+                type="button"
+                onClick={resetForm}
+                className="flex-1 bg-blue-500 text-white hover:bg-blue-600"
+              >
+                --Reset
+              </Button>
+              {availableFields.length > 0 && (
+                <Button
+                  type="button"
+                  onClick={() => setShowFieldDropdown(!showFieldDropdown)}
+                  className="flex-1 bg-blue-500 text-white hover:bg-blue-600"
+                >
+                  +Add Fields
+                </Button>
               )}
+              <Button 
+                type="submit"
+                className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+              >
+                Create Contact Card
+              </Button>
+            </div>
+
+            {showFieldDropdown && (
+              <div className="absolute z-10 mt-1 w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded shadow-lg">
+                {availableFields.map(field => (
+                  <button
+                    key={field.id}
+                    type="button"
+                    onClick={() => addField(field.id)}
+                    className="block w-full text-left px-4 py-2 text-gray-800 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700"
+                  >
+                    {field.label}
+                  </button>
+                ))}
+              </div>
+            )}
           </form>
         </Card>
       </div>      
       
       {/* Right side - Qr/Contact */}
-      <div className="w-full lg:w-[30%] min-w-0" ref={qrSectionRef}>
-        <Card className="relative rounded-md px-2 md:px-4 pt-4 md:pt-6 pb-2 md:pb-4 bg-white dark:bg-[#0a0a23] border border-gray-300 dark:border-green-500">
-          <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 md:px-4 text-center bg-white dark:bg-[#0a0a23] relative">
-            <span className="font-semibold text-sm md:text-base text-gray-700 dark:text-gray-300 relative">
+      <div className="lg:w-[30%]" ref={qrSectionRef}>
+        <Card className="relative rounded-md px-4 pt-8 pb-4 bg-white dark:bg-[#0a0a23] border border-gray-300 dark:border-green-500">
+          <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 text-center bg-white dark:bg-[#0a0a23] relative">
+            <span className="font-semibold text-gray-700 dark:text-gray-300 relative">
               E-Business Card Preview
             </span>
           </div>
-          <div className="p-2 md:p-3 rounded-lg border-4 shadow-md bg-gray-100 dark:bg-black border-gray-300 dark:border-[#2f363d] w-full">
+          <div className="p-4 rounded-lg border-4 shadow-md bg-gray-100 dark:bg-black border-gray-300 dark:border-[#2f363d]">
             {formData ? (
               <>
                 <div 
                   ref={qrRef} 
-                  className="flex justify-center mb-2 md:mb-3 w-full p-2 md:p-3 bg-white"
-                >
+                  className="flex justify-center mb-4 w-full p-4 bg-white"
+                  >
                   <a href={window.location.href} className="w-full">
                     <QRCode 
                       value={JSON.stringify(formData)} 
@@ -400,15 +402,15 @@ export default function BusinessProfile() {
                   </a>
                 </div>
 
-                <hr className="border-t border-gray-300 my-1 md:my-2" />
+                <hr className="border-t border-gray-300 my-2" />
 
-                <div className="space-y-1 md:space-y-2">
-                  <div className="text-center mb-2 md:mb-3">
-                    <h1 className="text-xl md:text-2xl font-bold dark:text-white text-[#2f363d] hover:text-[#170370] transition-colors">
+                <div className="space-y-2">
+                  <div className="text-center mb-4">
+                    <h1 className={`text-2xl font-bold dark:text-white : "text-[#2f363d]"} hover:text-[#170370] transition-colors`}>
                       {formData.name}
                     </h1>
                     {formData.title && (
-                      <h2 className="text-base md:text-lg dark:text-gray-300 text-gray-700 hover:text-[#170370] transition-colors">
+                      <h2 className={`text-lg dark:text-gray-300 : "text-gray-700"} hover:text-[#170370] transition-colors`}>
                         {formData.title}
                       </h2>
                     )}
@@ -416,134 +418,152 @@ export default function BusinessProfile() {
 
                   {/* Phone */}
                   {formData.phone && (
-                    <div className="group pl-2 border-l-4 border-gray-500 hover:border-l-8 hover:border-[#170370] hover:bg-[rgba(23,3,112,0.05)] transition-all">
-                      <div className="text-xs uppercase font-bold dark:text-gray-300 text-gray-500 group-hover:text-[#170370] transition-colors pl-2">
-                        Telephone
+                    <>
+                      <div className="h-[1px] bg-gray-200 mx-2 my-1"></div>
+                      <div className="group pl-2 border-l-4 border-gray-500 hover:border-l-8 hover:border-[#170370] hover:bg-[rgba(23,3,112,0.05)] transition-all">
+                        <div className={`text-xs uppercase font-bold text-gray-300 : "text-gray-500"} group-hover:text-[#170370] transition-colors pl-2`}>
+                          Telephone
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <p className={`dark:text-white : "text-black"} group-hover:text-[#170370] transition-colors pl-2 py-1`}>
+                            {formData.phone}
+                          </p>
+                          <a href={`tel:${formData.phone}`} className="p-2 hover:scale-125 transition-transform">
+                            <Phone className={`w-5 h-5 dark:text-blue-300 : "text-black"}`} />
+                          </a>
+                        </div>
                       </div>
-                      <div className="flex justify-between items-center">
-                        <p className="dark:text-white text-black group-hover:text-[#170370] transition-colors pl-2 py-1">
-                          {formData.phone}
-                        </p>
-                        <a href={`tel:${formData.phone}`} className="p-1 md:p-2 hover:scale-125 transition-transform">
-                          <Phone className="w-4 h-4 md:w-5 md:h-5 dark:text-blue-300 text-black" />
-                        </a>
-                      </div>
-                    </div>
+                    </>
                   )}
 
                   {/* Email */}
                   {formData.email && (
-                    <div className="group pl-2 border-l-4 border-gray-500 hover:border-l-8 hover:border-[#170370] hover:bg-[rgba(23,3,112,0.05)] transition-all">
-                      <div className="text-xs uppercase font-bold dark:text-gray-300 text-gray-500 group-hover:text-[#170370] transition-colors pl-2">
-                        Email
+                    <>
+                      <div className="h-[1px] bg-gray-200 mx-2 my-1 group-hover:bg-[rgba(23,3,112,0.2)]"></div>
+                      <div className="group pl-2 border-l-4 border-gray-500 hover:border-l-8 hover:border-[#170370] hover:bg-[rgba(23,3,112,0.05)] transition-all">
+                        <div className={`text-xs uppercase font-bold dark:text-gray-300 : "text-gray-500"} group-hover:text-[#170370] transition-colors pl-2`}>
+                          Email
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <p className={`dark:text-white : "text-black"} group-hover:text-[#170370] transition-colors pl-2 py-1`}>
+                            {formData.email}
+                          </p>
+                          <a href={`mailto:${formData.email}`} className="p-2 hover:scale-125 transition-transform">
+                            <Mail className={`w-5 h-5 dark:text-blue-300 : "text-black"}`} />
+                          </a>
+                        </div>
                       </div>
-                      <div className="flex justify-between items-center">
-                        <p className="dark:text-white text-black group-hover:text-[#170370] transition-colors pl-2 py-1">
-                          {formData.email}
-                        </p>
-                        <a href={`mailto:${formData.email}`} className="p-1 md:p-2 hover:scale-125 transition-transform">
-                          <Mail className="w-4 h-4 md:w-5 md:h-5 dark:text-blue-300 text-black" />
-                        </a>
-                      </div>
-                    </div>
+                    </>
                   )}
 
                   {/* Address */}
                   {formData.address && (
-                    <div className="group pl-2 border-l-4 border-gray-500 hover:border-l-8 hover:border-[#170370] hover:bg-[rgba(23,3,112,0.05)] transition-all">
-                      <div className="text-xs uppercase font-bold dark:text-gray-300 text-gray-500 group-hover:text-[#170370] transition-colors pl-2">
-                        Address
+                    <>
+                      <div className="h-[1px] bg-gray-200 mx-2 my-1"></div>
+                      <div className="group pl-2 border-l-4 border-gray-500 hover:border-l-8 hover:border-[#170370] hover:bg-[rgba(23,3,112,0.05)] transition-all">
+                        <div className={`text-xs uppercase font-bold dark:text-gray-300 : "text-gray-500"} group-hover:text-[#170370] transition-colors pl-2`}>
+                          Address
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <p className={`dark:text-white : "text-black"} group-hover:text-[#170370] transition-colors pl-2 py-1`}>
+                            {formData.address}
+                          </p>
+                          <a 
+                            href={`https://www.openstreetmap.org/search?query=${encodeURIComponent(formData.address)}`} 
+                            target="_blank" 
+                            className="p-2 hover:scale-125 transition-transform"
+                          >
+                            <MapPin className={`w-5 h-5 dark:text-blue-300 : "text-black"}`} />
+                          </a>
+                        </div>
                       </div>
-                      <div className="flex justify-between items-center">
-                        <p className="dark:text-white text-black group-hover:text-[#170370] transition-colors pl-2 py-1">
-                          {formData.address}
-                        </p>
-                        <a 
-                          href={`https://www.openstreetmap.org/search?query=${encodeURIComponent(formData.address)}`} 
-                          target="_blank" 
-                          className="p-1 md:p-2 hover:scale-125 transition-transform"
-                        >
-                          <MapPin className="w-4 h-4 md:w-5 md:h-5 dark:text-blue-300 text-black" />
-                        </a>
-                      </div>
-                    </div>
+                    </>
                   )}
 
                   {/* Website */}
                   {formData.website && (
-                    <div className="group pl-2 border-l-4 border-gray-500 hover:border-l-8 hover:border-[#170370] hover:bg-[rgba(23,3,112,0.05)] transition-all">
-                      <div className="text-xs uppercase font-bold dark:text-gray-300 text-gray-500 group-hover:text-[#170370] transition-colors pl-2">
-                        Website
+                    <>
+                      <div className="h-[1px] bg-gray-200 mx-2 my-1"></div>
+                      <div className="group pl-2 border-l-4 border-gray-500 hover:border-l-8 hover:border-[#170370] hover:bg-[rgba(23,3,112,0.05)] transition-all">
+                        <div className={`text-xs uppercase font-bold dark:text-gray-300 : "text-gray-500"} group-hover:text-[#170370] transition-colors pl-2`}>
+                          Website
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <p className={`dark:text-white : "text-black"} group-hover:text-[#170370] transition-colors pl-2 py-1`}>
+                            {formData.website}
+                          </p>
+                          <a href={formData.website} target="_blank" className="p-2 hover:scale-125 transition-transform">
+                            <Globe className={`w-5 h-5 dark:text-blue-300 : "text-black"}`} />
+                          </a>
+                        </div>
                       </div>
-                      <div className="flex justify-between items-center">
-                        <p className="dark:text-white text-black group-hover:text-[#170370] transition-colors pl-2 py-1">
-                          {formData.website}
-                        </p>
-                        <a href={formData.website} target="_blank" className="p-1 md:p-2 hover:scale-125 transition-transform">
-                          <Globe className="w-4 h-4 md:w-5 md:h-5 dark:text-blue-300 text-black" />
-                        </a>
-                      </div>
-                    </div>
+                    </>
                   )}
 
                   {/* WhatsApp */}
                   {formData.whatsappnumber && (
-                    <div className="group pl-2 border-l-4 border-gray-500 hover:border-l-8 hover:border-[#170370] hover:bg-[rgba(23,3,112,0.05)] transition-all">
-                      <div className="text-xs uppercase font-bold dark:text-gray-300 text-gray-500 group-hover:text-[#170370] transition-colors pl-2">
-                        WhatsApp
+                    <>
+                      <div className="h-[1px] bg-gray-200 mx-2 my-1"></div>
+                      <div className="group pl-2 border-l-4 border-gray-500 hover:border-l-8 hover:border-[#170370] hover:bg-[rgba(23,3,112,0.05)] transition-all">
+                        <div className={`text-xs uppercase font-bold dark:text-gray-300 : "text-gray-500"} group-hover:text-[#170370] transition-colors pl-2`}>
+                          WhatsApp
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <p className={`dark:text-white : "text-black"} group-hover:text-[#170370] transition-colors pl-2 py-1`}>
+                            {formData.whatsappnumber}
+                          </p>
+                          <a 
+                            href="#" 
+                            onClick={(e) => handleWhatsAppClick(formData.whatsappnumber!, e)}
+                            className="p-2 hover:scale-125 transition-transform"
+                          >
+                            <FaWhatsapp className={`w-4 h-4 mr-1 dark:text-blue-300 : "text-green-500"}`} />
+                          </a>
+                        </div>
                       </div>
-                      <div className="flex justify-between items-center">
-                        <p className="dark:text-white text-black group-hover:text-[#170370] transition-colors pl-2 py-1">
-                          {formData.whatsappnumber}
-                        </p>
-                        <a 
-                          href="#" 
-                          onClick={(e) => handleWhatsAppClick(formData.whatsappnumber!, e)}
-                          className="p-1 md:p-2 hover:scale-125 transition-transform"
-                        >
-                          <FaWhatsapp className="w-4 h-4 dark:text-blue-300 text-green-500" />
-                        </a>
-                      </div>
-                    </div>
+                    </>
                   )}
 
                   {/* Comment */}
                   {formData.comment && (
-                    <div className="group pl-2 border-l-4 border-gray-500 hover:border-l-8 hover:border-[#170370] hover:bg-[rgba(23,3,112,0.05)] transition-all">
-                      <div className="text-xs uppercase font-bold dark:text-gray-300 text-gray-500 group-hover:text-[#170370] transition-colors pl-2">
-                        Description
+                    <>
+                      <div className="h-[1px] bg-gray-200 mx-2 my-1"></div>
+                      <div className="group pl-2 border-l-4 border-gray-500 hover:border-l-8 hover:border-[#170370] hover:bg-[rgba(23,3,112,0.05)] transition-all">
+                        <div className={`text-xs uppercase font-bold dark:text-gray-300 : "text-gray-500"} group-hover:text-[#170370] transition-colors pl-2`}>
+                          Description
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <p className={`dark:text-white : "text-black"} group-hover:text-[#170370] transition-colors pl-2 py-1`}>
+                            {formData.comment}
+                          </p>
+                        </div>
                       </div>
-                      <div className="flex justify-between items-center">
-                        <p className="dark:text-white text-black group-hover:text-[#170370] transition-colors pl-2 py-1">
-                          {formData.comment}
-                        </p>
-                      </div>
-                    </div>
+                    </>
                   )}
                 </div>
 
-                <hr className="border-t border-gray-300 my-2 md:my-3" />
+                <hr className="border-t border-gray-300 my-4" />
 
-                <div className="flex justify-end gap-1 md:gap-2">                
+                <div className="flex justify-end gap-2">                
                   {'share' in navigator && typeof navigator.share === 'function' ? (
                     <Button 
                       variant="ghost" 
                       size="sm" 
                       onClick={shareQR}
-                      className="p-1 md:p-2 hover:bg-gray-100"
+                      className="p-2 hover:bg-gray-100"
                       title="Share Contact"
                     >
-                      <Share2 className="w-4 h-4 md:w-5 md:h-5 dark:text-blue-300 text-black" />
+                      <Share2 className={`w-5 h-5 dark:text-blue-300 : "text-black"}`} />
                     </Button>
                   ) : (
                     <Button 
                       variant="ghost" 
                       size="sm" 
                       onClick={copyLink}
-                      className="p-1 md:p-2 hover:bg-gray-100"
+                      className="p-2 hover:bg-gray-100"
                       title="Copy Link"
                     >
-                      <Copy className="w-4 h-4 md:w-5 md:h-5 dark:text-blue-300 text-black" />
+                      <Copy className={`w-5 h-5 dark:text-blue-300 : "text-black"}`} />
                     </Button>
                   )}
                   
@@ -551,16 +571,16 @@ export default function BusinessProfile() {
                     variant="ghost" 
                     size="sm" 
                     onClick={downloadVCard}
-                    className="p-1 md:p-2 bg-red-500 text-white hover:bg-red-600"
+                    className="p-2 bg-red-500 text-white hover:bg-red-600"
                     title="Download Contact"
                   >
-                    <Download className="w-4 h-4 md:w-5 md:h-5" />
+                    <Download className="w-5 h-5" />
                   </Button>
                 </div>
               </>
             ) : (
-              <div className="flex flex-col items-center justify-center p-4 md:p-6 text-center dark:text-gray-300 text-gray-500">
-                <div className="mb-3 w-full p-3">
+              <div className={`flex flex-col items-center justify-center p-8 text-center dark:text-gray-300 : "text-gray-500"}`}>
+                <div className="mb-4 w-full p-4">
                   <QRCode 
                     value="placeholder" 
                     size={256}
@@ -569,10 +589,10 @@ export default function BusinessProfile() {
                     fgColor="#e5e7eb"
                   />
                 </div>
-                <p className="text-base md:text-lg font-medium">
+                <p className="text-lg font-medium">
                   Your Contact Card and QR code will appear here...
                 </p>
-                <p className="text-xs md:text-sm mt-1 md:mt-2">
+                <p className="text-sm mt-2">
                   Fill out the form and click "Create Contact Card" to generate your personalized QR code.
                 </p>
               </div>
@@ -582,20 +602,20 @@ export default function BusinessProfile() {
         
         {/* Download/Share QR Buttons */}
         {formData && (
-          <div className="flex gap-1 md:gap-2 justify-center mt-2 md:mt-3">
+          <div className="flex gap-2 justify-center mt-4">
             <Button 
               onClick={downloadQR}
               disabled={!formData}
-              className="bg-green-600 hover:bg-green-700 text-white text-sm md:text-base p-1 md:p-2"
+              className="bg-green-600 hover:bg-green-700 text-white"
             >
-              <Download className="w-3 h-3 md:w-4 md:h-4 mr-1" />
+              <Download className="w-4 h-4 mr-1" />
               Download QR
             </Button>
             <Button 
               onClick={shareQR} 
-              className="bg-red-600 hover:bg-gray-800 text-white text-sm md:text-base p-1 md:p-2"
+              className="bg-red-600 hover:bg-gray-800 text-white"
             >
-              <Share2 className="w-3 h-3 md:w-4 md:h-4 mr-1" />
+              <Share2 className="w-4 h-4 mr-1" />
               Share QR
             </Button>
           </div>
