@@ -10,9 +10,14 @@
       ]
     }
   ],
-
-    "rewrites": [
-      { "source": "/((?!.*\\.(js|css|png|jpg|svg|ico|woff|ttf|eot)).*)", "destination": "/index.html"}
-    ]
-  }
-  
+  "rewrites": [
+    {
+      "source": "/(poster|settings|business-profile)",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/(poster|settings|business-profile)/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
