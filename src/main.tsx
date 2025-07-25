@@ -19,33 +19,35 @@ if (savedDarkMode) {
 // Create a new router instance
 const router = createRouter({
   routeTree,
-  context: {}, // You can add your context types here if needed
+  context: {},
   defaultPreload: 'intent',
   scrollRestoration: true,
   defaultStructuralSharing: true,
 })
 
-// Register the router instance for type safety
 declare module '@tanstack/react-router' {
   interface Register {
     router: typeof router
   }
 }
 
-// Track if we've shown the update toast
 let updateToastShown = false;
 const UPDATE_TOAST_ID = 'sw-update-toast';
 
-// Service Worker Registration
 const registerServiceWorker = async () => {
   if ('serviceWorker' in navigator) {
     try {
       const registration = await navigator.serviceWorker.register('/sw.js', {
-        updateViaCache: 'none' // Important for fresh updates
+        updateViaCache: 'none'
       });
 
-      // Track the registration for updates
+      // Track updates
       trackUpdates(registration);
+      
+      // Check if page is loaded when offline
+      if (!navigator.onLine) {
+        console.log('App loaded in offline mode');
+      }
       
       return registration;
     } catch (error) {
@@ -56,53 +58,31 @@ const registerServiceWorker = async () => {
   return null;
 };
 
-// Function to handle update tracking
 const trackUpdates = (registration: ServiceWorkerRegistration) => {
   // Handle updates found during registration
   registration.addEventListener('updatefound', () => {
     const installingWorker = registration.installing;
     if (installingWorker) {
       installingWorker.addEventListener('statechange', () => {
-        if (installingWorker.state === 'installed') {
+        if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
           handleWorkerUpdate();
         }
       });
     }
   });
 
-  // Also check periodically for updates
-  const updateInterval = process.env.NODE_ENV === 'development' ? 
-    5 * 60 * 1000 : // 5 minutes in development
-    5 * 60 * 1000; // 5 minutes in production
-
-  const updateCheck = () => {
+  // Check for updates every 5 minutes
+  setInterval(() => {
     registration.update().catch(err => {
       console.log('Service worker update check failed:', err);
     });
-  };
-
-  // Initial check after 30 seconds (give time for initial load)
-  setTimeout(updateCheck, 30000);
-  
-  // Then check periodically
-  setInterval(updateCheck, updateInterval);
+  }, 5 * 60 * 1000);
 };
 
-// Handle worker update notification
 const handleWorkerUpdate = () => {
-  if (!navigator.serviceWorker.controller) {
-    // Initial installation, not an update
-    console.log('Content is cached for offline use.');
-    return;
-  }
-
-  // Only show the toast once
   if (updateToastShown) return;
   updateToastShown = true;
 
-  console.log('New content is available; please refresh.');
-
-  // Show toast with refresh action
   toast(
     (t) => (
       <div className="flex flex-col gap-2">
@@ -128,7 +108,7 @@ const handleWorkerUpdate = () => {
     ),
     {
       id: UPDATE_TOAST_ID,
-      duration: Infinity, // Stay until dismissed
+      duration: Infinity,
       position: 'top-center',
       style: {
         background: '#363636',
@@ -161,15 +141,13 @@ if (rootElement && !rootElement.innerHTML) {
   );
 
   // Register service worker after render
-  if (process.env.NODE_ENV === 'production') {
-    window.addEventListener('load', () => {
-      registerServiceWorker().then(registration => {
-        if (registration && process.env.NODE_ENV === 'development') {
-          console.log('ServiceWorker registration successful with scope:', registration.scope);
-        }
-      });
+  window.addEventListener('load', () => {
+    registerServiceWorker().then(registration => {
+      if (registration && process.env.NODE_ENV === 'development') {
+        console.log('ServiceWorker registration successful with scope:', registration.scope);
+      }
     });
-  }
+  });
 }
 
 reportWebVitals();
