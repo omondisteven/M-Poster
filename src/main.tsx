@@ -73,7 +73,7 @@ const trackUpdates = (registration: ServiceWorkerRegistration) => {
   // Also check periodically for updates
   const updateInterval = process.env.NODE_ENV === 'development' ? 
     5 * 60 * 1000 : // 5 minutes in development
-    30 * 60 * 1000; // 30 minutes in production
+    5 * 60 * 1000; // 5 minutes in production
 
   const updateCheck = () => {
     registration.update().catch(err => {

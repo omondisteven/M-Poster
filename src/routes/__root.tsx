@@ -5,7 +5,7 @@ import Header from "@/components/header";
 import { Outlet, Link, useRouterState } from "@tanstack/react-router";
 import { createRootRoute } from "@tanstack/react-router";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { TanStackRouterDevtools } from "@tanstack/router-devtools";
+import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { useEffect, useState } from "react";
 import { ImageIcon, ContactIcon, SettingsIcon } from "lucide-react";
 import { useAppContext } from "@/context/AppContext";
