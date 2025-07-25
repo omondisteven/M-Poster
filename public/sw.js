@@ -45,6 +45,20 @@ self.addEventListener('fetch', (event) => {
     );
     return;
   }
+  // For navigation requests, serve from cache first
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      caches.match(event.request)
+        .then((cachedResponse) => {
+          // Always return the cached version if available
+          if (cachedResponse) return cachedResponse;
+          
+          // Fallback to network if not in cache
+          return fetch(event.request);
+        })
+    );
+    return;
+  }
 
   // Cache-first strategy for all other requests
   event.respondWith(

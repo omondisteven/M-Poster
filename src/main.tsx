@@ -34,10 +34,12 @@ declare module '@tanstack/react-router' {
 let updateToastShown = false;
 const UPDATE_TOAST_ID = 'sw-update-toast';
 
+let registration: ServiceWorkerRegistration | null = null;
+
 const registerServiceWorker = async () => {
   if ('serviceWorker' in navigator) {
     try {
-      const registration = await navigator.serviceWorker.register('/sw.js', {
+      registration = await navigator.serviceWorker.register('/sw.js', {
         updateViaCache: 'none'
       });
 
@@ -48,6 +50,9 @@ const registerServiceWorker = async () => {
       if (!navigator.onLine) {
         console.log('App loaded in offline mode');
       }
+
+      // Only check for updates when the app gains focus
+        window.addEventListener('focus', checkForUpdates);
       
       return registration;
     } catch (error) {
@@ -57,6 +62,34 @@ const registerServiceWorker = async () => {
   }
   return null;
 };
+
+const checkForUpdates = () => {
+  if (registration) {
+    registration.update().catch(err => {
+      console.log('Service worker update check failed:', err);
+    });
+  }
+};
+
+// Add a manual refresh button handler
+  export const manualCheckForUpdates = () => {
+    if (registration) {
+      toast.promise(
+        registration.update(),
+        {
+          loading: 'Checking for updates...',
+          success: () => {
+            const installingWorker = registration?.installing;
+            if (installingWorker) {
+              return 'Update found! It will be applied when you refresh.';
+            }
+            return 'You are using the latest version!';
+          },
+          error: 'Failed to check for updates',
+        }
+      );
+    }
+  };
 
 const trackUpdates = (registration: ServiceWorkerRegistration) => {
   // Handle updates found during registration
@@ -83,39 +116,42 @@ const handleWorkerUpdate = () => {
   if (updateToastShown) return;
   updateToastShown = true;
 
-  toast(
-    (t) => (
-      <div className="flex flex-col gap-2">
-        <span>A new version is available, refresh your browser!</span>
-        <div className="flex gap-2 justify-end">
-          <button 
-            onClick={() => {
-              toast.dismiss(t.id);
-              window.location.reload();
-            }}
-            className="px-3 py-1 bg-green-600 text-white rounded"
-          >
-            Refresh
-          </button>
-          <button 
-            onClick={() => toast.dismiss(t.id)}
-            className="px-3 py-1 bg-gray-600 text-white rounded"
-          >
-            Later
-          </button>
+  // Only show if the app is focused
+  if (document.hasFocus()) {
+    toast(
+      (t) => (
+        <div className="flex flex-col gap-2">
+          <span>A new version is available</span>
+          <div className="flex gap-2 justify-end">
+            <button 
+              onClick={() => {
+                toast.dismiss(t.id);
+                window.location.reload();
+              }}
+              className="px-3 py-1 bg-green-600 text-white rounded"
+            >
+              Refresh Now
+            </button>
+            <button 
+              onClick={() => toast.dismiss(t.id)}
+              className="px-3 py-1 bg-gray-600 text-white rounded"
+            >
+              Later
+            </button>
+          </div>
         </div>
-      </div>
-    ),
-    {
-      id: UPDATE_TOAST_ID,
-      duration: Infinity,
-      position: 'top-center',
-      style: {
-        background: '#363636',
-        color: '#fff',
-      },
-    }
-  );
+      ),
+      {
+        id: UPDATE_TOAST_ID,
+        duration: 10000, // Show for 10 seconds only
+        position: 'top-center',
+        style: {
+          background: '#363636',
+          color: '#fff',
+        },
+      }
+    );
+  }
 };
 
 // Render the app
