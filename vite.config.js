@@ -2,9 +2,8 @@
 import { defineConfig } from "vite";
 import viteReact from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
-
+import react from '@vitejs/plugin-react'
 import { TanStackRouterVite } from "@tanstack/router-plugin/vite";
-import { resolve } from "node:path";
 import path from 'path';
 // import react from '@vitejs/plugin-react';
 
@@ -28,6 +27,16 @@ export default defineConfig({
     include: [
       '@tanstack/react-router-devtools'
     ],
+  },
+  server: {
+    historyApiFallback: true,
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: undefined,
+      },
+    },
   },
 })
 

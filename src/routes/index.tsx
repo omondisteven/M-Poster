@@ -2,9 +2,14 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/")({
+  component: () => null, // Empty component
   loader: () => {
-    throw redirect({
-      to: "/poster",
-    });
+    // Redirect to /poster if no path is specified
+    if (window.location.pathname === "/") {
+      throw redirect({
+        to: "/poster",
+        replace: true
+      });
+    }
   },
 });
